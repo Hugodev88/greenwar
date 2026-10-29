@@ -21,12 +21,47 @@ Jogo de estratégia e história interativa sobre o Brasil, inspirado em Hearts o
 - **Finais múltiplos.**
 
 ## Como jogar
-Basta abrir o arquivo `index.html` no navegador (Chrome, Edge, Firefox ou o navegador do celular). Não precisa instalar nada nem ter internet. O progresso fica salvo no `localStorage` do navegador.
+Jogue online em **https://hugodev88.github.io/greenwar/** ou abra o arquivo `index.html` no navegador (Chrome, Edge, Firefox ou o navegador do celular). Não precisa instalar nada, ter internet nem criar conta: o progresso fica salvo no `localStorage` do navegador.
+
+Com uma conta (botão **👤 Entrar**, opcional), os saves e os finais também vão para a nuvem e você ganha um perfil público. Veja [Contas e saves na nuvem](#contas-e-saves-na-nuvem-supabase). Aberto como arquivo local (`file://`), o jogo roda sem a parte de contas.
 
 Se preferir um servidor local:
 ```bash
 npx serve .        # ou: python3 -m http.server 8000
 ```
+
+## Contas e saves na nuvem (Supabase)
+O login é **opcional**. Sem conta, offline ou se o Supabase estiver fora do ar, o jogo continua igual, com os saves no `localStorage`.
+
+**O que existe:**
+- cadastro e login por e-mail e senha, link mágico, "Esqueci a senha" e troca de senha;
+- botão do Google pronto, mas escondido (`FEATURES.googleLogin` em `config.js`);
+- perfil com nome de exibição, `@usuário`, emblema (ícones embutidos ou iniciais, sem upload) e bio;
+- estatísticas: campanhas iniciadas e finais desbloqueados por cenário;
+- aba **Jogadores**, com o ranking por finais e os perfis públicos;
+- saves na nuvem (um por cenário), enviados ao "Encerrar mês", ao chegar num final e ao começar uma campanha;
+- ao entrar, o jogo junta os saves deste aparelho com os da nuvem. Se os dois forem diferentes, ele pergunta qual manter e mostra qual é o mais recente. Os finais são unidos nos dois sentidos.
+
+**Arquivos:**
+- `config.js`: URL do projeto e a *publishable key* (pública por design; quem protege os dados é o RLS);
+- `cloud.js`: módulo carregado pelo `index.html`;
+- `supabase/migrations/001_init.sql`: tabelas, RLS e gatilhos.
+
+### Configurar o projeto Supabase (uma vez)
+1. **Rodar o SQL:** no painel do Supabase, abra **SQL Editor → New query**, cole todo o [`supabase/migrations/001_init.sql`](supabase/migrations/001_init.sql) e clique em **Run**. Pode rodar de novo sem problema (o script é idempotente). Ele cria `profiles` e `saves`, as políticas RLS, o gatilho que cria o perfil no cadastro e o perfil das contas que já existirem.
+2. **URLs de redirecionamento:** em **Authentication → URL Configuration**:
+   - em **Site URL**, coloque `https://hugodev88.github.io/greenwar/`;
+   - em **Redirect URLs**, adicione `https://hugodev88.github.io/greenwar/` (e, para testes locais, `http://localhost:8000/`).
+
+   Os links de confirmação, o link mágico e a recuperação de senha voltam para esse endereço.
+3. **Opcional, para testar mais rápido:** em **Authentication → Sign In / Providers → Email**, desligue **Confirm email**. Assim a conta entra direto, sem o e-mail de confirmação. Religue antes de divulgar o jogo.
+4. **Opcional, Google:** ative o provedor em **Authentication → Sign In / Providers → Google** (precisa de um Client ID/Secret do Google Cloud) e mude `googleLogin: true` em `config.js`.
+
+**Qual chave vai no `config.js`?** A **Publishable key** (`sb_publishable_…`), em **Project Settings → API Keys**. A antiga chave "anon public" também funciona. **Nunca** use a *secret key* (`sb_secret_…`), a `service_role` nem a senha do banco no front-end.
+
+O e-mail padrão do Supabase tem limite baixo de envios por hora. Para muitos jogadores, configure um SMTP próprio em **Authentication → Emails → SMTP Settings**.
+
+Para testar localmente com contas, sirva a pasta por HTTP (`python3 -m http.server 8000`) em vez de abrir o arquivo direto.
 
 ## Validação e simulação (Node.js 18 ou mais novo)
 ```bash
@@ -46,4 +81,4 @@ O jogo é um site estático, então qualquer hospedagem estática serve:
 - **Cloudflare Pages:** use *Create → Pages → Connect to Git*, sem framework, sem comando de build, com a pasta de saída `/`.
 
 ## Para quem vai desenvolver
-Leia o [`CONTEXTO.md`](CONTEXTO.md): arquitetura, regras de conteúdo e próximos passos (login, perfis, saves na nuvem).
+Leia o [`CONTEXTO.md`](CONTEXTO.md): arquitetura, regras de conteúdo, a camada de nuvem e os próximos passos.

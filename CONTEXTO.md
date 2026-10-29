@@ -43,7 +43,7 @@ As linhas são aproximadas; procure pelos marcadores.
 | `/*SCENARIOS_START*/ … /*SCENARIOS_END*/` | ~346–2016 | Todos os dados: `STORY_ITAVERA`, `STORY_1964`, `STORY_2022`; `CAMPAIGN_ITAVERA`, `CAMPAIGN_1964`, `CAMPAIGN_2022`; `CAMPAIGN_2022.focus` (a árvore); e a lista **`const SCENARIOS = [...]`** |
 | `/*MAP_START*/ … /*MAP_END*/` | ~2017 | `MAP_DATA`: SVG paths dos 27 estados, gerado por `tools/build-map.js` |
 | `/*CORE_START*/ … /*CORE_END*/` | ~2022–2734 | Lógica pura, sem DOM: `SAVE_VERSION`, `cond()`, `applyFx()`, `newCampaign()`, ações, diplomacia (`dealScore`), eventos, focos (`focusStatus`, `startFocus`, `focusTick`, `completeFocus`, `focusStoryGrant`), `endTurn()` |
-| depois do CORE | ~2735–fim | UI: `UI` (estado da interface), `loadInfo` (carregar e migrar save), `renderTitle` (menu de cenários), `renderGame` (abas), `tabDecisoes` (árvore), `openHelp` etc. |
+| depois do CORE | ~2735–fim | UI: ponte `cloud()` e `window.GWGame` (no fim), além de `UI` (estado da interface), `loadInfo` (carregar e migrar save), `renderTitle` (menu de cenários), `renderGame` (abas), `tabDecisoes` (árvore), `openHelp` etc. |
 
 **Os marcadores são usados por `check.js` e `sim.js`,** que extraem esses trechos e executam em Node. Não os remova. Mantenha o CORE livre de DOM.
 
@@ -69,6 +69,35 @@ As linhas são aproximadas; procure pelos marcadores.
   - `jogo_br_save_brasil1964` e `jogo_br_endings_brasil1964`;
   - `jogo_br_save_brasil2022` e `jogo_br_endings_brasil2022`;
   - `jogo_br_ultimo_cenario` e `jogo_br_tutorial_v2`.
+- Cada `save()` grava `G.savedAt = Date.now()`, usado para dizer qual save é mais recente na mesclagem com a nuvem.
+
+### Camada de nuvem (Supabase): `config.js`, `cloud.js` e `supabase/migrations/001_init.sql`
+- **Opcional e isolada.** `index.html` carrega `<script type="module" src="cloud.js">` no fim. Se o módulo ou a biblioteca não carregarem (offline, `file://`, CDN bloqueada), nada quebra e os saves seguem no `localStorage`.
+- **Biblioteca:** `cloud.js` importa `@supabase/supabase-js@2` (versão fixa) do jsDelivr, com o esm.sh como alternativa.
+- **`config.js`:** `SUPABASE_URL`, `SUPABASE_KEY` (a *publishable key*, pública por design) e `FEATURES.googleLogin` (o botão do Google fica escondido até o provedor ser ativado). Nunca coloque ali a secret key ou a service_role.
+- **Ponte jogo → nuvem:** no `index.html`, `cloud("syncSave", id)`, `cloud("syncEndings", id)`, `cloud("campaignStarted", id)` e `cloud("deleteSave", id)` chamam `window.GWCloud.*` se ele existir e não fazem nada se não existir. Os pontos de chamada:
+  - `startNew` dispara `campaignStarted` e `syncSave`;
+  - "Encerrar mês" e `renderEnding` disparam `syncSave`;
+  - `addEnding`, quando o final é novo, dispara `syncEndings`;
+  - "Recomeçar" dispara `deleteSave`.
+- **Ponte nuvem → jogo:** `window.GWGame` expõe:
+  - `scenarios()` (com ids, chaves do localStorage e lista de finais);
+  - `saveVersion`, `monthLabel`, `current()`;
+  - `refresh(ids)`, que volta à tela de título ou ao menu se a nuvem trocou o save do cenário aberto.
+- **Tabelas** (rodar o SQL no SQL Editor; o arquivo é idempotente):
+  - `profiles(id → auth.users, username único ^[a-z0-9_]{3,20}$, display_name ≤40, avatar (id de emblema ou 'iniciais'), bio ≤280, campaigns_played, campaigns_by_scenario jsonb, endings jsonb {cenário: [ids]}, endings_count calculado por gatilho, created_at, updated_at)`;
+  - `saves(user_id, scenario_id, slot 0–9, data jsonb, save_version, created_at, updated_at, PK(user_id, scenario_id, slot))`. Hoje o jogo usa só o `slot = 0`.
+- **RLS:**
+  - perfis: leitura pública (`anon` e `authenticated`); insert e update só do dono;
+  - saves: leitura e escrita só do dono.
+  - O gatilho `on_auth_user_created` (`handle_new_user`, security definer, que nunca bloqueia o cadastro) cria o perfil com o `username` e o `display_name` dos metadados do cadastro.
+- **Mesclagem ao entrar** (uma vez por usuário por carregamento):
+  - save só na nuvem, com o mesmo `save_version`: é baixado;
+  - save só local: é enviado;
+  - os dois diferentes: aparece um modal por cenário, com mês, turno, data e o selo "mais recente";
+  - finais: união nos dois sentidos.
+  - Saves da nuvem com outra `save_version` são ignorados. Se `SAVE_VERSION` mudar, pense também nos saves da nuvem.
+- **Sem tabelas:** se o SQL ainda não foi rodado, a API devolve `PGRST205`. Nesse caso `cloud.js` mantém o login, avisa no perfil que o servidor não foi configurado e não tenta sincronizar.
 
 ## 5. Árvore de decisões nacionais (2022)
 Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 focos em 7 ramos, com 11 pares exclusivos.
@@ -121,19 +150,22 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 
 - As IAs da simulação são heurísticas.
 - No desktop o tooltip dos nós é o `title` nativo do navegador.
 - Tudo num arquivo só fica difícil de manter conforme cresce.
-- Os saves ficam só no navegador (sem nuvem).
+- **Nuvem:**
+  - as estatísticas e os finais do perfil são gravados pelo cliente, então dá para forjá-los (o ranking é "de confiança");
+  - há um só slot de save por cenário;
+  - o conflito de saves é decidido pelo relógio de cada aparelho;
+  - sem internet não há login (o jogo funciona, mas não sincroniza);
+  - aberto por `file://`, não há parte de nuvem;
+  - o SMTP padrão do Supabase limita os e-mails por hora.
 
 ## 9. Roadmap (próximos passos)
 1. **Modernizar o visual** (tipografia, menu, transições), mantendo o estilo "dossiê histórico".
 2. **Hospedar:** GitHub Pages, Netlify ou Cloudflare Pages (site estático; veja o README).
-3. **Login e perfis de jogador:**
-   - **Supabase** (Auth + Postgres + Row Level Security) ou **Firebase** (Auth + Firestore). A chave pública (anon) pode ficar no front; nunca coloque a service key no repositório.
-   - Tabelas sugeridas:
-     - `profiles(id = auth.uid, apelido, avatar, criado_em)`;
-     - `saves(user_id, cenario, versao, dados jsonb, atualizado_em)`, com RLS "só o dono";
-     - `finais(user_id, cenario, final, data)` para conquistas.
-   - **Saves na nuvem:** manter o `localStorage` como cache offline e sincronizar ao logar, resolvendo conflito por `atualizado_em` e perguntando ao jogador.
-   - Perfil público opcional: finais descobertos, cenários jogados.
+3. ~~Login e perfis de jogador~~ **feito** (Supabase; veja "Camada de nuvem"). Próximas ideias:
+   - validar estatísticas e finais no servidor (função RPC ou Edge Function);
+   - vários slots de save;
+   - login com Google (ligar o provedor e `FEATURES.googleLogin`);
+   - SMTP próprio.
 4. **Separar o arquivo único num projeto Vite** quando entrar a autenticação:
    - `src/data/` (um arquivo por cenário: `story2022.js`, `campaign2022.js`, `focus2022.js`), `src/core/` (lógica pura, testável), `src/ui/` e `src/styles/`;
    - adaptar `check.js` e `sim.js` para importar os módulos em vez de recortar os marcadores;

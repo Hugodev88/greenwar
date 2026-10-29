@@ -325,10 +325,11 @@
       <button class="btn-sm" id="btnMenu" title="Escolher outro cenário">☰ Cenários</button>
       <button class="btn-sm" id="btnHelp" title="Como jogar">? Ajuda</button>
       <button class="btn-sm" id="btnRestart" title="Recomeçar do início">↺ Recomeçar</button>
+      <button class="btn-sm acct-btn" id="btnAcct" title="Conta, perfil e saves na nuvem" hidden>👤 Entrar</button>
     </div>
   </header>
   <div id="app"></div>
-  <footer>Obra de ficção / história alternativa. Não representa fatos nem endosso. Progresso salvo automaticamente neste navegador, separado por cenário. Funciona offline.</footer>
+  <footer>Obra de ficção / história alternativa. Não representa fatos nem endosso. Progresso salvo automaticamente neste navegador, separado por cenário. Funciona offline e sem conta; com login, os saves e finais também vão para a nuvem.</footer>
 </div>
 
 <script>
@@ -2745,7 +2746,9 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
 const sgn = v => (v > 0 ? "+" : "") + v;
 
 /* ---------- Saves (versão 2, com migração de saves antigos) ---------- */
-function save(){ if (!G) return; try{ localStorage.setItem(SCEN.saveKey, JSON.stringify(G)); }catch(e){} }
+function save(){ if (!G) return; G.savedAt = Date.now(); try{ localStorage.setItem(SCEN.saveKey, JSON.stringify(G)); }catch(e){} }
+// Ponte opcional para a camada de nuvem (cloud.js). Sem login, offline ou aberto como arquivo local, não faz nada.
+function cloud(fn, ...args){ try{ if (window.GWCloud && typeof window.GWCloud[fn] === "function") window.GWCloud[fn](...args); }catch(e){ console.warn("nuvem:", e); } }
 function loadInfo(sc){
   sc = sc || SCEN;
   let raw = null; try{ raw = localStorage.getItem(sc.saveKey); }catch(e){}
@@ -2757,7 +2760,7 @@ function loadInfo(sc){
   return { save: null, legacy: true };
 }
 function getEndings(sc){ try{ return JSON.parse(localStorage.getItem((sc||SCEN).endingsKey)) || []; }catch(e){ return []; } }
-function addEnding(id){ const e = getEndings(); if (!e.includes(id)){ e.push(id); try{ localStorage.setItem(SCEN.endingsKey, JSON.stringify(e)); }catch(_){} } }
+function addEnding(id){ const e = getEndings(); if (!e.includes(id)){ e.push(id); try{ localStorage.setItem(SCEN.endingsKey, JSON.stringify(e)); }catch(_){} cloud("syncEndings", SCEN.id); } }
 
 /* ---------- Mapa ---------- */
 function changeNote(c){
@@ -2884,7 +2887,7 @@ function startNew(){
   UI.selFocus = null; UI.fscroll = null;
   G = newCampaign(SCEN);
   Object.assign(UI, { tab: "historia", selUF: null, selActor: null, req: [], off: [], dealMsg: null });
-  save(); renderGame();
+  save(); renderGame(); cloud("campaignStarted", SCEN.id); cloud("syncSave", SCEN.id);
   let seen = null; try{ seen = localStorage.getItem(TUTORIAL_KEY); }catch(e){}
   if (!seen){ openHelp(); try{ localStorage.setItem(TUTORIAL_KEY, "1"); }catch(e){} }
 }
@@ -2929,7 +2932,7 @@ function renderGame(){
   document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { UI.tab = b.dataset.tab; renderGame(); });
   $("#btnEnd").onclick = () => {
     if (!endTurn(G)) return;
-    UI.tab = "historia"; UI.dealMsg = null; save(); renderGame(); window.scrollTo({ top: 0 });
+    UI.tab = "historia"; UI.dealMsg = null; save(); cloud("syncSave", SCEN.id); renderGame(); window.scrollTo({ top: 0 });
   };
   ({ historia: tabHistoria, decisoes: tabDecisoes, mapa: tabMapa, diplomacia: tabDiplomacia, faccoes: tabFaccoes, acoes: tabAcoes })[UI.tab]($("#tabBody"), nextStory);
 }
@@ -3197,7 +3200,7 @@ function tabDecisoes(el){
 
 function renderEnding(){
   const node = STORY.nodes[G.ended.node];
-  addEnding(G.ended.node);
+  addEnding(G.ended.node); cloud("syncSave", SCEN.id);
   const found = getEndings().length, total = Object.values(STORY.nodes).filter(n => n.ending).length;
   const months = G.month - G.startMonth;
   $("#app").innerHTML = `<div class="layout single"><div class="card ending">
@@ -3243,11 +3246,25 @@ $("#btnHelp").onclick = openHelp;
 $("#btnRestart").onclick = () => {
   if (confirm("Recomeçar a campanha do início? O progresso atual será perdido.")){
     try{ localStorage.removeItem(SCEN.saveKey); }catch(e){}
+    cloud("deleteSave", SCEN.id);
     G = null; renderTitle();
+  }
+};
+// Ponte de leitura para cloud.js (módulo separado; o jogo funciona sem ele)
+window.GWGame = {
+  scenarios: () => SCENARIOS.filter(sc => !sc.soon).map(sc => ({ id: sc.id, year: sc.year, title: sc.title, saveKey: sc.saveKey, endingsKey: sc.endingsKey,
+    endings: Object.entries(sc.story.nodes).filter(([, n]) => n.ending).map(([id, n]) => ({ id, name: n.endingName })) })),
+  saveVersion: SAVE_VERSION,
+  monthLabel: m => monthLabel(m),
+  current: () => ({ scenario: SCEN ? SCEN.id : null, inGame: !!G }),
+  refresh(changed){ // atualiza a tela depois de baixar dados da nuvem
+    if (G && SCEN && changed && changed.includes(SCEN.id)){ G = null; renderTitle(); return; }
+    if (!G){ if (SCEN) renderTitle(); else renderMenu(); }
   }
 };
 renderMenu();
 
 </script>
+<script type="module" src="cloud.js"></script>
 </body>
 </html>
