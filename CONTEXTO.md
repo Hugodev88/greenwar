@@ -33,6 +33,11 @@ Detalhes de 2022:
   - Você monta um acordo (pedidos × ofertas) e `dealScore` calcula a aceitação.
   - Cada fase pode ter as próprias ofertas e pedidos (`phase.diplo`).
 - **Eventos aleatórios:** os da campanha (`C.events`) e os genéricos (`GENERIC_EVENTS`), com condições (`if`), peso e escolhas.
+  - `ev(id, título, texto|[textos], escolhas, { if, weight, once, cooldown, crisisOf, chained })`. Em 2022: 69 eventos (56 sorteáveis, 4 desdobramentos, 9 crises de facção). Os 46 de out/2026 têm id `n_*`.
+  - **Desdobramentos (encadeados):** uma escolha com `fx.chain: { id, in: meses }` (ou uma lista) grava `{ id, due }` em `g.chains`. O evento alvo tem `chained: true`, nunca é sorteado (`pickRandomEvent` o ignora) e aparece com o rótulo "Desdobramento" quando `due` chega e o `if` dele vale. Se não couber em 6 meses depois do prazo, ele se perde.
+  - **Prioridade no Encerrar mês:** história > crise de facção > dependência > desdobramento vencido > sorteio. No máximo 1 evento sorteado/desdobramento por turno.
+  - **Chance de sorteio:** `C.eventChance` (padrão 0,45; 2022 usa 0,5). Com `C.eventPaceBoost` (só 2022), turnos de 3 meses usam `1 − (1 − chance)²` (0,75), para a fase de oposição não ficar sem eventos.
+  - **Chaves de efeito de evento:** `EVENT_FX_KEYS` = `FOCUS_FX_KEYS` + `front` (avança/recua o progresso das UFs em disputa, ±), `org` (moral dos seus exércitos), `enemyLoss` (tira força dos maiores exércitos inimigos), `chain`. O `fxSummary` mostra "Frentes", "Moral dos seus exércitos", "Força inimiga" e "Pode ter desdobramentos".
 - **Mapa interativo:** controle por UF e agitação (`unrest`), ações por estado e estados disputados. Os modos de visualização são controle e agitação. Camadas militares: frentes, setas, contadores de exército e pulsos de batalha.
 - **Exércitos (sistema militar, desde a v3 do save):** veja a seção 3.1. A guerra **não usa PA**.
 - **Árvore de decisões nacionais** (só 2022, estilo foco nacional do HoI4): veja a seção 5.
@@ -81,7 +86,7 @@ As linhas são aproximadas; procure pelos marcadores.
 - **Efeitos (`applyFx`):** `s` (atributos), `money`, `reserve` (+10 de força militar por ponto), `fac`, `infl`, `unrest`, `unrestAll`, `unrestUF`, `act`, `actAll`, `enemy`, `flag`, `map`, `ap`, `ceasefire`, `malus {v, months}`.
 
 ### Saves e localStorage
-- `SAVE_VERSION = 4` (4: `battleLog` e `mobPool`; 3: exércitos). Saves v3 ganham `battleLog` (das batalhas do último mês) e `mobPool = 0`. Saves **v2** são migrados em `loadInfo` por `migrateSave` (CORE): `reserve` e `u.force` viram exércitos (10 de força por unidade), as forças inimigas ficam como guarnições/milícias, e aparece um aviso no menu (`milMigrated`). Saves de versão desconhecida ou formato antigo são arquivados em `<saveKey>_legacy`, e o jogador vê um aviso.
+- `SAVE_VERSION = 5` (5: `chains`, os desdobramentos agendados; 4: `battleLog` e `mobPool`; 3: exércitos). Saves v4 ganham `chains = []`. Saves v3 ganham `battleLog` (das batalhas do último mês) e `mobPool = 0`. Saves **v2** são migrados em `loadInfo` por `migrateSave` (CORE): `reserve` e `u.force` viram exércitos (10 de força por unidade), as forças inimigas ficam como guarnições/milícias, e aparece um aviso no menu (`milMigrated`). Saves de versão desconhecida ou formato antigo são arquivados em `<saveKey>_legacy`, e o jogador vê um aviso.
 - Saves de 2022 sem `g.focus` (anteriores à árvore) são **migrados** em `loadInfo`: `focusInit` aplica as concessões da história já vividas e marca `focusMigrated`, e aparece um aviso no menu.
 - **Se mudar o formato do save, aumente a versão ou escreva uma migração em `loadInfo`.**
 - Chaves do localStorage:
@@ -116,7 +121,7 @@ As linhas são aproximadas; procure pelos marcadores.
   - save só local: é enviado;
   - os dois diferentes: aparece um modal por cenário, com mês, turno, data e o selo "mais recente";
   - finais: união nos dois sentidos.
-  - Saves da nuvem com `save_version` entre `GWGame.minSaveVersion` (2) e `SAVE_VERSION` (4) são aceitos; um v2/v3 baixado é migrado pelo jogo ao abrir e reenviado como v4 no próximo save. Versões fora dessa faixa são ignoradas. Se `SAVE_VERSION` mudar, pense também nos saves da nuvem.
+  - Saves da nuvem com `save_version` entre `GWGame.minSaveVersion` (2) e `SAVE_VERSION` (5) são aceitos; um v2/v3/v4 baixado é migrado pelo jogo ao abrir e reenviado como v5 no próximo save. Versões fora dessa faixa são ignoradas. Se `SAVE_VERSION` mudar, pense também nos saves da nuvem.
 - **Cenários removidos/bloqueados na nuvem:** saves e finais de `itavera` (1924) e `brasil1964` continuam no banco (nada é apagado) e são ignorados. O perfil, as estatísticas e o ranking mostram totais **só dos cenários jogáveis** (`playTotals` em `cloud.js`, calculado de `endings`/`campaigns_by_scenario`); os campos `endings_count`/`campaigns_played` do banco ainda somam tudo, então o ranking busca os 300 primeiros por `endings_count` e reordena no cliente.
 - **Sem tabelas:** se o SQL ainda não foi rodado, a API devolve `PGRST205`. Nesse caso `cloud.js` mantém o login, avisa no perfil que o servidor não foi configurado e não tenta sincronizar.
 
@@ -147,14 +152,16 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 
   - `excl` simétrico, sem ciclos, raiz única;
   - todo foco alcançável por algum caminho;
   - chaves de efeito válidas e flags `fo_*` válidas;
-  - sistema militar: `ADJ` simétrico, 27 UFs, conexo e conferido com a geometria do mapa; terreno completo; `C.army` de cada cenário; ações de recrutamento com `ap: 0`; migração de 50 saves v2 e 30 saves v3 sintéticos e um teste de `fight()` + `battleReport()`.
+  - sistema militar: `ADJ` simétrico, 27 UFs, conexo e conferido com a geometria do mapa; terreno completo; `C.army` de cada cenário; ações de recrutamento com `ap: 0`; migração de 50 saves v2, 30 saves v3 e 15 saves v4 sintéticos e um teste de `fight()` + `battleReport()`.
+  - eventos: textos não vazios, escolhas sem repetição e ao menos uma sem requisito, chaves em `EVENT_FX_KEYS`, valores numéricos, flags exigidas que algum foco/história/efeito produz, `from ≤ until`, todo `chain` aponta para um evento `chained` e todo `chained` é disparado por alguém; teste de que `n_acampamentos` → `n_acampamentos_radical` aparece de fato (≥ 8/10 campanhas).
   - Depois roda o `sim.js`.
-- **`node sim.js [N] [cenário]`:** partidas automáticas com as IAs aleatória, gulosa e radical, e a "golpista" (roteiro só de cobertura, em 2022). As IAs também dão ordens aos exércitos (`giveOrders`: aleatória ao acaso; gulosa recruta, reforça e ataca em grupo com razão de forças ≥ 1,2) e o sim confere invariantes do exército (ordens limpas, território permitido, limites). Mostra a distribuição de finais, os focos concluídos por partida e quais focos nunca são concluídos. Falha se algum final ou foco ficar inalcançável ou se o relatório de alguma batalha sair inválido (NaN, sem resumo/dica). Nas partidas com guerra imprime a linha `guerra:` (meses, % de batalhas vencidas, % dos seus ataques vencidos, força máxima média, estados no início → fim da guerra, % de partidas em que ganhou território, finais).
-- **Referência atual (300 partidas por IA, 2022):**
-  - aleatória: ostracismo 31%, oposição 21%, retorno 19%, golpe fracassado 8%…;
-  - gulosa: retorno 81%;
-  - radical: golpe fracassado 53%;
-  - golpista: divisão 82%, restauração 9%, regime 9% (~35 batalhas por partida); guerra: 66% das batalhas vencidas (ataques 93%), força máx. média 256, estados 11,1 → 11,8, ganhou território em 54% das partidas.
+- **`node sim.js [N] [cenário]`:** partidas automáticas com as IAs aleatória, gulosa e radical, e a "golpista" (roteiro só de cobertura, em 2022). As IAs também dão ordens aos exércitos (`giveOrders`: aleatória ao acaso; gulosa recruta, reforça e ataca em grupo com razão de forças ≥ 1,2) e o sim confere invariantes do exército (ordens limpas, território permitido, limites). Mostra a distribuição de finais, os focos concluídos por partida e quais focos nunca são concluídos. Falha se algum final ou foco ficar inalcançável ou se o relatório de alguma batalha sair inválido (NaN, sem resumo/dica). Imprime `eventos/partida` (frequência e maior intervalo sem evento) e a cobertura de eventos; **falha se algum evento nunca aparecer**, exceto crises de facção e eventos presos a focos raros (`fo_*`), que só geram aviso. Nas partidas com guerra imprime a linha `guerra:` (meses, % de batalhas vencidas, % dos seus ataques vencidos, força máxima média, estados no início → fim da guerra, % de partidas em que ganhou território, finais).
+- **Referência atual (300 partidas por IA, 2022, depois dos 46 eventos novos):**
+  - aleatória: ostracismo 30%, oposição 22%, retorno 20%, exílio 9%, golpe fracassado 7%…; 6,6 eventos/partida (1 a cada 3,2 meses, maior intervalo 12);
+  - gulosa: retorno 83%; 10,9 eventos/partida (1 a cada 3,8 meses, maior intervalo 18);
+  - radical: golpe fracassado 55%; 5,0 eventos/partida (1 a cada 3,6 meses);
+  - golpista: divisão 80%, restauração 12%, regime 7% (~35 batalhas por partida); guerra: 67% das batalhas vencidas (ataques 93%), força máx. média 252, estados 11,1 → 11,9, ganhou território em 56% das partidas; 5,2 eventos/partida (1 a cada 2,1 meses, maior intervalo 9).
+  - Antes dos eventos novos: 1 evento a cada 4,0 (aleatória) / 5,5 (gulosa) / 5,1 (radical) / 2,3 (golpista) meses, com intervalos de até 21/38/27/9 meses; golpista divisão 82%, restauração 9%, regime 9%, batalhas vencidas 66%.
   - Antes do recrutamento facilitado (out/2026): golpista divisão 82%, restauração 13%, regime 5%; batalhas vencidas 62% (ataques 90%), força máx. 185, estados 11,1 → 10,4, ganhou território em 28%. Aleatória (14 partidas com guerra): batalhas vencidas 25% → 29%, estados no fim 4,5 → 7,8.
 
 ## 7. Regras de design (obrigatórias)

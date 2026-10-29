@@ -210,10 +210,10 @@ for (const sc of API.SCENARIOS){
   if (sc.locked && process.argv[3] !== sc.id) continue; // cenário bloqueado: só roda se pedido explicitamente (node sim.js N brasil1964)
   const endings = Object.entries(sc.story.nodes).filter(([, n]) => n.ending).map(([id]) => id);
   console.log(`\n[${sc.year}] ${sc.title}${sc.locked ? " (bloqueado — teste de integridade)" : ""}`);
-  const R = report[sc.id] = {}; FC[sc.id] = {};
+  const R = report[sc.id] = {}; FC[sc.id] = {}; const EVC = {};
   for (const mode of ["aleatoria", "gulosa", "radical", ...(COUP[sc.id] ? ["golpista"] : [])]){
     if (mode === "golpista") sc.campaign.coupScript = COUP[sc.id];
-    const dist = {}, turnsArr = [], monthsArr = [], via = { historia: 0, campanha: 0 }; let crashes = 0, deals = 0, battles = 0, focusDone = 0, orders = 0;
+    const dist = {}, turnsArr = [], monthsArr = [], via = { historia: 0, campanha: 0 }; let crashes = 0, deals = 0, battles = 0, focusDone = 0, orders = 0, evN = 0, evMonths = 0, evMaxGap = 0;
     const WS = { n: 0, months: 0, bat: 0, won: 0, att: 0, attWon: 0, peak: 0, s0: 0, s1: 0, gained: 0, end: {} };
     for (let i = 1; i <= N; i++){
       let res;
@@ -224,23 +224,35 @@ for (const sc of API.SCENARIOS){
       turnsArr.push(g.turn); monthsArr.push(g.month - g.startMonth);
       via[g.ended.why ? "campanha" : "historia"]++; deals += g.stat.deals; battles += g.stat.battles; orders += g.stat.orders || 0;
       if (g.simWar.months){ WS.n++; WS.months += g.simWar.months; WS.bat += g.simWar.bat; WS.won += g.simWar.won; WS.att += g.simWar.att; WS.attWon += g.simWar.attWon; WS.peak += g.simWar.peak; WS.s0 += g.simWar.statesStart; WS.s1 += g.simWar.statesEnd; if (g.simWar.statesEnd > g.simWar.statesStart) WS.gained++; WS.end[g.ended.node] = (WS.end[g.ended.node] || 0) + 1; }
+      { const evs = g.history.filter(h => h.ev); evN += evs.length; evMonths += g.month - g.startMonth;
+        for (const id in g.eventSeen) EVC[id] = (EVC[id] || 0) + 1;
+        let last = g.startMonth; for (const h of evs){ evMaxGap = Math.max(evMaxGap, h.m - last); last = h.m; } }
       if (g.focus){ focusDone += g.focus.done.length; for (const id of g.focus.done) FC[sc.id][id] = (FC[sc.id][id] || 0) + 1; }
     }
     const avg = a => a.length ? (a.reduce((s, x) => s + x, 0) / a.length).toFixed(1) : "-";
     const sorted = Object.entries(dist).sort((a, b) => b[1] - a[1]);
     console.log(`  IA ${mode}: ${N} partidas · falhas ${crashes} · turnos médios ${avg(turnsArr)} (min ${Math.min(...turnsArr)}, máx ${Math.max(...turnsArr)}) · meses médios ${avg(monthsArr)} · acordos/partida ${(deals/N).toFixed(1)} · ordens/partida ${(orders/N).toFixed(1)} · batalhas/partida ${(battles/N).toFixed(1)} · fim por estado da campanha ${via.campanha}`);
     if (sc.campaign.focus) console.log(`    focos concluídos/partida: ${(focusDone / N).toFixed(1)}`);
+    console.log(`    eventos/partida: ${(evN / N).toFixed(1)} (1 a cada ${(evMonths / Math.max(1, evN)).toFixed(1)} meses; maior intervalo ${evMaxGap} meses)`);
     console.log("    " + sorted.map(([k, v]) => `${k} ${(100*v/N).toFixed(0)}%`).join(" · "));
     if (WS.n){
       const pc = (a, b) => b ? Math.round(100 * a / b) + "%" : "-";
       console.log(`    guerra: ${WS.n} partidas com guerra · ${(WS.months / WS.n).toFixed(1)} meses · batalhas vencidas ${pc(WS.won, WS.bat)} (seus ataques ${pc(WS.attWon, WS.att)}) · força máx. média ${(WS.peak / WS.n).toFixed(0)} · estados ${(WS.s0 / WS.n).toFixed(1)} → ${(WS.s1 / WS.n).toFixed(1)} (ganhou território em ${pc(WS.gained, WS.n)}) · finais: ${Object.entries(WS.end).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + " " + pc(v, WS.n)).join(", ")}`);
     }
-    R[mode] = { orders: +(orders / N).toFixed(1), battles: +(battles / N).toFixed(1), focusPerGame: +(focusDone / N).toFixed(2), dist, crashes, turns: avg(turnsArr), months: avg(monthsArr), viaCampanha: via.campanha, war: WS };
+    R[mode] = { events: +(evN / N).toFixed(1), orders: +(orders / N).toFixed(1), battles: +(battles / N).toFixed(1), focusPerGame: +(focusDone / N).toFixed(2), dist, crashes, turns: avg(turnsArr), months: avg(monthsArr), viaCampanha: via.campanha, war: WS };
   }
   const reached = new Set([...Object.keys(R.aleatoria.dist), ...Object.keys(R.gulosa.dist), ...Object.keys(R.radical.dist), ...Object.keys((R.golpista || {}).dist || {})]);
   const missing = endings.filter(e => !reached.has(e));
   console.log(`  Finais alcançados: ${reached.size}/${endings.length}${missing.length ? " — não alcançados: " + missing.join(", ") : ""}`);
   R.missing = missing;
+  { const all = (sc.campaign.events || []).map(e => e.id), never = all.filter(id => !EVC[id]);
+    console.log(`  Eventos que apareceram em alguma partida: ${all.length - never.length}/${all.length}${never.length ? " — nunca: " + never.join(", ") : ""}`);
+    R.eventCoverage = EVC; R.eventNever = never;
+    // só aviso: crises de facção (lealdade < 15) e eventos presos a focos raros (flags fo_*)
+    const soft = e => e.crisisOf || ((e.if || {}).flags || []).some(f => f.startsWith("fo_"));
+    const hard = never.filter(id => !soft(sc.campaign.events.find(e => e.id === id) || {}));
+    if (never.length > hard.length) console.log(`  (aviso, não é falha: crises de facção e eventos de focos raros não vistos: ${never.filter(id => !hard.includes(id)).join(", ")})`);
+    if (hard.length && !sc.locked) fail(`${sc.id}: eventos nunca disparados: ${hard.join(", ")}`); }
   if (sc.campaign.focus){
     const never = sc.campaign.focus.nodes.filter(F => !FC[sc.id][F.id]).map(F => F.id);
     const top = Object.entries(FC[sc.id]).sort((a, b) => b[1] - a[1]);

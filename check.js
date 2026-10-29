@@ -10,7 +10,7 @@ const MAP_DATA = new Function(msrc + "; return MAP_DATA;")();
 const UFS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 const csrc = html.split("/*CORE_START*/")[1].split("/*CORE_END*/")[0];
 const grab = name => new Function(csrc.match(new RegExp("const " + name + " = [^;]+;"))[0] + "; return " + name + ";")();
-const FOCUS_FX_KEYS = grab("FOCUS_FX_KEYS"), OFF_TYPES = grab("OFF_TYPES"), REQ_TYPES = grab("REQ_TYPES");
+const FOCUS_FX_KEYS = grab("FOCUS_FX_KEYS"), EVENT_FX_KEYS = new Function(csrc.match(/const FOCUS_FX_KEYS = [^;]+;/)[0] + csrc.match(/const EVENT_FX_KEYS = [^;]+;/)[0] + "; return EVENT_FX_KEYS;")(), OFF_TYPES = grab("OFF_TYPES"), REQ_TYPES = grab("REQ_TYPES");
 let errors = 0;
 const err = m => { console.log("  ✗ " + m); errors++; };
 
@@ -125,6 +125,36 @@ for (const sc of SCENARIOS) {
       e.choices.forEach((c, i) => { checkFx(`evento ${e.id}#${i}`, c.fx); checkC(`evento ${e.id}#${i}`, c.req);
         if (c.next) for (const b of c.next) if (b.to && !isNode(b.to)) err(`evento ${e.id}: next ${b.to}`); }); }
     for (const f of FCS) if (!C.events.some(e => e.crisisOf === f)) err(`facção ${f} sem evento de crise`);
+    // eventos: textos, chaves de efeito, desdobramentos (chain) e flags exigidas que alguém consegue produzir
+    {
+      const E = id => C.events.find(e => e.id === id), chainedBy = {};
+      const flagsMade = new Set([...(JSON.stringify([STORY, C]).match(/"flag":"[a-z_0-9]+"/g) || []).map(x => x.slice(8, -1)),
+        ...((C.focus && C.focus.nodes) || []).map(F => "fo_" + F.id)]);
+      for (const e of C.events){
+        const w = "evento " + e.id;
+        if (!e.title || !e.text || !e.text.length || e.text.some(t => typeof t !== "string" || t.length < 10)) err(`${w}: título/texto vazio`);
+        if (e.choices.length > 4) err(`${w}: escolhas demais (${e.choices.length})`);
+        if (new Set(e.choices.map(c => c.text)).size !== e.choices.length) err(`${w}: escolhas repetidas`);
+        if (!e.generic && !e.choices.some(c => !c.req)) err(`${w}: nenhuma escolha sem requisito (pode travar a fila)`);
+        if (e.if && e.if.from && e.if.until && e.if.from > e.if.until) err(`${w}: from > until`);
+        for (const f of [...((e.if || {}).flags || [])]) if (!flagsMade.has(f)) err(`${w}: exige flag ${f} que nada produz`);
+        e.choices.forEach((c, i) => {
+          for (const k in c.fx || {}) if (!EVENT_FX_KEYS.includes(k)) err(`${w}#${i}: chave de efeito "${k}" inválida`);
+          for (const k of ["money", "reserve", "front", "org", "enemyLoss", "enemy", "unrest", "unrestAll", "ceasefire", "actAll", "ap"]) if (c.fx && k in c.fx && !Number.isFinite(c.fx[k])) err(`${w}#${i}: ${k} não numérico`);
+          for (const f of ((c.req || {}).flags || [])) if (!flagsMade.has(f)) err(`${w}#${i}: requisito com flag ${f} que nada produz`);
+          for (const ch of [].concat((c.fx || {}).chain || [])){
+            const t = E(ch.id);
+            if (!t) err(`${w}#${i}: desdobramento ${ch.id} inexistente`);
+            else if (!t.chained) err(`${w}#${i}: ${ch.id} deveria ter chained: true`);
+            if (!(ch.in >= 1 && ch.in <= 12)) err(`${w}#${i}: desdobramento em ${ch.in} meses`);
+            (chainedBy[ch.id] ||= []).push(e.id);
+          }
+        });
+      }
+      for (const e of C.events.filter(e => e.chained)) if (!chainedBy[e.id]) err(`evento ${e.id}: chained sem nenhum evento que o dispare`);
+      const nCh = C.events.filter(e => e.chained).length, nCr = C.events.filter(e => e.crisisOf).length;
+      console.log(`  Eventos: ${C.events.length} (${C.events.length - nCh - nCr} sorteáveis, ${nCh} desdobramentos, ${nCr} crises de facção) — textos, efeitos, flags e encadeamentos válidos`);
+    }
     if (C.nationalFac && !FCS.includes(C.nationalFac)) err("nationalFac inválida");
     // ---- exércitos ----
     { const A = C.army;
@@ -274,13 +304,47 @@ for (const sc of SCENARIOS) {
       n3++;
     }
   }
+  // v4 → v5: sem fila de desdobramentos (g.chains)
+  let n4 = 0;
+  for (let seed = 1; seed <= 15; seed++){
+    const g = API.newCampaign(API.SCENARIOS.find(s => s.id === "brasil2022"), seed);
+    for (let t = 0; t < seed % 6 && !g.ended; t++){ while (g.queue.length && !g.ended){ const ch = API.queueChoices(g); const ok = ch.findIndex(c => c.ok); API.choose(g, ok < 0 ? 0 : ok); } if (!g.ended) API.endTurn(g); }
+    if (g.ended) continue;
+    const v4 = JSON.parse(JSON.stringify(g)); v4.v = 4; delete v4.chains;
+    const m = API.migrateSave(v4);
+    if (!m || m.v !== API.SAVE_VERSION || !Array.isArray(m.chains)) { err(`brasil2022#${seed}: migração v4→v5 falhou`); continue; }
+    if (!API.endTurn(m) && !m.queue.length) err(`brasil2022#${seed}: save v4 migrado não avança`);
+    n4++;
+  }
+  // desdobramento: escolher "n_acampamentos" agenda "n_acampamentos_radical", que precisa aparecer em poucos meses
+  {
+    let okChain = 0;
+    for (let seed = 1; seed <= 10; seed++){
+      const g = API.newCampaign(API.SCENARIOS.find(s => s.id === "brasil2022"), seed);
+      while (g.queue.length && !g.ended){ const ch = API.queueChoices(g); const ok = ch.findIndex(c => c.ok); API.choose(g, ok < 0 ? 0 : ok); }
+      g.queue.push({ type: "event", id: "n_acampamentos" });
+      const ch = API.queueChoices(g), idx = ch.findIndex((c, i) => c.ok && JSON.stringify((g.queue[0] && API.SCENARIOS.find(s => s.id === "brasil2022").campaign.events.find(e => e.id === "n_acampamentos").choices[i].fx) || {}).includes("n_acampamentos_radical"));
+      if (idx < 0) { err("n_acampamentos sem escolha que agende o desdobramento"); break; }
+      API.choose(g, idx);
+      if (!(g.chains || []).some(c => c.id === "n_acampamentos_radical")) { err("chain não registrado em g.chains"); break; }
+      let seen = false;
+      for (let t = 0; t < 4 && !g.ended && !seen; t++){
+        API.endTurn(g);
+        seen = g.queue.some(q => q.id === "n_acampamentos_radical");
+        while (g.queue.length && !g.ended){ const c2 = API.queueChoices(g); const ok = c2.findIndex(c => c.ok); API.choose(g, ok < 0 ? 0 : ok); }
+      }
+      if (seen) okChain++;
+    }
+    if (okChain < 8) err(`desdobramento apareceu só em ${okChain}/10 campanhas`);
+    console.log(`\nDesdobramentos: n_acampamentos → n_acampamentos_radical apareceu em ${okChain}/10 campanhas de teste`);
+  }
   const g = API.newCampaign(API.SCENARIOS.find(s => s.id === "brasil2022"), 7);
   const A = { side: "player", role: "att", units: [{ name: "A", str: 30, org: 70, xp: 10 }] }, B = { side: "enemy", role: "def", units: [{ name: "B", str: 20, org: 60, xp: 10, militia: true }] };
   const rec = API.fight(g, "MG", A, B, "ataque");
   if (!(rec.rounds.length >= 1 && rec.rounds.length <= 5) || ![0, 1].includes(rec.win) || !(rec.margin >= 0 && rec.margin <= 1) || rec.loss.some(x => !(x >= 0))) err("combate de teste inválido");
   const BR = API.battleReport(rec);
   if (!BR.summary || !BR.tips.length || BR.rows.length < 3 || BR.won !== (rec.win === 0)) err("relatório de batalha de teste inválido");
-  console.log(`\nSaves: ${n} saves v2 e ${n3} saves v3 sintéticos migrados para v${API.SAVE_VERSION} e jogados mais 1 mês; combate de teste OK (${rec.rounds.length} rodadas)`);
+  console.log(`\nSaves: ${n} saves v2 e ${n3} saves v3 e ${n4} saves v4 sintéticos migrados para v${API.SAVE_VERSION} e jogados mais 1 mês; combate de teste OK (${rec.rounds.length} rodadas)`);
   console.log(`  relatório de teste: ${BR.summary}`);
 }
 console.log(errors ? `\nFALHOU (${errors} problemas)` : "\nOK: todos os cenários íntegros, todos os nós e finais alcançáveis.");
