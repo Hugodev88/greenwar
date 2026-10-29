@@ -478,6 +478,117 @@
     .fdetail.empty{position:static}
   }
   @media (prefers-reduced-motion: reduce){ .card{animation:none} }
+  /* ---- Fase 1: dicas contextuais (coach marks) ---- */
+  .coach{position:fixed;inset:0;z-index:70;pointer-events:none}
+  .coach .cblock{position:fixed;inset:0;pointer-events:auto;background:transparent}
+  .coach .cring{position:fixed;border-radius:9px;box-shadow:0 0 0 3px var(--gold),0 0 0 9999px rgba(8,6,4,.66);transition:all .25s ease;pointer-events:none}
+  .coach .cring.none{box-shadow:0 0 0 9999px rgba(8,6,4,.66);width:0;height:0;left:50%;top:40%}
+  .coach .cbub{position:fixed;pointer-events:auto;width:min(360px,calc(100vw - 20px));background:#1f1b16;border:1px solid var(--gold);border-radius:10px;padding:14px 16px 12px;font-family:system-ui,sans-serif;color:var(--ink);box-shadow:0 12px 40px #000;transition:top .25s ease,left .25s ease}
+  .coach .cbub .ck{font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+  .coach .cbub h4{margin:3px 0 6px;font-family:Georgia,serif;font-weight:normal;font-size:1.12rem;color:#f3e6c8}
+  .coach .cbub p{margin:0 0 6px;font-size:.86rem;line-height:1.45;color:#ddd3c2}
+  .coach .cbub ul{margin:4px 0 6px;padding-left:18px;font-size:.82rem;line-height:1.4;color:#ddd3c2}
+  .coach .cbub b{color:#f3e6c8}
+  .coach .cbtns{display:flex;gap:6px;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap}
+  .coach .cbtns .r{display:flex;gap:6px}
+  .coach .cskip{background:none;border:1px solid #6b6255;color:#cfc6b6;border-radius:5px;padding:6px 10px;font-size:.78rem;cursor:pointer}
+  .coach .cskip:hover{border-color:var(--gold);color:var(--ink)}
+  .coach .cnext{padding:7px 14px;font-size:.84rem}
+  .coach .cprev{padding:7px 10px;font-size:.84rem}
+  .tutskip{position:fixed;right:12px;bottom:12px;z-index:71;background:#1f1b16;border:1px solid var(--gold);color:var(--ink);border-radius:20px;padding:8px 14px;font-family:system-ui,sans-serif;font-size:.8rem;cursor:pointer;box-shadow:0 4px 16px #000}
+  /* ---- Ajuda / configurações ---- */
+  .helpgrid{display:grid;gap:10px;margin:10px 0}
+  .helpgrid button{width:100%;text-align:left}
+  .gloss{font-family:system-ui,sans-serif;font-size:.86rem;line-height:1.45}
+  .gloss dt{color:var(--gold);margin-top:8px;font-weight:600}
+  .gloss dd{margin:2px 0 0 0;color:#ddd3c2}
+  .modal-card .row2{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .tgl{display:flex;align-items:center;gap:8px;font-family:system-ui,sans-serif;font-size:.88rem;cursor:pointer}
+  /* ---- Grandes eventos (clímax) ---- */
+  .major{position:fixed;inset:0;z-index:65;display:flex;align-items:center;justify-content:center;padding:14px;background:radial-gradient(ellipse at center,rgba(40,10,6,.97),rgba(4,3,2,.99));animation:majorIn .5s ease both;overflow:auto}
+  .major.gold{background:radial-gradient(ellipse at center,rgba(38,30,12,.97),rgba(4,3,2,.99))}
+  .major::before{content:"";position:fixed;inset:0;pointer-events:none;background:#ff2a12;opacity:0;animation:majorFlash 1.6s ease-out 1}
+  .major.gold::before{background:#ffe2a0}
+  .major .mstripe{position:fixed;left:0;right:0;height:26px;background:repeating-linear-gradient(-45deg,#a8402f 0 16px,#1a0c08 16px 32px);opacity:.85;animation:stripeMove 1.2s linear infinite}
+  .major.gold .mstripe{background:repeating-linear-gradient(-45deg,#c9a45c 0 16px,#1a140a 16px 32px)}
+  .major .mstripe.t{top:0}.major .mstripe.b{bottom:0}
+  .major .mbox{position:relative;max-width:820px;width:100%;text-align:center;font-family:system-ui,sans-serif;padding:34px 10px}
+  .major .mkick{display:inline-block;font-size:.8rem;letter-spacing:.32em;text-transform:uppercase;color:#fff;background:#a8402f;padding:5px 14px;border-radius:3px;animation:kpulse .8s ease-in-out 3}
+  @keyframes kpulse{50%{opacity:.6}}
+  .major.gold .mkick{background:#9a7426}
+  .major .mdate{color:#cfc6b6;font-size:.85rem;letter-spacing:.14em;text-transform:uppercase;margin-top:14px}
+  .major h2{font-family:Georgia,serif;font-weight:normal;font-size:clamp(2.1rem,7vw,4.4rem);line-height:1.05;margin:10px 0 12px;color:#fff3dc;text-shadow:0 0 30px rgba(255,90,50,.35);animation:headIn .9s cubic-bezier(.2,.8,.2,1) .15s both}
+  .major.gold h2{text-shadow:0 0 30px rgba(255,210,120,.35)}
+  .major .msub{font-family:Georgia,serif;font-size:clamp(1.02rem,2.6vw,1.3rem);line-height:1.45;color:#e9e1d3;max-width:640px;margin:0 auto 18px;animation:fadein .8s ease .6s both}
+  .major .mcons{text-align:left;background:#0009;border:1px solid #5a3a2c;border-left:4px solid #e07a62;border-radius:8px;padding:12px 16px;margin:0 auto 18px;max-width:640px;animation:fadein .8s ease 1s both}
+  .major.gold .mcons{border-color:#5a4a2c;border-left-color:var(--gold)}
+  .major .mcons h3{margin:0 0 6px;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#f0b4a4;font-weight:600}
+  .major.gold .mcons h3{color:#f0d58a}
+  .major .mcons ul{margin:0;padding-left:20px;font-size:.92rem;line-height:1.5;color:#efe6d6}
+  .major .mcons li{margin:4px 0}
+  .major .mcons li.bad{color:#ffb4a2}.major .mcons li.good{color:#b8e0a8}
+  .major .mgo{font-size:1rem;padding:11px 26px;animation:fadein .6s ease 1.3s both}
+  @keyframes majorIn{from{opacity:0}to{opacity:1}}
+  @keyframes majorFlash{0%{opacity:.75}12%{opacity:0}22%{opacity:.45}40%{opacity:0}100%{opacity:0}}
+  @keyframes stripeMove{from{background-position:0 0}to{background-position:45px 0}}
+  @keyframes blink{50%{opacity:.25}}
+  @keyframes headIn{from{opacity:0;transform:scale(1.25);letter-spacing:.06em;filter:blur(6px)}to{opacity:1;transform:none;letter-spacing:0;filter:none}}
+  @media (prefers-reduced-motion: reduce){ .major,.major::before,.major .mstripe,.major h2,.major .msub,.major .mcons,.major .mgo,.major .mkick{animation:none!important} .major::before{display:none} }
+  /* ---- Camadas do mapa ---- */
+  .maphead{flex-wrap:wrap;gap:8px}
+  .layerbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#0006;border:1px solid #5a4e3c;border-radius:8px;padding:5px 6px 5px 10px;margin:8px 0}
+  .layerbar .lk{font-family:system-ui,sans-serif;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-right:2px}
+  .layerbar .seg button{padding:6px 12px;font-size:.84rem;color:#ddd3c2}
+  .layerbar .seg button.on{background:var(--gold);color:#111;font-weight:600}
+  .infobtn{background:#2a241c;border:1px solid #6b6255;color:var(--ink);border-radius:50%;width:26px;height:26px;cursor:pointer;font:600 .85rem system-ui,sans-serif;line-height:1}
+  .infobtn:hover,.infobtn[aria-expanded="true"]{border-color:var(--gold);color:var(--gold)}
+  .layerinfo{font-family:system-ui,sans-serif;font-size:.84rem;line-height:1.45;background:#1f1b16;border:1px solid #5a4e3c;border-left:3px solid var(--gold);border-radius:6px;padding:10px 12px;margin:0 0 8px;color:#ddd3c2}
+  .layerinfo b{color:#f3e6c8}.layerinfo ul{margin:4px 0;padding-left:18px}
+  .gradlegend{font-family:system-ui,sans-serif;font-size:.76rem;color:#cfc6b6;margin-top:8px}
+  .gradlegend .gbar{position:relative;height:14px;border-radius:3px;border:1px solid #0008}
+  .gradlegend .gticks{position:relative;height:30px}
+  .gradlegend .gticks span{position:absolute;transform:translateX(-50%);white-space:nowrap;top:2px;text-align:center;line-height:1.15}
+  .gradlegend .gticks span::before{content:"";position:absolute;left:50%;top:-6px;height:6px;border-left:1px solid #cfc6b6}
+  .gradlegend .gticks span:first-child{transform:none}.gradlegend .gticks span:first-child::before{left:0}
+  .gradlegend .gticks span:last-child{transform:translateX(-100%)}.gradlegend .gticks span:last-child::before{left:auto;right:0}
+  .mapbox text.uv{font-size:10px;font-weight:700;fill:#fff}
+  @media (max-width:600px){ .mapbox text.uv{font-size:15px} }
+  /* ---- Facções: explicação ---- */
+  .facx{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-bottom:12px}
+  .facx > div{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:system-ui,sans-serif;font-size:.82rem;line-height:1.45;color:#ddd3c2}
+  .facx h4{margin:0 0 4px;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:600}
+  .facx ul{margin:0;padding-left:16px}.facx li{margin:2px 0}
+  .facx .lv{display:grid;grid-template-columns:auto 1fr;gap:3px 8px;align-items:baseline}
+  .facx .lv em{font-style:normal;font-weight:600;white-space:nowrap}
+  .fac .fnow{font-family:system-ui,sans-serif;font-size:.8rem;background:#0005;border-radius:5px;padding:6px 8px;color:#ddd3c2;line-height:1.4}
+  .fac .fnow b{color:#f3e6c8}
+  .fac details.fwhat summary{cursor:pointer;color:var(--gold);font-size:.8rem}
+  .fac details.fwhat ul{margin:6px 0 0;padding-left:16px;font-size:.8rem;line-height:1.45;color:#ddd3c2}
+  .fac .fbtns button small{display:block;font-size:.68rem;color:var(--muted);font-weight:normal;margin-top:2px}
+  .fac .bar u.t65{position:absolute;top:-2px;bottom:-2px;border-left:1px dashed #8fbf7a}
+  .fac .bar u.t35{position:absolute;top:-2px;bottom:-2px;border-left:1px dashed #d0902a}
+  /* ---- Decisões: árvore em tela grande ---- */
+  .focuslayout{display:block;position:relative;width:min(100vw - 24px,1680px);margin-left:50%;transform:translateX(-50%)}
+  .focuslayout .fmain{position:relative}
+  .ftree-wrap{height:max(440px,calc(100vh - 210px));cursor:grab;touch-action:pan-x pan-y;outline:none}
+  .ftree-wrap:focus-visible{box-shadow:0 0 0 2px var(--gold)}
+  .ftree-wrap.drag{cursor:grabbing;user-select:none}
+  .ftree-wrap.drag .fnode{pointer-events:none}
+  .fnavhint{font-family:system-ui,sans-serif;font-size:.74rem;color:var(--muted);display:flex;gap:6px 14px;flex-wrap:wrap;margin:0 0 6px}
+  .fnavhint kbd{background:#2a241c;border:1px solid #4a4339;border-radius:3px;padding:0 4px;font-size:.7rem;color:var(--ink)}
+  .focuslayout .fdetail{position:absolute;top:96px;right:12px;width:340px;max-height:calc(100% - 110px);z-index:6;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+  .focuslayout .fdetail .fclose{display:block}
+  .focuslayout.ffull{position:fixed;inset:0;width:auto;margin:0;transform:none;z-index:45;background:var(--bg);padding:10px 12px}
+  .focuslayout.ffull .ftree-wrap{height:calc(100vh - 120px)}
+  .fnode b{font-size:.84rem}
+  @media (max-width:860px){
+    .focuslayout{width:auto;margin-left:0;transform:none}
+    .ftree-wrap{height:calc(100vh - 230px);min-height:360px}
+    .focuslayout .fdetail:not(.empty){position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;max-height:55vh;border-radius:14px 14px 0 0;z-index:46}
+    .focuslayout.ffull .ftree-wrap{height:calc(100vh - 130px)}
+    .fnavhint .dk{display:none}
+  }
+  @media (min-width:861px){ .fnavhint .mb{display:none} }
   @media (max-width:600px){
     header{flex-wrap:wrap}
     header h1{font-size:.85rem;letter-spacing:.12em}
@@ -869,7 +980,7 @@ const STORY_2022 = {
       ],
       choices: [
         { text: "Reconhecer a derrota em pronunciamento e autorizar a transição.", effects: { apoio: -5, internacional: 20, base: 5 }, next: "transicao" },
-        { text: "Manter silêncio por enquanto e deixar a base se manifestar.", effects: { apoio: 5, internacional: -5 }, next: "silencio" },
+        { text: "Ficar em silêncio por enquanto e deixar a base se manifestar.", effects: { apoio: 5, internacional: -5 }, next: "silencio" },
         { text: "Contestar o resultado no TSE, pedindo a anulação de parte das urnas.", effects: { apoio: 5, base: -10, internacional: -10 }, next: "contestacao" },
         { text: "Convocar em sigilo os comandantes das Forças Armadas.", effects: { militar: 5, base: -5, internacional: -10 }, flag: "conspiracao", next: "sondagem" }
       ]
@@ -922,7 +1033,7 @@ const STORY_2022 = {
       ],
       choices: [
         { text: "Condenar a invasão imediatamente e com clareza.", effects: { internacional: 10, apoio: -5, base: 5 }, next: "oposicao" },
-        { text: "Manter silêncio e esperar a poeira baixar.", effects: { base: -10, internacional: -10 }, flag: "jan", next: "oposicao" }
+        { text: "Ficar em silêncio e esperar a poeira baixar.", effects: { base: -10, internacional: -10 }, flag: "jan", next: "oposicao" }
       ]
     },
     oposicao: {
@@ -1264,7 +1375,7 @@ const CAMPAIGN_1964 = {
     act("e_salarios", "eco", "Conter reajustes salariais", "Ajuda nas contas, pesa no bolso dos trabalhadores.", { fx: { money: 5, s: { economia: 2, apoio: -5 }, fac: { igreja: -4 } } }),
     act("e_capital", "eco", "Atrair capital estrangeiro", "Facilita investimentos e remessas de lucros.", { fx: { money: 6, s: { economia: 2 }, act: { eua: 6 }, fac: { moderados: 4, linhadura: -3 } } }),
     act("m_promocoes", "mil", "Promoções e reorganização", "Acomoda os quartéis com promoções e comandos.", { cost: 4, fx: { s: { coesao: 4 }, fac: { linhadura: 5, moderados: 3 } } }),
-    act("m_mobilizar", "mil", "Mobilizar unidades", "+10 de força para seus exércitos (sem PA; custa só recursos).", { ap: 0, cost: 5, fx: { reserve: 1, s: { coesao: 1 } } }),
+    act("m_mobilizar", "mil", "Mobilizar unidades", "+10 de força para seus exércitos (sem AP; custa só recursos).", { ap: 0, cost: 5, fx: { reserve: 1, s: { coesao: 1 } } }),
     act("m_ipm", "mil", "Ampliar inquéritos policial-militares", "Agrada a linha dura; aumenta prisões e o medo.", { fx: { fac: { linhadura: 10, igreja: -5, estudantes: -6 }, s: { liberdades: -6 }, unrest: -6 } }),
     act("m_afastar", "mil", "Afastar oficiais radicais de comandos", "Fortalece os moderados, mas mexe num vespeiro.", { fx: { fac: { linhadura: -15, moderados: 8 }, s: { coesao: -4, liberdades: 3 } }, risk: { p: 0.25, msg: "Manifesto de coronéis circula nos quartéis.", fx: { s: { coesao: -4 } } } }),
     act("p_congresso", "pol", "Negociar com o Congresso", "Cargos e verbas em troca de votos.", { cost: 3, fx: { fac: { udn: 10 }, s: { liberdades: 2 } } }),
@@ -1409,7 +1520,7 @@ const CAMPAIGN_2022 = {
     act("e_agro", "eco", "Agenda com o agronegócio", "Feiras, entidades e promessas de apoio ao setor.", { show: { phase: "oposicao" }, fx: { money: 2, fac: { agro: 8 } } }),
     act("m_comandantes", "mil", "Reunir-se com comandantes", "Gesto de prestígio aos quartéis; acende alertas institucionais.", { show: { phase: ["governo", "regime"] }, fx: { fac: { militares: 8, stf: -4 }, s: { militar: 3, internacional: -3 } } }),
     act("m_promocoes", "mil", "Promoções e reajuste militar", "Mantém os comandos ao seu lado.", { cost: 5, show: { phase: "regime" }, fx: { s: { militar: 5 }, fac: { militares: 8 } } }),
-    act("m_mobilizar", "mil", "Mobilizar unidades leais", "+10 de força para seus exércitos (sem PA; custa só recursos).", { ap: 0, cost: 5, show: { phase: "regime" }, fx: { reserve: 1 } }),
+    act("m_mobilizar", "mil", "Mobilizar unidades leais", "+10 de força para seus exércitos (sem AP; custa só recursos).", { ap: 0, cost: 5, show: { phase: "regime" }, fx: { reserve: 1 } }),
     act("m_seguranca", "mil", "Operação de segurança nas cidades", "Reduz protestos com presença ostensiva; custo humano e de imagem.", { show: { phase: "regime" }, fx: { unrest: -10, s: { internacional: -5, apoio: -3 }, fac: { movimentos: -8 } } }),
     act("m_reserva", "mil", "Encontro com militares da reserva", "Mantém laços com a caserna fora do governo.", { show: { phase: "oposicao" }, fx: { fac: { militares: 5, stf: -3 }, s: { apoio: 1 } } }),
     act("p_live", "pol", "Transmissão ao vivo para a base", "Fala direta com os apoiadores nas redes.", { fx: { s: { apoio: 3 } }, risk: { p: 0.2, msg: "Uma declaração repercute mal no exterior.", fx: { s: { internacional: -4 } } } }),
@@ -1451,7 +1562,7 @@ const CAMPAIGN_2022 = {
       { text: "Atacar publicamente os ministros.", fx: { s: { apoio: 3, internacional: -5, base: -4 } } } ], { crisisOf: "stf" }),
     ev("r_bloqueios", "Bloqueios em rodovias", "Apoiadores bloqueiam estradas em vários estados contestando o resultado.", [
       { text: "Pedir a desmobilização.", fx: { s: { apoio: -3, internacional: 5 }, fac: { agro: 5, stf: 4 } } },
-      { text: "Silenciar e deixar seguir.", fx: { s: { apoio: 3, internacional: -5 }, fac: { agro: -5 } } } ], { if: { until: "2022-12" }, weight: 3, once: true }),
+      { text: "Ficar em silêncio e deixar seguir.", fx: { s: { apoio: 3, internacional: -5 }, fac: { agro: -5 } } } ], { if: { until: "2022-12" }, weight: 3, once: true }),
     ev("r_inflacao", "Alta nos alimentos", "O preço da comida volta a pesar no orçamento das famílias.", [
       { text: "Culpar o governo de turno.", fx: { s: { apoio: 2 } }, req: { phase: "oposicao" } },
       { text: "Propor medidas de alívio.", fx: { money: -3, s: { apoio: 2 } } } ]),
@@ -1488,10 +1599,10 @@ const CAMPAIGN_2022 = {
     ev("n_acampamentos", "Acampamentos em frente aos quartéis", ["Milhares de apoiadores montam barracas diante de unidades militares e pedem intervenção.", "Comandantes pedem uma orientação clara do presidente."], [
       { text: "Pedir publicamente que voltem para casa.", fx: { s: { apoio: -4, internacional: 4 }, fac: { stf: 6, militares: -3 } } },
       { text: "Visitar um acampamento e agradecer o apoio.", fx: { s: { apoio: 4, militar: 3, internacional: -5 }, fac: { stf: -8 }, chain: { id: "n_acampamentos_radical", in: 2 } } },
-      { text: "Silenciar e deixar que os comandos decidam.", fx: { s: { base: -2 }, fac: { militares: 2 } } } ], { if: { phase: "governo" }, once: true, weight: 3 }),
+      { text: "Ficar em silêncio e deixar que os comandos decidam.", fx: { s: { base: -2 }, fac: { militares: 2 } } } ], { if: { phase: "governo" }, once: true, weight: 3 }),
     ev("n_acampamentos_radical", "Acampamentos se radicalizam", ["Grupos que saíram dos acampamentos planejam atos violentos em Brasília.", "A Polícia Federal monitora; jornalistas perguntam se você apoia os radicais."], [
       { text: "Condenar a violência em rede nacional.", fx: { s: { apoio: -3, internacional: 5 }, fac: { stf: 5, evangelicos: 2 } } },
-      { text: "Silenciar e culpar “infiltrados”.", fx: { s: { internacional: -6 }, fac: { stf: -6, militares: 3 }, unrestUF: { DF: 10 } } } ], { chained: true }),
+      { text: "Ficar em silêncio e culpar “infiltrados”.", fx: { s: { internacional: -6 }, fac: { stf: -6, militares: 3 }, unrestUF: { DF: 10 } } } ], { chained: true }),
     ev("n_transicao_dados", "Equipe de transição pede informações", "A equipe do presidente eleito pede dados sobre orçamento, reservas e contratos em andamento.", [
       { text: "Colaborar plenamente.", fx: { s: { internacional: 4, base: -2 }, fac: { stf: 4 }, act: { eua: 5, ue: 5 } } },
       { text: "Atrasar e dificultar o acesso.", fx: { s: { base: 2, internacional: -3 }, fac: { stf: -6, centrao: -2 } } } ], { if: { phase: "governo", until: "2022-12" }, once: true, weight: 2 }),
@@ -1575,7 +1686,7 @@ const CAMPAIGN_2022 = {
       { text: "Agradecer e recusar.", fx: { act: { argentina: -5 } } } ], { if: { notPhase: "governo", actor: { argentina: { min: 20 } } }, cooldown: 12 }),
     ev("n_delacao", "Ex-assessor negocia delação", ["Um antigo assessor, investigado pelas conversas sobre ruptura, negocia um acordo com a Polícia Federal.", "Seus advogados pedem uma estratégia."], [
       { text: "Desqualificar o delator em público.", fx: { s: { apoio: 2 }, fac: { stf: -8 } } },
-      { text: "Silêncio e defesa técnica.", fx: { money: -3, fac: { stf: 3 } } } ], { if: { phase: "oposicao", flags: ["conspiracao"] }, once: true, weight: 3 }),
+      { text: "Ficar em silêncio e apostar na defesa técnica.", fx: { money: -3, fac: { stf: 3 } } } ], { if: { phase: "oposicao", flags: ["conspiracao"] }, once: true, weight: 3 }),
     ev("n_ato_paulista", "Grande ato na Avenida Paulista", "Aliados convocam um ato para mostrar força; a polícia estima centenas de milhares de pessoas.", [
       { text: "Discursar com moderação.", fx: { money: -2, s: { apoio: 4, internacional: 1 } } },
       { text: "Discurso inflamado contra o Supremo.", fx: { money: -2, s: { apoio: 6 }, fac: { stf: -10 }, unrestUF: { SP: 6 } } } ], { if: { phase: "oposicao", from: "2023-09" }, cooldown: 15 }),
@@ -1585,7 +1696,7 @@ const CAMPAIGN_2022 = {
       { text: "Pagar bônus de permanência.", fx: { money: -6, org: 6, fac: { militares: 5 } } },
       { text: "Prender os desertores capturados.", fx: { s: { militar: 2, apoio: -4, internacional: -4 }, fac: { militares: 3 } } },
       { text: "Aceitar a perda e reorganizar as unidades.", fx: { reserve: -1, org: 4 } } ], { if: { phase: "regime" }, cooldown: 4, weight: 1.5 }),
-    ev("n_sabotagem", "Sabotagem numa refinaria", "Uma explosão para a maior refinaria sob seu controle; o combustível do Exército começa a faltar.", [
+    ev("n_sabotagem", "Sabotagem numa refinaria", "Uma explosão paralisa a maior refinaria sob seu controle; o combustível do Exército começa a faltar.", [
       { text: "Racionar o combustível civil.", fx: { s: { apoio: -4 }, unrest: 5 } },
       { text: "Infiltrar agentes na rede de sabotadores.", fx: { money: -3, org: -3, chain: { id: "n_rede_sabotadores", in: 2 } } },
       { text: "Comprar combustível no mercado paralelo.", fx: { money: -6, act: { russia: 4 } } } ], { if: { phase: "regime" }, cooldown: 6 }),
@@ -1798,7 +1909,7 @@ CAMPAIGN_2022.actions.push(
   act("e_investchina", "eco", "Rodada de investimentos chineses", "Liberada por 'Parceria econômica com a China'.", { show: { flags: ["fo_e_china"] }, fx: { money: 5, act: { china: 3, eua: -3 } } }),
   act("e_investeua", "eco", "Rodada com investidores dos EUA", "Liberada por 'Alinhamento econômico com os EUA'.", { show: { flags: ["fo_e_eua"] }, fx: { money: 5, act: { eua: 3, china: -3 } } }),
   act("p_seguranca", "pol", "Agenda de segurança nos estados", "Liberada por 'Bandeira da segurança pública'.", { show: { flags: ["fo_s_seguranca"] }, fx: { s: { apoio: 2 }, fac: { militares: 3, movimentos: -3 } } }),
-  act("m_blindados", "mil", "Reforçar com blindados", "+20 de força (sem PA). Liberada por 'Comando unificado'.", { ap: 0, cost: 8, show: { flags: ["fo_c_comando"], phase: "regime" }, fx: { reserve: 2, s: { internacional: -2 } } })
+  act("m_blindados", "mil", "Reforçar com blindados", "+20 de força (sem AP). Liberada por 'Comando unificado'.", { ap: 0, cost: 8, show: { flags: ["fo_c_comando"], phase: "regime" }, fx: { reserve: 2, s: { internacional: -2 } } })
 );
 CAMPAIGN_2022.events.push(
   ev("f_vazamento_minuta", "A minuta circula", "Cópias de um decreto de exceção chegam a jornalistas e investigadores. A pergunta agora é quem sabia.", [
@@ -1845,7 +1956,7 @@ const SCENARIOS = [
     id: "brasil2022", year: "2022", date: "31 de outubro de 2022",
     title: "A Faixa Presidencial", tag: "História alternativa",
     character: "Jair Bolsonaro — presidente em fim de mandato",
-    description: "O TSE confirma a derrota no 2º turno por 1,8 ponto. Reconhecer o resultado, contestar, silenciar — ou tentar romper a ordem constitucional? Instituições, quartéis, ruas e o mundo vão reagir.",
+    description: "O TSE confirma a derrota no 2º turno por 1,8 ponto. Reconhecer o resultado, contestar, ficar em silêncio — ou tentar romper a ordem constitucional? Instituições, quartéis, ruas e o mundo vão reagir.",
     saveKey: "jogo_br_save_brasil2022", endingsKey: "jogo_br_endings_brasil2022",
     intro: {
       kicker: "Cenário 2022", title: "A Faixa Presidencial",
@@ -3113,7 +3224,7 @@ function enemyReinforce(g, R){
     weak.str += STR_UNIT; g.enemyPool -= STR_UNIT;
   }
 }
-/* --- Ordens do jogador (sem PA) --- */
+/* --- Ordens do jogador (sem AP) --- */
 function commandLimit(g){ const C = scOf(g).campaign, mil = g.stats[C.keys.mil] ?? 50, nat = natLoyalty(g);
   return clamp(1 + Math.floor(mil / 25) + (nat >= 65 ? 1 : nat < 25 ? -1 : 0), 1, 5); }
 function ordersUsed(g){ return armiesOf(g, "player").filter(a => a.order && MANEUVER.includes(a.order.type)).length; }
@@ -3238,7 +3349,7 @@ function migrateV2(g){
    ===================================================================== */
 let SCEN = null, STORY = null, G = null;
 const UI = { tab: "historia", selUF: null, selArmy: null, selActor: null, req: [], off: [], dealMsg: null, mapMode: "controle" };
-const LAST_SCEN_KEY = "jogo_br_ultimo_cenario", TUTORIAL_KEY = "jogo_br_tutorial_v2";
+const LAST_SCEN_KEY = "jogo_br_ultimo_cenario";
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const sgn = v => (v > 0 ? "+" : "") + v;
@@ -3276,7 +3387,11 @@ function changeNotes(changes){
     (to === "disputa" ? `${ufs.join(", ")} entraram em disputa` : `${ufs.join(", ")} passaram para: ${STORY.factions[to] ? STORY.factions[to].label : to}`));
 }
 const LABEL_POS = { RN:[598,166], PB:[598,186], PE:[598,206], AL:[598,226], SE:[590,248], ES:[524,382], RJ:[480,446], DF:[406,310] };
-function unrestColor(v){ const t = v / 100; const r = Math.round(60 + 170*t), gg = Math.round(140 - 90*t), b = Math.round(90 - 50*t); return `rgb(${r},${gg},${b})`; }
+// Escala "viridis" (perceptualmente uniforme, legível para daltônicos e em tons de cinza): roxo = calmo → verde → amarelo = revolta
+const VIRIDIS = [[68,1,84],[72,40,120],[62,74,137],[49,104,142],[38,130,142],[31,158,137],[53,183,121],[109,205,89],[180,222,44],[253,231,37]];
+function unrestColor(v){ const t = Math.max(0, Math.min(1, v / 100)) * (VIRIDIS.length - 1), i = Math.min(VIRIDIS.length - 2, Math.floor(t)), u = t - i, a = VIRIDIS[i], b = VIRIDIS[i + 1];
+  return `rgb(${a.map((x, k) => Math.round(x + (b[k] - x) * u)).join(",")})`; }
+function unrestLabel(v){ return v >= 88 ? "revolta iminente" : v >= 62 ? "alta" : v >= 30 ? "tensa" : "calma"; }
 function mapSVG(control, changed, opts){
   opts = opts || {};
   const ch = new Set((changed||[]).map(c => c.uf));
@@ -3291,6 +3406,7 @@ function mapSVG(control, changed, opts){
     const o = LABEL_POS[uf], x = o ? o[0] : s.lx, y = o ? o[1] : s.ly;
     if (o) labels += `<line x1="${s.lx}" y1="${s.ly}" x2="${o[0]-10}" y2="${o[1]}"/>`;
     labels += `<text x="${x}" y="${y}">${uf}</text>`;
+    if (opts.mode === "agitacao" && opts.g) labels += `<text class="uv" x="${x}" y="${y + (MOBILE_MAP() ? 15 : 11)}">${Math.round(opts.g.uf[uf].unrest)}</text>`;
   }
   let L = { fronts: "", pulses: "", arrows: "", counters: "" }, w = 620;
   if (mil){
@@ -3308,15 +3424,16 @@ function legendHTML(control){
 }
 function renderMap(el, control, changed, withNotes, opts){
   const notes = withNotes && changed && changed.length ? `<div class="mapnotes">${changeNotes(changed).map(t => `<div>${esc(t)}</div>`).join("")}</div>` : "";
-  const legend = opts && opts.mode === "agitacao" ? `<span><i style="background:${unrestColor(10)}"></i>Calmo</span><span><i style="background:${unrestColor(50)}"></i>Tenso</span><span><i style="background:${unrestColor(95)}"></i>Revolta iminente</span>` : legendHTML(control);
-  el.innerHTML = mapSVG(control, changed, opts) + `<div class="maptip"></div><div class="legend">${legend}</div>` + notes;
+  const agit = opts && opts.mode === "agitacao";
+  const legend = agit ? `<div class="gradlegend" aria-label="Legenda da agitação: de 0, calmo, a 100, revolta"><div class="gbar" style="background:linear-gradient(90deg,${[0, 20, 40, 60, 80, 100].map(v => unrestColor(v)).join(",")})"></div><div class="gticks"><span style="left:0">0<br>calmo</span><span style="left:30%">30<br>tenso</span><span style="left:62%">62<br>derruba apoio</span><span style="left:88%">88<br>revolta</span><span style="left:100%">100</span></div></div>` : `<div class="legend">${legendHTML(control)}</div>`;
+  el.innerHTML = mapSVG(control, changed, opts) + `<div class="maptip"></div>${legend}` + notes;
   const tip = el.querySelector(".maptip"), svg = el.querySelector("svg");
   const show = (e) => {
     const p = e.target.closest("path.uf, g.cnt"); if (!p) { tip.style.display = "none"; return; }
     const uf = p.dataset.uf, f = STORY.factions[control[uf]], r = el.getBoundingClientRect();
     const extra = STORY.stateNotes && STORY.stateNotes[uf] ? `<br><span style="color:#9c9182">${esc(STORY.stateNotesLabel||"")}: ${esc(STORY.stateNotes[uf])}</span>` : "";
     const here = opts && opts.g && opts.military ? (opts.armies || opts.g.armies || []).filter(a => a.uf === uf) : [];
-    const gx = opts && opts.g ? `<br>Agitação ${Math.round(opts.g.uf[uf].unrest)}${here.length ? "<br>" + here.map(a => `<span style="color:${a.side === "player" ? "#9cc3ea" : "#f09a86"}">${esc(a.name)} (${Math.round(a.str)})</span>`).join("<br>") : ""}` : "";
+    const gx = opts && opts.g ? `<br>Agitação ${Math.round(opts.g.uf[uf].unrest)} (${unrestLabel(opts.g.uf[uf].unrest)})${here.length ? "<br>" + here.map(a => `<span style="color:${a.side === "player" ? "#9cc3ea" : "#f09a86"}">${esc(a.name)} (${Math.round(a.str)})</span>`).join("<br>") : ""}` : "";
     tip.innerHTML = `<strong>${uf}</strong> · ${esc(MAP_DATA.states[uf].name)}<br>${esc(f ? f.label : control[uf])}${gx}${extra}`;
     tip.style.left = (e.clientX - r.left) + "px"; tip.style.top = (e.clientY - r.top) + "px"; tip.style.display = "block";
   };
@@ -3591,7 +3708,7 @@ function armyPanel(a){
   const lim = commandLimit(G), used = ordersUsed(G), tg = armyTargets(G, a);
   const attackers = uf => armiesOf(G, "player").filter(x => x.id === a.id || (x.order && x.order.type === "atacar" && x.order.to === uf));
   html += `<div class="ordbox"><div class="ordhead"><b>Ordens de manobra</b><span class="${used >= lim ? "neg" : ""}">${used}/${lim} este mês</span></div>
-    <p class="muted">${MOBILE_MAP() ? "Toque" : "Clique"} num estado destacado no mapa ou escolha abaixo. Ordens não gastam PA e são executadas no Encerrar mês.</p>
+    <p class="muted">${MOBILE_MAP() ? "Toque" : "Clique"} num estado destacado no mapa ou escolha abaixo. Ordens não gastam AP e são executadas no Encerrar mês.</p>
     <div class="tglist">${tg.length ? tg.map(t => { const o = t.type === "atacar" ? battleOdds(G, "player", attackers(t.uf), t.uf) : null;
       return `<button class="tgt ${t.type}${a.order && a.order.to === t.uf ? " on" : ""}" data-to="${t.uf}" data-type="${t.type}"><span>${t.type === "atacar" ? "⚔" : t.type === "recuar" ? "↩" : "➜"} ${esc(ORDER_LABEL[t.type])} ${esc(t.uf)}</span><small>${esc(MAP_DATA.states[t.uf].name)}${o ? ` · chance ${esc(oddsLabel(o.ratio))} (${o.ratio.toFixed(1)}×)` : ""}</small></button>`; }).join("") : `<p class="muted">${ph.war ? (G.ceasefire > 0 ? "Trégua: só deslocamentos entre seus estados." : "Nenhum estado vizinho alcançável.") : "Sem guerra: só reposicionamento entre estados vizinhos seus."}</p>`}</div>
     <div class="ordbtns">
@@ -3604,7 +3721,7 @@ function recruitBoxHTML(uf){
   const C = SCEN.campaign, st = recruitState(G, uf), at = st.ok ? st.uf : (uf || capitalOf(G, "player"));
   const left = recruitsLeft(G), mob = phaseOf(G).war ? mobilization(G) : 0;
   return `<div class="recruitbox"><div class="ordhead"><b>Recrutar tropas</b><span>${left}/${RECRUIT_PER_MONTH} neste mês · ${armiesOf(G, "player").length}/${ARMY_CAP.player} exércitos</span></div>
-    <button class="bigbtn" id="btnRecruit" data-uf="${esc(at || "")}" ${st.ok ? "" : "disabled"}><span>＋ Recrutar tropas${at ? " em " + esc(at) : ""}</span><small>Novo exército com ${RECRUIT_STR} de força · custa ${recruitCost(G)} ${esc(C.money.short)} · sem PA</small></button>
+    <button class="bigbtn" id="btnRecruit" data-uf="${esc(at || "")}" ${st.ok ? "" : "disabled"}><span>＋ Recrutar tropas${at ? " em " + esc(at) : ""}</span><small>Novo exército com ${RECRUIT_STR} de força · custa ${recruitCost(G)} ${esc(C.money.short)} · sem AP</small></button>
     ${st.ok ? "" : `<p class="why">${esc(st.msg)}</p>`}
     <ul>${uf ? "" : `<li>Para recrutar em outro estado seu, toque nele no mapa.</li>`}<li><b>Reforçar</b> um exército parado em território seu custa só ${reinforceCost(G)} ${esc(C.money.short)} (+${STR_UNIT} de força).</li>
     ${mob ? `<li><b>Alistamento:</b> todo mês chegam ~${mob} de força em voluntários — reforçam exércitos fracos que descansam no seu território; o excedente forma novos exércitos.</li>` : ""}</ul></div>`;
@@ -3719,7 +3836,7 @@ function renderTitle(){
       <div class="disclaimer">${esc(it.disclaimer)}</div>
       ${info.legacy ? `<div class="notice">Encontramos uma partida salva da versão anterior (só história). Ela não é compatível com o novo modo campanha e foi arquivada; seus finais descobertos foram mantidos.</div>` : ""}
       ${sv && sv.focusMigrated ? `<div class="notice">Sua campanha salva é anterior à árvore de decisões nacionais. Ela continua de onde parou; a árvore começa vazia (focos impostos pela história já vividos foram marcados).</div>` : ""}
-      ${sv && sv.milMigrated ? `<div class="notice">Sua campanha salva foi atualizada para o novo sistema de exércitos: suas tropas antigas viraram exércitos no mapa (as forças inimigas de cada frente foram mantidas). Dê ordens selecionando os exércitos na aba Mapa — elas não gastam mais PA.</div>` : ""}
+      ${sv && sv.milMigrated ? `<div class="notice">Sua campanha salva foi atualizada para o novo sistema de exércitos: suas tropas antigas viraram exércitos no mapa (as forças inimigas de cada frente foram mantidas). Dê ordens selecionando os exércitos na aba Mapa — elas não gastam mais AP.</div>` : ""}
       ${sv ? `<button class="primary" id="btnCont">Continuar — ${esc(monthLabel(sv.month))}</button>` : ""}
       <button class="${sv ? "secondary" : "primary"}" id="btnNew">Nova campanha</button>
       <button class="secondary" id="btnBack">← Outros cenários</button>
@@ -3737,8 +3854,6 @@ function startNew(){
   G = newCampaign(SCEN);
   Object.assign(UI, { tab: "historia", selUF: null, selArmy: null, selActor: null, req: [], off: [], dealMsg: null });
   save(); renderGame(); cloud("campaignStarted", SCEN.id); cloud("syncSave", SCEN.id);
-  let seen = null; try{ seen = localStorage.getItem(TUTORIAL_KEY); }catch(e){}
-  if (!seen){ openHelp(); try{ localStorage.setItem(TUTORIAL_KEY, "1"); }catch(e){} }
 }
 
 /* ---------- Tela da campanha ---------- */
@@ -3780,12 +3895,16 @@ function renderGame(){
     <div id="toast" class="toast"></div>`;
   document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { UI.tab = b.dataset.tab; renderGame(); });
   $("#btnEnd").onclick = () => {
+    const snap = majorSnap();
     if (!endTurn(G)) return;
     UI.tab = "historia"; UI.dealMsg = null; UI.selArmy = null; save(); cloud("syncSave", SCEN.id); renderGame(); window.scrollTo({ top: 0 });
-    const ev = G.mil;
-    if (ev && !G.ended && ev.month === G.month && (ev.battles.length || ev.flips.length || ev.moves.length)) playResolution(ev);
+    const ev = G.mil, major = majorCheck(snap);
+    if (ev && !G.ended && ev.month === G.month && (ev.battles.length || ev.flips.length || ev.moves.length)) playResolution(ev, () => showMajor(major));
+    else showMajor(major);
   };
+  if (UI.tab !== "decisoes" && UI.ffull){ UI.ffull = false; if (!document.querySelector(".overlay, .major")) document.body.classList.remove("noscroll"); }
   ({ historia: tabHistoria, decisoes: tabDecisoes, mapa: tabMapa, diplomacia: tabDiplomacia, faccoes: tabFaccoes, acoes: tabAcoes })[UI.tab]($("#tabBody"), nextStory);
+  setTimeout(tutAfterRender, 80);
 }
 function chapterKicker(node){
   const ch = node.chapter || "", m = ch.match(/^(Capítulo [^—]+|Capítulo Final|Epílogo|Guerra Civil)/);
@@ -3826,7 +3945,7 @@ function tabHistoria(el, nextStory){
     html += `<details class="card hist"><summary>Suas decisões (${G.history.length})</summary><ol>${G.history.map(h => `<li><small>${esc(monthLabel(h.m))}</small> ${esc(h.t)}</li>`).join("")}</ol></details>`;
   }
   el.innerHTML = html;
-  el.querySelectorAll(".choice").forEach(b => b.onclick = () => { choose(G, +b.dataset.i); save(); renderGame(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+  el.querySelectorAll(".choice").forEach(b => b.onclick = () => { const snap = majorSnap(); choose(G, +b.dataset.i); save(); renderGame(); window.scrollTo({ top: 0, behavior: "smooth" }); showMajor(majorCheck(snap)); });
   el.querySelectorAll(".batlist").forEach((box, bi) => {
     const list = box.closest("#oldBattles") ? older.slice().reverse() : (G.battleLog || []).filter(b => G.log.length && b.month === G.log[0].m);
     box.querySelectorAll("[data-bat]").forEach(btn => btn.onclick = () => openBattle(list[+btn.dataset.bat]));
@@ -3850,8 +3969,17 @@ function tabMapa(el){
   const hint = ph.noArmies ? "" : sel && sel.side === "player" ? `<div class="maphint">${esc(sel.name)} selecionado — ${MOBILE_MAP() ? "toque" : "clique"} num estado destacado (<b class="hl-a">vermelho</b> = atacar, <b class="hl-m">azul</b> = mover). Toque de novo no exército para soltar.</div>`
     : `<div class="maphint">${MOBILE_MAP() ? "Toque" : "Clique"} num <b>contador azul</b> (seu exército) e depois no estado-alvo. Setas douradas: suas ordens · vermelhas: intenções inimigas conhecidas · linhas pulsantes: frentes.</div>`;
   const lim = commandLimit(G), used = ordersUsed(G), nA = armiesOf(G, "player").length;
+  const infoOpen = UI.layerInfo === true;
   const chip = ph.noArmies ? "" : `<button class="ordchip${used >= lim ? " full" : ""}" id="btnOrders" title="Lista de ordens">⚑ Ordens ${used}/${lim}${nA ? ` · ${armiesOf(G, "player").filter(a => a.order).length}/${nA} exérc.` : ""}</button>`;
-  el.innerHTML = `<div class="maplayout"><div class="panel"><div class="maphead"><h3>Mapa</h3>${chip}<div class="seg"><button data-mode="controle" class="${UI.mapMode==="controle"?"on":""}">Controle</button><button data-mode="agitacao" class="${UI.mapMode==="agitacao"?"on":""}">Agitação</button></div></div>${hint}<div class="mapbox" id="mapMain"></div></div><aside class="panel sidepanel">${panel}</aside></div>`;
+  el.innerHTML = `<div class="maplayout"><div class="panel"><div class="maphead"><h3>Mapa</h3>${chip}</div>
+    <div class="layerbar" role="group" aria-label="Camadas do mapa"><span class="lk">Camada:</span><div class="seg" role="radiogroup"><button role="radio" aria-checked="${UI.mapMode==="controle"}" data-mode="controle" class="${UI.mapMode==="controle"?"on":""}">🗺 Controle</button><button role="radio" aria-checked="${UI.mapMode==="agitacao"}" data-mode="agitacao" class="${UI.mapMode==="agitacao"?"on":""}">🔥 Agitação</button></div><button class="infobtn" id="btnLayerInfo" aria-expanded="${infoOpen ? "true" : "false"}" aria-controls="layerInfo" title="O que é agitação?">i</button></div>
+    ${!infoOpen && UI.mapMode === "agitacao" ? `<div class="layerinfo short"><b>Agitação</b> (0–100) = tensão em cada estado. <b>Roxo</b> = calmo · <b>azul/verde</b> = tenso · <b>amarelo</b> = revolta. Média acima de 62 derruba seu apoio; acima de 88, revolta. <button class="linkbtn" id="btnLayerMore">Saiba mais (i)</button></div>` : ""}
+    ${infoOpen ? `<div class="layerinfo" id="layerInfo">${UI.mapMode === "agitacao" ? `<b>Agitação</b> (0–100) mede a tensão em cada estado: protestos, greves, bloqueios. A cor vai do <b>roxo (calmo)</b>, passando por azul e verde, ao <b>amarelo (revolta)</b>; o número aparece sob a sigla.
+      <ul><li>Todo mês ela tende a um alvo que depende do seu <b>Apoio Popular</b>, da economia, das tropas no estado e de haver disputa.</li>
+      <li>Média <b>acima de 62</b> nos seus estados: <b>−2 de Apoio Popular por mês</b>. Abaixo de 30: +1.</li>
+      <li>Estado <b>acima de 88</b> com pouca tropa: em guerra, <b>revolta</b> (o estado entra em disputa); fora dela, grandes protestos (−2 de apoio) ou até perder o estado.</li>
+      <li>Agitação alta também enfraquece suas tropas em combate ali.</li>
+      <li>Para baixar: <b>investir</b> (−15), <b>propaganda</b> (−8) ou <b>acordo com o governador</b> (−20), clicando no estado; tropas estacionadas também ajudam.</li></ul>` : `<b>Controle</b> mostra quem governa cada estado (cores na legenda). Troque para <b>Agitação</b> para ver onde o país está prestes a explodir.`}</div>` : ""}${UI.mapMode === "agitacao" ? "" : hint}<div class="mapbox" id="mapMain"></div></div><aside class="panel sidepanel">${panel}</aside></div>`;
   const toPanel = () => { if (window.innerWidth < 900) setTimeout(() => $(".sidepanel") && $(".sidepanel").scrollIntoView({ behavior: "smooth", block: "start" }), 30); };
   const order = (a, type, to) => { const r = setOrder(G, a.id, type, to); if (r.ok && type !== "reforcar" && type !== "defender" && type) UI.selArmy = null; afterAct(r); };
   const pickArmy = (ufc, side) => {
@@ -3879,6 +4007,8 @@ function tabMapa(el){
   };
   renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, selArmy: sel, mode: UI.mapMode, military: UI.mapMode !== "agitacao", onPick, onArmy: pickArmy });
   el.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { UI.mapMode = b.dataset.mode; renderGame(); });
+  if ($("#btnLayerInfo")) $("#btnLayerInfo").onclick = () => { UI.layerInfo = !infoOpen; renderGame(); };
+  if ($("#btnLayerMore")) $("#btnLayerMore").onclick = () => { UI.layerInfo = true; renderGame(); };
   el.querySelectorAll(".mapacts .act").forEach(b => b.onclick = () => afterAct(doMapAction(G, uf, b.dataset.k)));
   el.querySelectorAll("[data-army]").forEach(b => b.onclick = () => { const a = armyById(G, b.dataset.army); UI.selArmy = a.id; UI.selUF = a.uf; renderGame(); window.scrollTo({ top: Math.max(0, ($("#mapMain").getBoundingClientRect().top + window.scrollY) - 70), behavior: "smooth" }); });
   el.querySelectorAll("[data-desel]").forEach(b => b.onclick = () => { UI.selArmy = null; UI.selUF = null; renderGame(); });
@@ -3949,24 +4079,60 @@ function tabDiplomacia(el){
   if ($("#btnMission")) $("#btnMission").onclick = () => afterAct(diploMission(G, aid));
   if ($("#btnCounter")) $("#btnCounter").onclick = () => { const r = acceptCounter(G); UI.dealMsg = { text: r.msg, cls: "good" }; UI.req = []; UI.off = []; afterAct(r); };
 }
+function facNow(F, f){
+  const C = SCEN.campaign, L = f.loyalty, out = [];
+  const st = s => Object.entries(s).map(([k, v]) => `${STORY.stats[k] ? STORY.stats[k].label : k} ${v > 0 ? "+" : "−"}${Math.abs(v)}/mês`).join(", ");
+  if (F.boost){ if (L >= 70) out.push(`<b>rende</b> ${st(F.boost)}`); else if (L <= 25) out.push(`<b>custa</b> ${st(Object.fromEntries(Object.entries(F.boost).map(([k, v]) => [k, -v])))}`); }
+  if (F.boostMoney){ if (L >= 65) out.push(`<b>rende</b> +${F.boostMoney} ${esc(C.money.short)}/mês`); else if (L <= 25) out.push(`<b>custa</b> −${F.boostMoney} ${esc(C.money.short)}/mês`); }
+  if (C.nationalFac === F.id) out.push(`moral máxima das tropas ${maxOrg(G, "player")}${L >= 65 ? ", +1 ordem por mês" : L < 25 ? ", −1 ordem por mês" : ""}`);
+  if (L < 15) out.push(f.influence >= 25 ? `<b style="color:#f09a86">crise a qualquer momento</b> (influência ${Math.round(f.influence)} ≥ 25)` : "em crise, mas fraca demais para reagir (influência < 25)");
+  return out.length ? out.join(" · ") : "nenhum efeito agora (só bônus a partir de 65–70 ou penalidades a partir de 25)";
+}
+function facWhat(F){
+  const C = SCEN.campaign, cost = F.favorCost ?? C.favorCost ?? 4, li = [];
+  const rivals = (F.rivals || []).map(r => (C.factions.find(x => x.id === r) || {}).short || r);
+  li.push(`<b>Agradar</b> (1 AP · ${cost} ${esc(C.money.short)}): lealdade +14${rivals.length ? `; ${esc(rivals.join(", "))} −5 de lealdade (rival)` : ""}${F.favorFx ? `; ${esc(fxSummary(G, F.favorFx))}` : ""}.`);
+  li.push(`<b>Enfraquecer</b> (1 AP): influência −10 e lealdade −12${F.pressFx ? `; ${esc(fxSummary(G, F.pressFx))}` : ""}. Útil para tirar uma facção hostil do jogo: com influência abaixo de 25 ela não provoca crises.`);
+  if (F.boost) li.push(`<b>Leal (≥70):</b> ${esc(Object.entries(F.boost).map(([k, v]) => `${STORY.stats[k].label} +${v}/mês`).join(", "))}. <b>Insatisfeita (≤25):</b> o mesmo, negativo.`);
+  if (F.boostMoney) li.push(`<b>Leal (≥65):</b> +${F.boostMoney} ${esc(C.money.short)}/mês. <b>Insatisfeita (≤25):</b> −${F.boostMoney}/mês.`);
+  if (C.nationalFac === F.id) li.push(`<b>Comando das tropas:</b> a lealdade define a moral máxima dos seus exércitos; ≥65 dá +1 ordem por mês e abaixo de 25, −1.`);
+  if (!F.boost && !F.boostMoney && C.nationalFac !== F.id) li.push("Não dá bônus mensal: o que importa é evitar a crise (lealdade < 15 com influência ≥ 25).");
+  if (F.links){ const up = [], down = []; for (const [k, v] of Object.entries(F.links)) (v > 0 ? up : down).push(STORY.stats[k] ? STORY.stats[k].label : k);
+    li.push(`Reage aos seus atributos: ${up.length ? `fica mais leal quando ${esc(up.join(" ou "))} sobe` : ""}${up.length && down.length ? "; " : ""}${down.length ? `fica menos leal quando ${esc(down.join(" ou "))} sobe` : ""}.`); }
+  li.push(`Todo mês, a lealdade volta 5% em direção ao ponto de partida (${F.loyalty}).`);
+  return `<ul>${li.map(x => `<li>${x}</li>`).join("")}</ul>`;
+}
 function tabFaccoes(el){
   const C = SCEN.campaign;
   const cards = C.factions.map(F => {
     const f = G.fac[F.id], stt = facStatus(f), cls = { "Leal": "good", "Neutra": "", "Insatisfeita": "mid", "Em crise": "bad" }[stt];
     const used1 = G.used["fac_agradar_" + F.id], used2 = G.used["fac_pressionar_" + F.id], busy = G.queue.length > 0;
     const cost = F.favorCost ?? C.favorCost ?? 4;
-    const fx = [];
-    if (F.boost) fx.push(`Leal (≥70): ${Object.entries(F.boost).map(([k, v]) => `${STORY.stats[k].label} +${v}/mês`).join(", ")}; insatisfeita (≤25): o inverso`);
-    if (F.boostMoney) fx.push(`Leal: +${F.boostMoney} ${C.money.short}/mês; insatisfeita: −${F.boostMoney}`);
+    const why1 = used1 ? "já feito neste turno" : busy ? "resolva os eventos" : G.ap < 1 ? "sem AP" : G.money < cost ? `faltam ${esc(C.money.short)}` : `lealdade +14${(F.rivals || []).length ? ", rivais −5" : ""}`;
+    const why2 = used2 ? "já feito neste turno" : busy ? "resolva os eventos" : G.ap < 1 ? "sem AP" : "influência −10, lealdade −12";
     return `<div class="fac ${cls}"><div class="fh"><strong>${esc(F.name)}</strong><em class="chip ${cls}">${stt}</em></div><p>${esc(F.desc)}</p>
-      <div class="fbar"><span>Lealdade</span><div class="bar"><i style="width:${f.loyalty}%;background:${f.loyalty < 15 ? "#c2563f" : f.loyalty < 35 ? "#d0902a" : "#6fae6a"}"></i><u style="left:15%"></u></div><b>${Math.round(f.loyalty)}</b></div>
+      <div class="fbar"><span>Lealdade</span><div class="bar" title="Linhas: 15 crise · 35 neutra · 65 leal"><i style="width:${f.loyalty}%;background:${f.loyalty < 15 ? "#c2563f" : f.loyalty < 35 ? "#d0902a" : "#6fae6a"}"></i><u style="left:15%"></u><u class="t35" style="left:35%"></u><u class="t65" style="left:65%"></u></div><b>${Math.round(f.loyalty)}</b></div>
       <div class="fbar"><span>Influência</span><div class="bar"><i style="width:${f.influence}%;background:#7d8fb3"></i></div><b>${Math.round(f.influence)}</b></div>
-      ${fx.length ? `<small class="muted">${esc(fx.join(" · "))}</small>` : ""}
-      ${F.rivals && F.rivals.length ? `<small class="muted">Rivais: ${esc(F.rivals.map(r => (C.factions.find(x => x.id === r) || {}).short || r).join(", "))}</small>` : ""}
-      <div class="fbtns"><button class="secondary sm" data-f="${F.id}" data-k="agradar" ${used1 || busy || G.ap < 1 || G.money < cost ? "disabled" : ""}>Agradar (1 AP · ${cost} ${esc(C.money.short)})</button>
-      <button class="secondary sm" data-f="${F.id}" data-k="pressionar" ${used2 || busy || G.ap < 1 ? "disabled" : ""}>Enfraquecer (1 AP)</button></div></div>`;
+      <div class="fnow"><b>Agora:</b> ${facNow(F, f)}</div>
+      <details class="fwhat"><summary>O que acontece se…</summary>${facWhat(F)}</details>
+      <div class="fbtns"><button class="secondary sm" data-f="${F.id}" data-k="agradar" ${used1 || busy || G.ap < 1 || G.money < cost ? "disabled" : ""}>Agradar (1 AP · ${cost} ${esc(C.money.short)})<small>${why1}</small></button>
+      <button class="secondary sm" data-f="${F.id}" data-k="pressionar" ${used2 || busy || G.ap < 1 ? "disabled" : ""}>Enfraquecer (1 AP)<small>${why2}</small></button></div></div>`;
   }).join("");
-  el.innerHTML = `<p class="muted intro">Grupos internos com lealdade e influência. Abaixo de 15 de lealdade (linha vermelha), uma facção influente (≥25) provoca uma crise — greves, defecções, rebeliões no Congresso ou até um contragolpe. Decisões da história também mexem com elas.</p><div class="facgrid">${cards}</div>`;
+  const ex = `<div class="facx">
+    <div><h4>Lealdade: o que cada nível faz</h4><div class="lv">
+      <em style="color:#8fbf7a">Leal ≥ 65</em><span>Bônus de ${esc(C.money.short)} (≥65) e de atributos (≥70), conforme a facção.</span>
+      <em>Neutra 35–64</em><span>Sem efeito mensal.</span>
+      <em style="color:#e0a85a">Insatisfeita 15–34</em><span>A partir de 25 ou menos, o bônus vira penalidade.</span>
+      <em style="color:#f09a86">Em crise &lt; 15</em><span>Se a influência for 25 ou mais: <b>crise</b> (greves, defecções, rebeliões, até golpe), no máximo uma a cada 4 meses.</span></div></div>
+    <div><h4>Agradar × Enfraquecer</h4><ul>
+      <li><b>Agradar</b>: 1 AP + ${esc(C.money.short)}. Lealdade +14; rivais perdem 5. Para manter aliados acima de 65–70 e colher os bônus.</li>
+      <li><b>Enfraquecer</b>: 1 AP. Influência −10 e lealdade −12. Uma facção hostil com influência abaixo de 25 não provoca crise.</li>
+      <li>Cada botão uma vez por facção, por turno.</li></ul></div>
+    <div><h4>O que mais mexe com elas</h4><ul>
+      <li>Escolhas da história e dos eventos.</li>
+      <li>Seus atributos: cada facção acompanha alguns deles (veja “O que acontece se…”).</li>
+      <li>Todo mês a lealdade volta um pouco ao ponto de partida.</li></ul></div></div>`;
+  el.innerHTML = `${ex}<div class="facgrid">${cards}</div>`;
   el.querySelectorAll("[data-f]").forEach(b => b.onclick = () => afterAct(factionAction(G, b.dataset.f, b.dataset.k)));
 }
 function tabAcoes(el){
@@ -4017,23 +4183,24 @@ function focusSVG(T, Gm){
 function tabDecisoes(el){
   const T = focusTree(G); focusInit(G);
   const f = G.focus, Gm = focusGeom(T), C = SCEN.campaign;
-  const z = UI.fz ?? (window.innerWidth < 700 ? 0.62 : 0.8);
+  const small = window.innerWidth < 700;
+  let z = UI.fz ?? (small ? 0.8 : 1);
   const nodes = T.nodes.map(F => {
     const st = focusStatus(G, F), br = T.branches.find(b => b.id === F.branch) || {};
     const pr = st.state === "active" ? Math.round(100 * f.prog / F.months) : 0;
-    return `<button class="fnode st-${st.state}${UI.selFocus === F.id ? " sel" : ""}" data-fid="${F.id}" style="left:${Gm.X(F.x) - Gm.nw / 2}px;top:${Gm.Y(F.y)}px;--bc:${br.color || "#c9a45c"}" title="${esc(focusTip(F, st))}">
-      <span class="fic">${FSTATE[st.state][1]}</span><b>${esc(F.name)}</b><small>${F.months} ${F.months === 1 ? "mês" : "meses"}${F.cost ? ` · ${F.cost} ${esc(C.money.short)}` : ""}${(F.excl || []).length ? " · exclusivo" : ""}</small>${st.state === "active" ? `<i class="fprog"><u style="width:${pr}%"></u></i>` : ""}</button>`;
+    return `<button class="fnode st-${st.state}${UI.selFocus === F.id ? " sel" : ""}" data-fid="${F.id}" style="left:${Gm.X(F.x) - Gm.nw / 2}px;top:${Gm.Y(F.y)}px;--bc:${br.color || "#c9a45c"}" title="${esc(focusTip(F, st))}" aria-label="${esc(F.name)} — ${esc(FSTATE[st.state][0])}">
+      <span class="fic" aria-hidden="true">${FSTATE[st.state][1]}</span><b>${esc(F.name)}</b><small>${F.months} ${F.months === 1 ? "mês" : "meses"}${F.cost ? ` · ${F.cost} ${esc(C.money.short)}` : ""}${(F.excl || []).length ? " · exclusivo" : ""}</small>${st.state === "active" ? `<i class="fprog"><u style="width:${pr}%"></u></i>` : ""}</button>`;
   }).join("");
   const act = f.active ? focusDef(G, f.active) : null;
   const status = act
     ? `<div class="fstatus on"><span>Foco atual</span><strong>${esc(act.name)}</strong><div class="bar"><i style="width:${Math.round(100 * f.prog / act.months)}%;background:#c9a45c"></i></div><small>${f.prog}/${act.months} meses · avança ao encerrar o mês</small></div>`
-    : `<div class="fstatus"><span>Foco atual</span><strong>Nenhum</strong><small>Escolha um foco disponível (●). Começar custa ${T.ap ?? 1} AP; só um por vez.</small></div>`;
+    : `<div class="fstatus"><span>Foco atual</span><strong>Nenhum</strong><small>Escolha um foco disponível (●). Começar custa ${T.ap ?? 1} AP; só um por vez. Concluídos: ${f.done.length} de ${T.nodes.length}.</small></div>`;
   const sel = UI.selFocus ? focusDef(G, UI.selFocus) : null;
   let detail = "";
   if (sel){
     const st = focusStatus(G, sel), br = T.branches.find(b => b.id === sel.branch) || {}, bad = focusCheck(G, sel.id);
     const list = (ids, sep) => ids.map(id => `<span class="${f.done.includes(id) ? "ok" : ""}">${f.done.includes(id) ? "✔ " : ""}${esc(focusName(G, id))}</span>`).join(sep);
-    detail = `<div class="fdetail" id="fdetail"><button class="fclose" id="fClose" aria-label="Fechar">×</button>
+    detail = `<div class="fdetail" id="fdetail" role="region" aria-label="Detalhes do foco"><button class="fclose" id="fClose" aria-label="Fechar detalhes">×</button>
       <div class="chap" style="color:${br.color}">${esc(br.label || "")}</div><h3>${esc(sel.name)}</h3>
       <div class="fstate st-${st.state}">${FSTATE[st.state][1]} ${esc(st.why)}</div>
       <p>${esc(sel.desc)}</p>
@@ -4049,26 +4216,68 @@ function tabDecisoes(el){
       ${st.state === "active" ? `<button class="secondary" id="fCancel">Cancelar foco (perde o progresso)</button>`
         : st.state === "done" ? "" : `<button class="primary" id="fStart" ${bad ? "disabled" : ""}>Iniciar foco (${T.ap ?? 1} AP${sel.cost ? ` · ${sel.cost} ${esc(C.money.short)}` : ""})</button>${bad ? `<small class="why">${esc(bad)}</small>` : ""}`}
     </div>`;
-  } else detail = `<div class="fdetail empty"><h3>Árvore de decisões nacionais</h3><p class="muted">Toque ou clique num foco para ver descrição, efeitos, pré-requisitos e exclusividades. Passe o mouse para uma dica rápida.</p><p class="muted">Linhas sólidas: pré-requisito obrigatório. Tracejadas: basta um deles. <b style="color:#d06a55">⊘</b> vermelho: caminhos mutuamente exclusivos — escolher um bloqueia o outro. Decisões da história também abrem e fecham ramos.</p><p class="muted">Concluídos: ${f.done.length} de ${T.nodes.length}.</p></div>`;
-  const legend = Object.entries(FSTATE).map(([k, [l, i]]) => `<span class="st-${k}"><em>${i}</em>${l}</span>`).join("");
-  el.innerHTML = `<div class="focuslayout">
+  }
+  const legend = Object.entries(FSTATE).map(([k, [l, i]]) => `<span class="st-${k}"><em>${i}</em>${l}</span>`).join("") + `<span>── pré-requisito</span><span>- - basta um</span><span style="color:#e07a62">⊘ exclusivo</span>`;
+  el.innerHTML = `<div class="focuslayout${UI.ffull ? " ffull" : ""}">
     <div class="fmain">
-      <div class="fbar2">${status}<div class="fzoom"><button class="btn-sm" data-z="-">−</button><span>${Math.round(z * 100)}%</span><button class="btn-sm" data-z="+">+</button><button class="btn-sm" data-z="fit">Ajustar</button></div></div>
-      <div class="ftree-wrap" id="ftWrap"><div class="ftree-size" style="width:${Gm.W * z}px;height:${Gm.H * z}px"><div class="ftree" style="width:${Gm.W}px;height:${Gm.H}px;transform:scale(${z})">${focusSVG(T, Gm)}${nodes}</div></div></div>
+      <div class="fbar2">${status}<div class="fzoom" role="group" aria-label="Zoom da árvore"><button class="btn-sm" data-z="-" aria-label="Diminuir zoom">−</button><span id="fzLbl" aria-live="polite">${Math.round(z * 100)}%</span><button class="btn-sm" data-z="+" aria-label="Aumentar zoom">+</button><button class="btn-sm" data-z="fit">Ajustar</button><button class="btn-sm" id="fFull" aria-pressed="${UI.ffull ? "true" : "false"}">${UI.ffull ? "✕ Sair da tela cheia" : "⛶ Tela cheia"}</button></div></div>
+      <div class="fnavhint"><span class="dk">🖱 <b>Arraste</b> para mover</span><span class="dk"><kbd>Roda</kbd> rola · <kbd>Shift</kbd>+<kbd>Roda</kbd> lateral</span><span class="dk"><kbd>Ctrl</kbd>+<kbd>Roda</kbd> zoom</span><span class="mb">☝ Arraste com o dedo · pinça para zoom</span><span>Toque num foco para ver os detalhes</span></div>
+      <div class="ftree-wrap" id="ftWrap" tabindex="0" role="region" aria-label="Árvore de decisões: arraste ou role para navegar"><div class="ftree-size" id="ftSize" style="width:${Gm.W * z}px;height:${Gm.H * z}px"><div class="ftree" id="ftTree" style="width:${Gm.W}px;height:${Gm.H}px;transform:scale(${z})">${focusSVG(T, Gm)}${nodes}</div></div></div>
       <div class="flegend">${legend}</div>
     </div>${detail}</div>`;
-  const wrap = $("#ftWrap");
+  const wrap = $("#ftWrap"), size = $("#ftSize"), tree = $("#ftTree"), lbl = $("#fzLbl");
   if (UI.fscroll) { wrap.scrollLeft = UI.fscroll[0]; wrap.scrollTop = UI.fscroll[1]; }
   else { const c = act || focusDef(G, "t_balanco") || T.nodes[0]; wrap.scrollLeft = Math.max(0, Gm.X(c.x) * z - wrap.clientWidth / 2); wrap.scrollTop = Math.max(0, Gm.Y(c.y) * z - 40); }
   wrap.onscroll = () => { UI.fscroll = [wrap.scrollLeft, wrap.scrollTop]; };
-  el.querySelectorAll("[data-fid]").forEach(b => b.onclick = () => { UI.selFocus = b.dataset.fid; tabDecisoes(el); });
-  el.querySelectorAll("[data-z]").forEach(b => b.onclick = () => {
-    const k = b.dataset.z, old = z;
-    const nz = k === "fit" ? Math.max(0.3, Math.min(1.2, (wrap.clientWidth - 4) / Gm.W)) : Math.max(0.3, Math.min(1.4, +(z + (k === "+" ? 0.1 : -0.1)).toFixed(2)));
-    UI.fz = nz; const cx = (wrap.scrollLeft + wrap.clientWidth / 2) / old, cy = (wrap.scrollTop + wrap.clientHeight / 2) / old;
-    UI.fscroll = [Math.max(0, cx * nz - wrap.clientWidth / 2), Math.max(0, cy * nz - wrap.clientHeight / 2)]; if (k === "fit") UI.fscroll[0] = 0;
-    tabDecisoes(el);
+  // zoom no lugar, mantendo o ponto (px, py) da janela fixo
+  const setZoom = (nz, px, py) => {
+    nz = Math.max(0.3, Math.min(1.6, Math.round(nz * 100) / 100)); if (nz === z) return;
+    if (px === undefined){ px = wrap.clientWidth / 2; py = wrap.clientHeight / 2; }
+    const cx = (wrap.scrollLeft + px) / z, cy = (wrap.scrollTop + py) / z;
+    z = UI.fz = nz;
+    size.style.width = Gm.W * z + "px"; size.style.height = Gm.H * z + "px"; tree.style.transform = `scale(${z})`; lbl.textContent = Math.round(z * 100) + "%";
+    wrap.scrollLeft = cx * z - px; wrap.scrollTop = cy * z - py; UI.fscroll = [wrap.scrollLeft, wrap.scrollTop];
+  };
+  wrap.addEventListener("wheel", e => {
+    if (e.ctrlKey || e.metaKey){ e.preventDefault(); const r = wrap.getBoundingClientRect(); setZoom(z * Math.exp(-e.deltaY * 0.0022), e.clientX - r.left, e.clientY - r.top); }
+  }, { passive: false });
+  // arrastar para mover (mouse/caneta); no toque, o próprio navegador rola, e dois dedos fazem zoom
+  let drag = null;
+  wrap.addEventListener("pointerdown", e => {
+    if (e.pointerType === "touch" || e.button !== 0) return;
+    drag = { x: e.clientX, y: e.clientY, sl: wrap.scrollLeft, st: wrap.scrollTop, moved: false, id: e.pointerId };
   });
+  wrap.addEventListener("pointermove", e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.moved && Math.hypot(dx, dy) > 5){ drag.moved = true; wrap.classList.add("drag"); try{ wrap.setPointerCapture(e.pointerId); }catch(_){} }
+    if (drag.moved){ wrap.scrollLeft = drag.sl - dx; wrap.scrollTop = drag.st - dy; }
+  });
+  const endDrag = () => { if (drag && drag.moved){ wrap.classList.remove("drag"); wrap.dataset.dragged = "1"; setTimeout(() => delete wrap.dataset.dragged, 0); } drag = null; };
+  wrap.addEventListener("pointerup", endDrag); wrap.addEventListener("pointercancel", endDrag);
+  let pinch = null;
+  const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  wrap.addEventListener("touchstart", e => { if (e.touches.length === 2) pinch = { d: dist(e.touches), z }; }, { passive: true });
+  wrap.addEventListener("touchmove", e => {
+    if (pinch && e.touches.length === 2){ e.preventDefault(); const r = wrap.getBoundingClientRect(); setZoom(pinch.z * dist(e.touches) / pinch.d, (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left, (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top); }
+  }, { passive: false });
+  wrap.addEventListener("touchend", e => { if (e.touches.length < 2) pinch = null; });
+  wrap.addEventListener("keydown", e => {
+    if (e.target !== wrap) return;
+    const st = 60, k = e.key;
+    if (k === "ArrowLeft") wrap.scrollLeft -= st; else if (k === "ArrowRight") wrap.scrollLeft += st;
+    else if (k === "ArrowUp") wrap.scrollTop -= st; else if (k === "ArrowDown") wrap.scrollTop += st;
+    else if (k === "+" || k === "=") setZoom(z + 0.1); else if (k === "-") setZoom(z - 0.1); else return;
+    e.preventDefault();
+  });
+  el.querySelectorAll("[data-fid]").forEach(b => b.onclick = () => { if (wrap.dataset.dragged) return; UI.selFocus = b.dataset.fid; tabDecisoes(el); });
+  el.querySelectorAll("[data-z]").forEach(b => b.onclick = () => {
+    const k = b.dataset.z;
+    if (k === "fit"){ setZoom(Math.max(0.3, Math.min(1.2, (wrap.clientWidth - 4) / Gm.W))); wrap.scrollLeft = 0; }
+    else setZoom(z + (k === "+" ? 0.1 : -0.1));
+  });
+  $("#fFull").onclick = () => { UI.ffull = !UI.ffull; UI.fscroll = [wrap.scrollLeft, wrap.scrollTop]; document.body.classList.toggle("noscroll", !!UI.ffull); tabDecisoes(el); };
+  if (UI.ffull && !tabDecisoes._esc){ tabDecisoes._esc = e => { if (e.key === "Escape" && UI.ffull && UI.tab === "decisoes" && !coachBusy()){ UI.ffull = false; document.body.classList.remove("noscroll"); document.removeEventListener("keydown", tabDecisoes._esc); tabDecisoes._esc = null; const b = $("#tabBody"); if (b) tabDecisoes(b); } }; document.addEventListener("keydown", tabDecisoes._esc); }
   if ($("#fClose")) $("#fClose").onclick = () => { UI.selFocus = null; tabDecisoes(el); };
   if ($("#fStart")) $("#fStart").onclick = () => afterAct(startFocus(G, sel.id));
   if ($("#fCancel")) $("#fCancel").onclick = () => { if (confirm("Cancelar o foco atual? O progresso será perdido.")) afterAct(cancelFocus(G)); };
@@ -4096,27 +4305,229 @@ function renderEnding(){
   $("#btnBack2").onclick = renderMenu;
 }
 
-/* ---------- Ajuda / tutorial ---------- */
+/* =====================================================================
+   DICAS CONTEXTUAIS (tutorial em pop-ups curtos, um por aba/função)
+   Progresso em localStorage (gw_tut_v3): { off: bool, seen: { contexto: true } }
+   ===================================================================== */
+const TUT_KEY = "gw_tut_v3";
+function tutState(){ let s = null; try{ s = JSON.parse(localStorage.getItem(TUT_KEY)); }catch(e){} return s && typeof s === "object" ? Object.assign({ off: false, seen: {} }, s, { seen: Object.assign({}, s.seen) }) : { off: false, seen: {} }; }
+function tutSave(s){ try{ localStorage.setItem(TUT_KEY, JSON.stringify(s)); }catch(e){} }
+function tutMark(ctx){ const s = tutState(); s.seen[ctx] = true; tutSave(s); }
+function tutSkipAll(){ const s = tutState(); s.off = true; tutSave(s); coachClose(); toast("Tutorial desativado. Para ver de novo: ? Ajuda → Refazer tutorial.", "mid"); }
+function tutReset(){ tutSave({ off: false, seen: {} }); }
+// Cada contexto: lista de passos { sel (alvo destacado; opcional), t (título), h (HTML do texto), when (opcional) }
+function tutSteps(ctx){
+  const C = SCEN.campaign, M = C.money.label, ph = G ? phaseOf(G) : {};
+  const S = {
+    hud: [
+      { t: "Bem-vindo ao comando", h: `<p>Estas dicas aparecem <b>uma vez</b>, na primeira vez que você abre cada aba ou função. São curtas — leia e clique em <b>Próximo</b>.</p><p>Não quer ajuda? <b>Pular tutorial</b> desliga todas. Dá para refazer depois em <b>? Ajuda</b>.</p>` },
+      { sel: ".hud-date", t: "Data, turno e fase", h: `<p>Cada turno vale <b>um mês</b> (em fases calmas, até 3 meses).</p><p>A <b>fase</b> (ex.: “${esc(ph.label || "")}”) define as regras do momento: se há guerra, se você comanda tropas e quanto recebe por mês.</p>` },
+      { sel: ".hud-res > div:first-child", t: "Ações (AP)", h: `<p>Os <b>pontos de ação</b> são o seu tempo e a sua atenção neste turno. Quase tudo custa <b>1 AP</b>: ações, agradar ou enfraquecer facções, propostas diplomáticas e iniciar um foco.</p><p>Os AP <b>recarregam</b> ao encerrar o mês e <b>não acumulam</b> — use-os.</p>` },
+      { sel: ".hud-res > div:nth-child(2)", t: M, h: `<p>Capital político: verbas, cargos e favores. Paga investimentos, agrados a facções, missões e tropas.</p><p>O número pequeno (<b>+N/mês</b>) é a renda líquida: território, economia e facções leais, menos manutenção de tropas e sanções.</p><p><b>Abaixo de zero</b>, você perde apoio todo mês.</p>` },
+      { sel: ".hudarmy", t: C.forces.label, h: `<p>Soma da força dos seus exércitos. Clique para abrir o mapa militar.</p><p>Em algumas fases (por exemplo, fora do governo) você <b>não comanda tropas</b>.</p>` },
+      { sel: ".stats", t: "Os quatro pilares", h: `<ul>${Object.entries(STORY.stats).map(([k, s]) => `<li><b>${esc(s.label)}</b>: ${esc(STAT_HELP[k] || "")}</li>`).join("")}</ul><p>Vão de 0 a 100. <b>Se algum chegar a zero, a campanha acaba.</b> Eles também liberam ou bloqueiam escolhas da história.</p>` },
+      { sel: "#btnEnd", t: "Encerrar mês", h: `<p>Quando terminar de agir, clique aqui. O mês passa: renda, combates, agitação nos estados, humor das facções e reação de outros países.</p><p>Fica bloqueado enquanto houver evento esperando decisão.</p>` },
+      { sel: ".tabs", t: "As abas", h: `<p><b>História</b>: eventos e decisões. <b>Decisões</b>: focos nacionais de longo prazo. <b>Mapa</b>: estados, agitação e exércitos. <b>Diplomacia</b>, <b>Facções</b> e <b>Ações</b>.</p><p>Cada aba tem uma dica curta na primeira visita.</p>` }
+    ],
+    historia: [
+      { sel: ".card.story, .card.event, .card.quiet", t: "História e eventos", h: `<p>Aqui chegam os <b>eventos-chave</b> da trama (em datas certas) e os <b>eventos</b> e <b>crises</b> do mês.</p><p>Cada opção mostra os efeitos embaixo. Opções cinza exigem atributos ou decisões anteriores.</p>` },
+      { sel: ".card.report", t: "Relatório do mês", h: `<p>Tudo o que aconteceu ao encerrar o mês: renda, agitação, facções, diplomacia e batalhas (toque numa batalha para ver o porquê do resultado).</p>` }
+    ],
+    mapa: [
+      { sel: ".layerbar", t: "Camadas do mapa", h: `<p>O mapa tem <b>duas camadas</b>:</p><ul><li><b>Controle</b>: quem manda em cada estado.</li><li><b>Agitação</b>: o risco de protestos e revoltas em cada estado.</li></ul><p>O botão <b>ⓘ</b> explica a agitação em detalhes.</p>` },
+      { sel: "#mapMain", t: "Estados", h: `<p>Passe o mouse (ou toque) para ver controle e agitação. Clique num estado para abrir o painel ao lado: <b>investir</b>, <b>propaganda</b> ou <b>acordo com o governador</b>.</p>` },
+      { sel: ".sidepanel", t: "Painel lateral", h: `<p>Mostra o estado ou exército selecionado. Sem seleção, mostra o resumo do país e as frentes de combate.</p>` }
+    ],
+    exercitos: [
+      { sel: "#mapMain g.cnt.p", t: "Seus exércitos", h: `<p>Os <b>contadores azuis</b> são seus exércitos; o número é a <b>força</b>. Os vermelhos são inimigos.</p><p>Clique num exército e depois num estado vizinho destacado: <b>vermelho = atacar</b>, <b>azul = mover</b>. A previsão da batalha aparece antes de confirmar.</p>` },
+      { sel: "#btnOrders", t: "Limite de ordens", h: `<p>Ordens <b>não gastam AP</b>, mas o número de manobras por mês é limitado pelo Apoio Militar e pela lealdade das Forças Armadas.</p><p>As ordens são executadas ao <b>encerrar o mês</b>, numa animação com relatório.</p>` },
+      { sel: "#btnRecruit", t: "Recrutar", h: `<p>Cria um novo exército por alguns ${esc(C.money.short)}, sem AP (até 2 por mês). Exércitos fracos em descanso no seu território também se reforçam sozinhos.</p>` }
+    ],
+    decisoes: [
+      { sel: "#ftWrap", t: "Árvore de decisões nacionais", h: `<p>Cada caixa é um <b>foco</b>: um projeto de alguns meses. Escolha <b>um por vez</b> (1 AP); ele avança a cada mês e, ao concluir, aplica efeitos e libera ações, eventos e opções.</p><p><b>Navegação:</b> arraste para mover, use a roda do mouse ou o trackpad para rolar e <b>Ctrl + roda</b> (ou pinça no celular) para o zoom.</p>` },
+      { sel: ".flegend", t: "Como ler a árvore", h: `<p>Linhas sólidas: pré-requisito. Tracejadas: basta um. <b>⊘ vermelho</b>: caminhos exclusivos — escolher um fecha o outro. Decisões da história também abrem e fecham ramos.</p>` },
+      { sel: ".fzoom", t: "Zoom e tela cheia", h: `<p>Use <b>−/+</b>, <b>Ajustar</b> (cabe na largura) e <b>Tela cheia</b> para ver a árvore inteira.</p>` }
+    ],
+    faccoes: [
+      { sel: ".facx", t: "Facções", h: `<p>Grupos internos com <b>lealdade</b> (o quanto estão do seu lado) e <b>influência</b> (o quanto pesam).</p><p>Este quadro resume o que acontece em cada nível e o efeito de <b>Agradar</b> e <b>Enfraquecer</b>.</p>` },
+      { sel: ".fac", t: "Cada facção", h: `<p>A linha <b>Agora</b> mostra o efeito atual dela sobre você. Abra <b>O que acontece se…</b> para ver o resultado exato de cada botão.</p><p><b>Perigo:</b> lealdade abaixo de 15 com influência 25 ou mais provoca uma <b>crise</b>.</p>` }
+    ],
+    diplomacia: [
+      { sel: ".actors", t: "Diplomacia", h: `<p>Governos e organismos, com a <b>opinião</b> que têm de você (−100 a +100). Escolha um para negociar.</p>` },
+      { sel: ".dealpanel", t: "Acordos", h: `<p>Marque o que você <b>pede</b> e o que <b>oferece</b>; a <b>previsão</b> mostra a chance antes de propor (1 AP). A <b>missão diplomática</b> melhora a opinião.</p><p>Acordos têm custo: dívidas, dependência e reação de rivais e facções.</p>` }
+    ],
+    acoes: [
+      { sel: ".actgrid", t: "Ações", h: `<p>Ações do governo em quatro áreas. Cada uma mostra o custo (<b>AP</b> e ${esc(M)}), os efeitos e o risco, e pode ser usada <b>uma vez por turno</b>.</p><p>Ações cinza explicam por que estão indisponíveis.</p>` }
+    ]
+  };
+  return S[ctx] || [];
+}
+const STAT_HELP = {
+  apoio: "opinião pública. Alto acalma os estados; baixo alimenta protestos e revoltas.",
+  militar: "o quanto os quartéis seguem você. Define a moral e o limite de ordens das tropas.",
+  base: "partidos e Congresso. Dá governabilidade e abre opções políticas.",
+  internacional: "imagem no exterior. Baixa traz sanções e isolamento.",
+  economia: "saúde econômica. Gera renda e acalma os estados.",
+  legitimidade: "o quanto o país e o mundo aceitam você como governo legítimo."
+};
+let coachEl = null, coachPoll = null;
+function coachClose(){ if (coachEl){ coachEl.remove(); coachEl = null; window.removeEventListener("resize", coachEl_pos); document.removeEventListener("keydown", coachKey, true); } }
+let coachEl_pos = () => {}, coachKey = () => {};
+function coachBusy(){ return !!document.querySelector(".overlay, .major, .modal, .coach"); }
+function tutContexts(){
+  if (!G || G.ended) return [];
+  const list = ["hud", UI.tab];
+  if (UI.tab === "mapa" && !phaseOf(G).noArmies && armiesOf(G, "player").length) list.push("exercitos");
+  return list;
+}
+function tutAfterRender(){
+  clearTimeout(coachPoll);
+  const s = tutState(); if (s.off || !G) return;
+  const ctx = tutContexts().find(c => !s.seen[c] && tutSteps(c).some(st => !st.sel || document.querySelector(st.sel)));
+  if (!ctx) return;
+  if (coachBusy()){ if (!document.querySelector(".coach")) coachPoll = setTimeout(tutAfterRender, 700); return; }
+  coachRun(ctx);
+}
+function coachRun(ctx){
+  coachClose();
+  const steps = tutSteps(ctx).filter(st => !st.sel || document.querySelector(st.sel));
+  if (!steps.length){ tutMark(ctx); return; }
+  let i = 0;
+  const el = document.createElement("div"); el.className = "coach"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-labelledby", "coachT");
+  el.innerHTML = `<div class="cblock"></div><div class="cring"></div><div class="cbub" aria-live="polite"></div>`;
+  document.body.appendChild(el); coachEl = el;
+  const ring = el.querySelector(".cring"), bub = el.querySelector(".cbub");
+  const done = () => { tutMark(ctx); coachClose(); setTimeout(tutAfterRender, 250); };
+  const pos = () => {
+    const st = steps[i], t = st.sel && document.querySelector(st.sel);
+    const vw = window.innerWidth, vh = window.innerHeight, bw = Math.min(360, vw - 20);
+    if (!t){ ring.className = "cring none"; ring.removeAttribute("style"); bub.style.left = (vw - bw) / 2 + "px"; bub.style.top = Math.max(10, vh * 0.25) + "px"; return; }
+    const r = t.getBoundingClientRect(), pad = 6;
+    const R = { l: Math.max(4, r.left - pad), t: Math.max(4, r.top - pad), r: Math.min(vw - 4, r.right + pad), b: Math.min(vh - 4, r.bottom + pad) };
+    ring.className = "cring"; Object.assign(ring.style, { left: R.l + "px", top: R.t + "px", width: (R.r - R.l) + "px", height: (R.b - R.t) + "px" });
+    const bh = bub.offsetHeight || 200;
+    let top = R.b + 12; if (top + bh > vh - 8) top = R.t - bh - 12; if (top < 8) top = Math.max(8, Math.min(vh - bh - 8, R.t + 12));
+    let left = Math.min(Math.max(10, R.l), vw - bw - 10);
+    bub.style.left = left + "px"; bub.style.top = top + "px";
+  };
+  const show = () => {
+    const st = steps[i], t = st.sel && document.querySelector(st.sel);
+    if (t){ const r = t.getBoundingClientRect(); if (r.top < 60 || r.bottom > window.innerHeight - 60) t.scrollIntoView({ block: r.height > window.innerHeight * 0.6 ? "start" : "center" }); }
+    bub.innerHTML = `<div class="ck">Dica ${steps.length > 1 ? `${i + 1} de ${steps.length}` : ""}</div><h4 id="coachT">${esc(st.t)}</h4>${st.h}
+      <div class="cbtns"><button class="cskip" data-c="skip" title="Desliga todas as dicas (pode refazer em ? Ajuda)">Pular tutorial</button><div class="r">${i > 0 ? `<button class="secondary cprev" data-c="prev">◂</button>` : ""}<button class="primary cnext" data-c="next">${i < steps.length - 1 ? `Próximo (${i + 1}/${steps.length})` : "Entendi"}</button></div></div>`;
+    bub.querySelector("[data-c=next]").onclick = () => { if (i < steps.length - 1){ i++; show(); } else done(); };
+    bub.querySelector("[data-c=skip]").onclick = tutSkipAll;
+    if (bub.querySelector("[data-c=prev]")) bub.querySelector("[data-c=prev]").onclick = () => { i--; show(); };
+    requestAnimationFrame(() => { pos(); bub.querySelector("[data-c=next]").focus({ preventScroll: true }); });
+  };
+  coachEl_pos = pos; coachKey = e => { if (!coachEl) return; if (e.key === "Escape"){ e.preventDefault(); done(); } else if (e.key === "ArrowRight"){ e.preventDefault(); bub.querySelector("[data-c=next]").click(); } else if (e.key === "ArrowLeft" && i > 0){ e.preventDefault(); i--; show(); } };
+  window.addEventListener("resize", pos); document.addEventListener("keydown", coachKey, true);
+  el.querySelector(".cblock").onclick = () => bub.querySelector("[data-c=next]").focus();
+  show();
+}
+
+/* =====================================================================
+   GRANDES EVENTOS: tela de clímax quando a fase muda ou um marco da história acontece
+   ===================================================================== */
+const MAJOR_NODES = {
+  brasil2022: {
+    transicao: { tone: "gold", head: "A faixa vai mudar de mãos", sub: "Você não impediu a transição. A equipe do presidente eleito assume os ministérios e, em 1º de janeiro, a faixa presidencial muda de dono. O comando do país começa a escapar das suas mãos." },
+    crise_janeiro: { head: "Ataque à Praça dos Três Poderes", sub: "Uma semana após a posse, manifestantes invadem e depredam o Congresso, o Planalto e o STF. O mundo condena — e todos os olhares se voltam para você." },
+    golpe_fracassa: { head: "Os quartéis não se movem", sub: "Os comandantes recusam a aventura. A tentativa de ruptura desmorona antes de sair do papel — e agora alguém vai ter de responder por ela." },
+    golpe_inicial: { head: "Blindados na Esplanada", sub: "Tropas leais a você ocupam Brasília e a ordem constitucional é rompida. Governadores, tribunais, ruas e o mundo vão reagir. Não há volta." },
+    racha_militar: { head: "Racha nas Forças Armadas", sub: "Comandos inteiros recusam suas ordens e se declaram em defesa da Constituição. O monopólio da força acabou." },
+    guerra: { head: "O país está partido", sub: "Estados rompem com Brasília e a resistência pega em armas. Começa a guerra civil — cada frente agora decide o destino do Brasil." },
+    inelegivel: { head: "Inelegível", sub: "O tribunal tira você das urnas por oito anos. Você ainda move multidões; a pergunta é o que fazer com elas." }
+  }
+};
+const PHASE_WHY = {
+  oposicao: "o poder está passando ao presidente eleito: as Forças Armadas voltaram à cadeia de comando regular e não obedecem mais às suas ordens políticas",
+  governo: "a crise armada terminou e as tropas voltaram aos quartéis"
+};
+function majorSnap(){
+  if (!G) return null;
+  const ph = phaseOf(G);
+  return { ph: ph.id, label: ph.label, war: !!ph.war, noArmies: !!ph.noArmies, income: ph.income, pace: paceFor(G), vis: G.visited.length,
+    armies: armiesOf(G, "player").map(a => ({ name: a.name, str: a.str })), stats: Object.assign({}, G.stats), control: Object.assign({}, G.control) };
+}
+function majorCheck(b){
+  if (!b || !G || G.ended) return null;
+  const ph = phaseOf(G), cfg = MAJOR_NODES[SCEN.id] || {};
+  const fresh = G.visited.slice(b.vis).filter(n => cfg[n]);
+  const phaseChanged = ph.id !== b.ph;
+  if (!fresh.length && !phaseChanged) return null;
+  const node = fresh[fresh.length - 1], M = node ? cfg[node] : null;
+  const C = SCEN.campaign, cons = [];
+  const nowA = armiesOf(G, "player"), lost = b.armies.length - nowA.length;
+  if (b.armies.length && ph.noArmies){
+    const tot = Math.round(b.armies.reduce((s, a) => s + a.str, 0));
+    cons.push({ k: "bad", t: `${b.armies.length === 1 ? `Seu exército (força ${tot}) foi desmobilizado` : `Seus ${b.armies.length} exércitos (força total ${tot}) foram desmobilizados`} porque ${PHASE_WHY[ph.id] || "nesta fase você não comanda tropas"}.` });
+  } else if (lost > 0) cons.push({ k: "bad", t: `Você perdeu ${lost} exército(s) nesta virada.` });
+  if (phaseChanged){
+    cons.push({ k: "", t: `Nova fase: ${ph.label}${ph.war ? " — em guerra" : ""}.` });
+    if (ph.war && !b.war) cons.push({ k: "bad", t: "Começou a guerra: as frentes de combate estão abertas. Dê ordens aos seus exércitos na aba Mapa — elas não gastam AP." });
+    if (!ph.war && b.war) cons.push({ k: "good", t: "A guerra terminou: não há mais frentes de combate." });
+    if (ph.noArmies && !b.noArmies) cons.push({ k: "", t: "Agora a luta é política: use propaganda, investimentos e acordos com governadores no mapa, além de diplomacia e facções." });
+    if ((ph.income ?? 0) !== (b.income ?? 0)) cons.push({ k: (ph.income ?? 0) < (b.income ?? 0) ? "bad" : "good", t: `Renda básica de ${C.money.label}: ${b.income ?? 0} → ${ph.income ?? 0} por mês.` });
+  }
+  const pace = paceFor(G); if (pace !== b.pace) cons.push({ k: "", t: pace > 1 ? `Os turnos passam a durar ${pace} meses.` : "Os turnos voltam a durar um mês." });
+  const ch = Object.keys(G.control).filter(u => G.control[u] !== b.control[u]).map(u => ({ uf: u, to: G.control[u] }));
+  if (ch.length) cons.push({ k: "", t: "Mapa: " + changeNotes(ch).join("; ") + "." });
+  const deltas = Object.keys(STORY.stats).map(k => [k, Math.round(G.stats[k] - b.stats[k])]).filter(([, d]) => d);
+  if (deltas.length) cons.push({ k: "", t: deltas.map(([k, d]) => `${STORY.stats[k].label} ${d > 0 ? "+" : "−"}${Math.abs(d)}`).join(" · ") });
+  const head = M ? M.head : ph.label, sub = M ? M.sub : `O jogo mudou de fase: ${ph.label}.`;
+  return { tone: M && M.tone || "red", head, sub, cons };
+}
+function showMajor(m, done){
+  if (!m){ done && done(); return; }
+  document.querySelectorAll(".major").forEach(x => x.remove());
+  coachClose();
+  const o = document.createElement("div"); o.className = "major " + (m.tone === "gold" ? "gold" : "");
+  o.setAttribute("role", "alertdialog"); o.setAttribute("aria-modal", "true"); o.setAttribute("aria-labelledby", "majorH"); o.setAttribute("aria-describedby", "majorS");
+  o.innerHTML = `<div class="mstripe t"></div><div class="mbox"><div class="mkick">⚠ Última hora ⚠</div><div class="mdate">${esc(monthLabel(G.month))}</div>
+    <h2 id="majorH">${esc(m.head)}</h2><p class="msub" id="majorS">${esc(m.sub)}</p>
+    ${m.cons.length ? `<div class="mcons"><h3>O que muda para você</h3><ul>${m.cons.map(c => `<li class="${c.k}">${esc(c.t)}</li>`).join("")}</ul></div>` : ""}
+    <button class="primary mgo">Continuar ▸</button></div><div class="mstripe b"></div>`;
+  document.body.appendChild(o); document.body.classList.add("noscroll");
+  const close = () => { o.remove(); document.body.classList.remove("noscroll"); document.removeEventListener("keydown", key, true); done && done(); setTimeout(tutAfterRender, 200); };
+  const key = e => { if (e.key === "Escape" || e.key === "Enter"){ e.preventDefault(); close(); } };
+  document.addEventListener("keydown", key, true);
+  o.querySelector(".mgo").onclick = close;
+  setTimeout(() => o.querySelector(".mgo").focus({ preventScroll: true }), 50);
+}
+
+/* ---------- Ajuda: refazer/pular tutorial + glossário curto ---------- */
 function openHelp(){
+  document.querySelectorAll("#helpModal").forEach(x => x.remove());
+  const s = tutState(), C = SCEN && SCEN.campaign;
   const m = document.createElement("div");
-  m.className = "modal"; m.id = "helpModal";
-  m.innerHTML = `<div class="modal-card"><h2>Como jogar</h2><ol class="steps">
-    <li><b>Turnos.</b> Cada turno é um mês (ou mais, em fases calmas). Você recebe <b>pontos de ação (AP)</b> para gastar e depois clica em <b>Encerrar mês</b>.</li>
-    <li><b>História.</b> Os acontecimentos da trama viram <b>eventos-chave</b> em datas certas, com escolhas que mudam atributos, mapa e facções. Também surgem eventos aleatórios e crises. Resolva-os para seguir.</li>
-    <li><b>Ações.</b> Economia, Militar, Política interna e Diplomacia: cada ação custa AP e às vezes recursos.</li>
-    <li><b>Mapa.</b> Clique num estado para ver controle, agitação e forças, investir, fazer propaganda ou negociar com o governador.</li>
-    <li><b>Exércitos e ordens (sem PA).</b> Os contadores azuis são seus exércitos (o número é a força); os vermelhos, os do inimigo. Toque num exército e depois num estado vizinho: <b>atacar</b>, <b>mover</b> ou <b>recuar</b>. Também dá para <b>defender</b> (posições preparadas) ou <b>reforçar</b> (barato, +10 de força). Uma ordem por exército por mês; o número de manobras é limitado pelo seu atributo militar e pela lealdade dos militares. <b>Recrutar tropas</b> (botão azul no painel do mapa) cria um exército de 20 de força por poucos recursos, até 2 por mês, sem PA; na guerra, o <b>alistamento</b> mensal ainda reforça sozinho exércitos fracos que descansam no seu território. Em tempo de paz só há reposicionamento.</li>
-    <li><b>Combate.</b> No <b>Encerrar mês</b> as ordens são executadas numa animação (pode pular): setas, batalhas e estados que trocam de mãos. Toque numa batalha (ou num estado em disputa) para ver a tela de combate: força, moral, general e modificadores — terreno, apoio local, suprimentos e armas estrangeiras. Depois de cada batalha, o <b>relatório</b> mostra fator por fator quem levou vantagem, as baixas, por que você venceu ou perdeu e o que fazer melhor; as batalhas dos meses anteriores ficam na aba História.</li>
-    <li><b>Diplomacia.</b> Peça dinheiro, armas, reconhecimento, sanções ou mediação; ofereça commodities, bases, votos, concessões ou alinhamento. A previsão mostra a chance. Acordos têm consequências: dívidas, dependência e reação de rivais e facções.</li>
-    ${SCEN && SCEN.campaign && SCEN.campaign.focus ? `<li><b>Decisões (árvore de focos).</b> Escolha um foco nacional por vez (1 AP); ele leva alguns meses e avança a cada <b>Encerrar mês</b>. Focos têm pré-requisitos (linhas), caminhos exclusivos (⊘ vermelho) e podem ser abertos ou fechados pela história. Ao concluir, aplicam efeitos e liberam ações, eventos e opções de diplomacia.</li>` : ""}
-    <li><b>Facções.</b> Mantenha a lealdade acima de 15: grupos influentes em crise provocam greves, defecções e até golpes.</li>
-    <li><b>Finais.</b> Vêm das decisões finais da história ou do estado da campanha (território, atributos zerados, facções).</li></ol>
+  m.className = "modal"; m.id = "helpModal"; m.setAttribute("role", "dialog"); m.setAttribute("aria-modal", "true"); m.setAttribute("aria-labelledby", "helpT");
+  m.innerHTML = `<div class="modal-card"><h2 id="helpT">Ajuda</h2>
+    <p class="muted">O tutorial agora são dicas curtas que aparecem na primeira vez que você abre cada aba.</p>
+    <div class="helpgrid">
+      <button class="primary" id="hRedo">↻ Refazer tutorial</button>
+      <label class="tgl"><input type="checkbox" id="hOn" ${s.off ? "" : "checked"}> Mostrar dicas ao abrir abas novas</label>
+    </div>
+    <details><summary>Glossário rápido</summary><dl class="gloss">
+      <dt>Ações (AP)</dt><dd>Pontos de ação do turno. Quase tudo custa 1 AP. Recarregam a cada mês e não acumulam.</dd>
+      <dt>${esc(C ? C.money.label : "Recursos")}</dt><dd>Capital político para gastar em investimentos, agrados, missões e tropas. Ganho por mês: território, economia e facções leais, menos manutenção e sanções. No negativo, você perde apoio todo mês.</dd>
+      ${STORY ? Object.entries(STORY.stats).map(([k, v]) => `<dt>${esc(v.label)}</dt><dd>${esc(STAT_HELP[k] || "")} Se chegar a zero, a campanha termina.</dd>`).join("") : ""}
+      <dt>Agitação</dt><dd>Tensão em cada estado (0–100). Média acima de 62 nos seus estados derruba o apoio; um estado acima de 88 sem tropas pode se revoltar. Investir, fazer propaganda e negociar com o governador baixam a agitação.</dd>
+      <dt>Facções</dt><dd>Lealdade (do seu lado?) e influência (quanto pesam). Lealdade abaixo de 15 com influência 25 ou mais gera crises.</dd>
+      <dt>Focos (Decisões)</dt><dd>Projetos de vários meses, um por vez. Ao concluir, aplicam efeitos e liberam opções.</dd>
+      <dt>Exércitos e ordens</dt><dd>Contadores azuis no mapa (o número é a força). Ordens não gastam AP; o limite por mês depende do Apoio Militar e da lealdade dos militares.</dd>
+    </dl></details>
     <div class="disclaimer">${esc(SCEN ? SCEN.intro.disclaimer : "Obra de ficção / história alternativa.")}</div>
-    <button class="primary" id="btnHelpClose">Entendi</button></div>`;
+    <div class="row2"><button class="secondary" id="btnHelpClose">Fechar</button></div></div>`;
   document.body.appendChild(m);
-  const close = () => m.remove();
+  const close = () => { m.remove(); document.removeEventListener("keydown", key, true); };
+  const key = e => { if (e.key === "Escape"){ e.preventDefault(); close(); } };
+  document.addEventListener("keydown", key, true);
   m.onclick = e => { if (e.target === m) close(); };
   $("#btnHelpClose").onclick = close;
+  $("#hOn").onchange = e => { const st = tutState(); st.off = !e.target.checked; tutSave(st); };
+  $("#hRedo").onclick = () => { tutReset(); close(); if (G && !G.ended){ UI.tab = UI.tab || "historia"; renderGame(); } else toast && toast("Tutorial reiniciado: as dicas aparecem quando você começar a jogar.", "good"); };
+  setTimeout(() => $("#hRedo").focus(), 30);
 }
 
 $("#btnMenu").onclick = renderMenu;

@@ -93,7 +93,8 @@ As linhas são aproximadas; procure pelos marcadores.
   - `jogo_br_save_brasil1964` e `jogo_br_endings_brasil1964` (1964 bloqueado: mantidas, nunca lidas enquanto `locked`);
   - `aurora_do_sul_save_v1` e `aurora_do_sul_endings_v1` (1924 removido: chaves antigas ignoradas, não são apagadas);
   - `jogo_br_save_brasil2022` e `jogo_br_endings_brasil2022`;
-  - `jogo_br_ultimo_cenario` e `jogo_br_tutorial_v2`.
+  - `jogo_br_ultimo_cenario`;
+  - `gw_tut_v3`: progresso do tutorial contextual `{ off, seen: { hud, historia, mapa, exercitos, decisoes, faccoes, diplomacia, acoes } }` (a antiga `jogo_br_tutorial_v2` não é mais lida).
 - Cada `save()` grava `G.savedAt = Date.now()`, usado para dizer qual save é mais recente na mesclagem com a nuvem.
 
 ### Camada de nuvem (Supabase): `config.js`, `cloud.js` e `supabase/migrations/001_init.sql`
@@ -173,6 +174,12 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 
 6. Não quebre saves: migre em `loadInfo` ou aumente `SAVE_VERSION`.
 7. Mantenha o CORE testável em Node (sem `document`/`window`).
 8. Mobile importa: teste em largura de ~400 px.
+
+## 7b. Camada de UI da fase 1 (out/2026) — tudo fora do CORE
+- **Tutorial contextual:** `tutSteps(ctx)` define os balões por contexto (`hud`, `historia`, `mapa`, `exercitos`, `decisoes`, `faccoes`, `diplomacia`, `acoes`); `tutAfterRender()` (chamado no fim de `renderGame`) abre o primeiro contexto ainda não visto e espera enquanto houver overlay aberto. `coachRun` posiciona anel + balão via `getBoundingClientRect`; Esc/←/→ funcionam. `tutSkipAll` e `tutReset` (botão em `openHelp`). Ao criar uma aba/recurso novo, **acrescente um contexto em `tutSteps`**.
+- **Grandes eventos:** `MAJOR_NODES.brasil2022` (nós de história com manchete), `majorSnap()` antes da ação e `majorCheck(snap)` depois montam a lista de consequências por diferença de estado (fase, exércitos, guerra, renda, mapa, atributos). `showMajor` exibe a tela cheia. Usado em `#btnEnd` e nas escolhas da História. Não mexe no CORE nem no `sim.js`.
+- **Decisões:** zoom em `UI.fz` (0,3–1,6), tela cheia em `UI.ffull`; arrastar com limiar de 5px (`dataset.dragged` evita clique acidental).
+- **Agitação:** `unrestColor` usa a escala VIRIDIS; `unrestLabel(v)`; limiares exibidos 30/62/88 (62 = média que derruba apoio; 88 = revolta).
 
 ## 8. Limitações conhecidas
 - Quem conclui `c_ruptura` e depois recua para a transição fica só com os ramos temáticos, porque democ e jurid ficam excluídos.
