@@ -206,6 +206,45 @@
   .mapbox path.uf.tgt-atacar{stroke:#ff5a3a}.mapbox path.uf.tgt-mover,.mapbox path.uf.tgt-recuar{stroke:#8fc8ff}
   .mapbox path.uf.origin{stroke:#fff;stroke-width:2.6}
   @keyframes tgtpulse{from{stroke-opacity:.45}to{stroke-opacity:1}}
+  /* ---- Fase 2 · mapa e combate ---- */
+  .maplayout.war{grid-template-columns:minmax(0,1.75fr) minmax(280px,1fr)}
+  .maplayout.big{grid-template-columns:minmax(0,1fr)}
+  .maplayout.big #mapMain svg{max-height:84vh;width:auto;max-width:100%;margin:0 auto}
+  .maphead .mhr{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .mapbox g.cnt rect.bg{stroke:#0b0a09;stroke-width:1.2}
+  .mapbox g.cnt.p rect.bg{fill:#2a5d93}.mapbox g.cnt.e rect.bg{fill:#a3301f}
+  .mapbox g.cnt .sym{stroke-width:1.2}
+  .mapbox text.cn{font-size:12.5px;font-weight:800}
+  .mapbox g.cnt rect.sb0{fill:#0008}.mapbox g.cnt.p rect.sb{fill:#bfe0ff}.mapbox g.cnt.e rect.sb{fill:#ffc2b5}
+  .mapbox g.cnt path.ordmk{fill:#f3c969}
+  .mapbox circle.badge{r:5}.mapbox text.cb{font-size:7.5px}
+  .mapbox path.frontcase{fill:none;stroke:#1a0b06;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+  .mapbox path.front{stroke-width:3.2}
+  .mapbox svg.small path.frontcase{stroke-width:8}
+  .mapbox path.uf.pend{stroke:#fff;stroke-width:3.2;animation:none}
+  .mapbox path.arw.pv{stroke-width:5;stroke-dasharray:3 6;animation:arwflow .5s linear infinite;opacity:.95}
+  .milleg{display:flex;flex-wrap:wrap;gap:6px 14px;font-family:system-ui,sans-serif;font-size:.76rem;color:var(--muted);margin-top:6px}
+  .milleg span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+  .mapbox .milleg svg{width:auto;height:14px;flex:none;display:inline-block}
+  .maplayout.big .fcard{top:120px;bottom:auto;width:240px}
+  .milleg svg text{font-family:system-ui,sans-serif;fill:#fff;text-anchor:middle;dominant-baseline:middle;font-size:12.5px;font-weight:800}
+  .milleg g.cnt rect.bg{stroke:#0b0a09}.milleg g.cnt.p rect.bg{fill:#2a5d93}.milleg g.cnt.e rect.bg{fill:#a3301f}.milleg g.cnt .sym{fill:none;stroke:#e9eef3;stroke-width:1.2}
+  .milleg rect.sb0{fill:#0008}.milleg .p rect.sb{fill:#bfe0ff}.milleg .e rect.sb{fill:#ffc2b5}
+  .fcard{position:absolute;left:6px;bottom:52px;width:min(300px,46%);background:#14110ef2;border:1px solid var(--gold);border-left-width:4px;border-radius:8px;padding:10px 12px;font-family:system-ui,sans-serif;font-size:.8rem;box-shadow:0 8px 24px #000a;z-index:3}
+  .fcard.good{border-left-color:#6fae6a}.fcard.mid{border-left-color:#e0b04a}.fcard.bad{border-left-color:#d0583e}.fcard.mv{border-left-color:#8fc8ff}
+  .fcard .fch{display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:4px}
+  .fcard .fch b{font-size:.98rem;color:var(--gold)}.fcard .fch span{color:var(--muted);font-size:.74rem}
+  .fcard .fodds{margin:2px 0 4px}.fcard.good .fodds b{color:#8fd08a}.fcard.mid .fodds b{color:#f0c35a}.fcard.bad .fodds b{color:#ff8a70}
+  .fcard p{margin:5px 0;line-height:1.35}.fcard .fslot{color:var(--muted);font-size:.74rem}
+  .fcard .pw{display:flex;align-items:center;gap:6px;font-size:.74rem}.fcard .pw .bar2{flex:1;display:flex;height:8px;border-radius:4px;overflow:hidden;background:#0006}
+  .fcard .pw .bar2 i.p{background:#5d8fc4}.fcard .pw .bar2 i.e{background:#c2563f}
+  .fcard .fmods{margin:4px 0;padding-left:16px;font-size:.74rem}.fcard .fmods li.up b{color:#8fd08a}.fcard .fmods li.down b{color:#ff8a70}
+  .fcard .fbtns{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}.fcard .fbtns .primary{padding:7px 12px}
+  @media (max-width:900px){ .maplayout.war{grid-template-columns:minmax(0,1fr)} }
+  .sidepanel .fcard{position:static;width:auto;margin:0 0 14px;animation:fcin .25s ease-out}
+  @keyframes fcin{from{opacity:0;transform:translateY(-6px)}}
+  @media (max-width:900px){ .fcard{position:static;width:auto;margin:8px 0 0} }
+
   .mapbox path.uf.flipfx{animation:flipflash .9s ease}
   @keyframes flipflash{0%{filter:brightness(1)}25%{filter:brightness(2.6)}100%{filter:brightness(1)}}
   .mapbox g.boom .fl{animation:boomfl .7s ease-out forwards}
@@ -478,6 +517,25 @@
     .fdetail.empty{position:static}
   }
   @media (prefers-reduced-motion: reduce){ .card{animation:none} }
+  .ecocell{cursor:pointer;border-radius:6px;padding:2px 6px;margin:-2px -6px;transition:background .15s}
+  .ecocell:hover,.ecocell:focus-visible{background:rgba(201,164,92,.1);outline:none}
+  .ecoi{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border:1px solid var(--muted);border-radius:50%;font-size:.55rem;font-style:normal;margin-left:3px;vertical-align:1px}
+  .hud-res b small.cap{font-size:.7rem;color:var(--muted);font-weight:400}.hud-res b.capped{color:#e0a85a}
+  .ecostrip{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 14px;margin-bottom:12px}
+  .ecostrip .eco-m{display:flex;align-items:center;gap:8px;min-width:200px}.ecostrip .eco-m .k{font-size:.64rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .ecostrip .eco-m b{font-size:1.15rem}.ecostrip .eco-m b small{font-size:.75rem;color:var(--muted);font-weight:400}
+  .ecostrip .bar{flex:1;min-width:70px;height:6px}.ecostrip .bar i{background:#c9a45c}
+  .ecostrip button.sm small{display:block;font-size:.66rem;color:var(--muted)}
+  .ecomodal{max-width:860px}.ecogrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .ecogrid section{border:1px solid var(--line);border-radius:8px;padding:12px 14px}.ecogrid section.hl{border-color:var(--gold);box-shadow:0 0 0 1px rgba(201,164,92,.35)}
+  .ecogrid h3{margin:0 0 8px;font-size:1rem}.ecogrid h4{margin:12px 0 4px;font-size:.85rem;color:var(--gold)}
+  .ecotab{width:100%;border-collapse:collapse;font-size:.85rem}.ecotab td{padding:3px 0;border-bottom:1px solid rgba(255,255,255,.06)}.ecotab td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+  .ecotab tr.up td:last-child{color:#8fbf7a}.ecotab tr.down td:last-child{color:#f09a86}
+  .tiers{list-style:none;padding:0;margin:10px 0;display:flex;gap:6px}.tiers li{flex:1;border:1px solid var(--line);border-radius:6px;padding:6px;font-size:.75rem;display:flex;flex-direction:column;opacity:.65}
+  .tiers li.on{opacity:1;border-color:var(--gold);background:rgba(201,164,92,.12)}.tiers li b{font-size:.9rem}
+  .uses{margin:0;padding-left:18px;font-size:.85rem}.uses li{margin:3px 0}.warn{color:#e0a85a}
+  @media (max-width:700px){ .ecogrid{grid-template-columns:1fr} .ecostrip .eco-m{min-width:0;width:100%} }
+
   /* ---- Fase 1: dicas contextuais (coach marks) ---- */
   .coach{position:fixed;inset:0;z-index:70;pointer-events:none}
   .coach .cblock{position:fixed;inset:0;pointer-events:auto;background:transparent}
@@ -1434,7 +1492,13 @@ const CAMPAIGN_1964 = {
 /* ---------- Campanha 2022: A Faixa Presidencial ---------- */
 const CAMPAIGN_2022 = {
   start: "2022-10", ap: 3, eventChance: 0.5, eventPaceBoost: true,
-  money: { label: "Recursos políticos", short: "Recursos", initial: 15, comfort: 15 },
+  money: { label: "Recursos políticos", short: "Recursos", initial: 15, comfort: 15, cap: 80 },
+  // Ações por turno crescem com o Apoio Popular: 3 de base; +1 com 60 ou mais; +2 com 75 ou mais
+  apScale: { stat: "apoio", tiers: [[60, 1], [75, 2]] },
+  // Facções pagam só em Recursos (sem gastar ações) — o principal destino do caixa político
+  facMoney: { agradar: 8, pressionar: 6 },
+  // Conversão: Recursos → +1 ação neste turno (1 vez por turno)
+  convert: { cost: 12, ap: 1 },
   forces: { label: "Força militar leal (soma dos exércitos)", short: "Força", initial: 0 },
   army: { capital: "DF", recruitCost: 8, reinforceCost: 3,
     start: [{ uf: "DF", str: 10, name: "Batalhão da Guarda Presidencial", gen: null }],
@@ -2077,6 +2141,7 @@ function newCampaign(sc, seed){
   initArmies(g);
   focusInit(g);
   enterStory(g, S.start, []);
+  { const A = apFor(g); g.ap = A.total; g.apParts = A.parts; }
   return g;
 }
 function prepContested(g){
@@ -2333,16 +2398,49 @@ function checkSway(g, uf){
   return false;
 }
 
+/* ---------- Ações por turno e caixa ---------- */
+// De onde vêm as ações do turno: base do cenário, Apoio Popular (apScale) e bônus da fase.
+function apFor(g){
+  const C = scOf(g).campaign, ph = phaseOf(g), S = scOf(g).story, parts = [{ id: "base", label: "Base", v: C.ap }];
+  if (C.apScale){ const v = g.stats[C.apScale.stat] ?? 0; let b = 0, th = null; for (const [t, x] of C.apScale.tiers) if (v >= t){ b = x; th = t; }
+    parts.push({ id: "apoio", label: `${S.stats[C.apScale.stat].label} ${Math.round(v)}${th ? ` (≥${th})` : ""}`, v: b }); }
+  if (ph.apBonus) parts.push({ id: "fase", label: "Fase", v: ph.apBonus });
+  return { total: Math.max(1, parts.reduce((s, p) => s + p.v, 0)), parts };
+}
+// Próximo degrau de ações pelo Apoio Popular (para a interface): { at, ap } ou null
+function apNextTier(g){
+  const C = scOf(g).campaign; if (!C.apScale) return null;
+  const v = g.stats[C.apScale.stat] ?? 0, t = C.apScale.tiers.find(([t]) => v < t);
+  return t ? { at: t[0], ap: C.ap + t[1] } : null;
+}
+function moneyCap(g){ return scOf(g).campaign.money.cap ?? Infinity; }
+function applyMoneyCap(g){ const cap = moneyCap(g); if (g.money > cap){ const lost = Math.round(g.money - cap); g.money = cap; return lost; } return 0; }
+// Converter Recursos em ações extras (1 vez por turno)
+function convertMoney(g){
+  const C = scOf(g).campaign, K = C.convert;
+  if (!K) return { ok: false, msg: "Indisponível neste cenário" };
+  if (g.queue.length || g.ended) return { ok: false, msg: "Resolva os eventos pendentes" };
+  if (g.used.convert) return { ok: false, msg: "Já feito neste turno" };
+  if (g.money < K.cost) return { ok: false, msg: `Faltam ${C.money.short}` };
+  g.money -= K.cost; g.ap += K.ap; g.used.convert = true;
+  return { ok: true, msg: `−${K.cost} ${C.money.short}: +${K.ap} ação neste turno.` };
+}
+function facCost(g, F, kind){
+  const C = scOf(g).campaign;
+  if (C.facMoney) return { ap: 0, money: C.facMoney[kind] ?? 0 };
+  return { ap: 1, money: kind === "agradar" ? (F.favorCost ?? C.favorCost ?? 4) : 0 };
+}
+
 /* ---------- Facções internas ---------- */
 function factionAction(g, id, kind){
   const C = scOf(g).campaign, F = C.factions.find(f => f.id === id), f = g.fac[id];
   if (g.queue.length || g.ended) return { ok: false, msg: "Resolva os eventos pendentes" };
   const key = "fac_" + kind + "_" + id;
   if (g.used[key]) return { ok: false, msg: "Já feito neste turno" };
-  if (g.ap < 1) return { ok: false, msg: "Pontos de ação insuficientes" };
-  const cost = kind === "agradar" ? (F.favorCost ?? C.favorCost ?? 4) : 0;
+  const fc = facCost(g, F, kind), cost = fc.money;
+  if (g.ap < fc.ap) return { ok: false, msg: "Pontos de ação insuficientes" };
   if (g.money < cost) return { ok: false, msg: "Recursos insuficientes" };
-  g.ap--; g.money -= cost; g.used[key] = true; g.stat.actions++;
+  g.ap -= fc.ap; g.money -= cost; g.used[key] = true; g.stat.actions++;
   if (kind === "agradar"){
     bumpFac(g, id, 14);
     for (const r of (F.rivals||[])) bumpFac(g, r, -5);
@@ -2673,7 +2771,9 @@ function endTurn(g){
     g.chains = (g.chains || []).filter(c => g.month - c.due <= 6); // desdobramento que não coube em 6 meses se perde
   }
   planEnemy(g);
-  g.ap = C.ap + (ph.apBonus || 0); g.used = {}; g.dealtWith = {};
+  const capInfo = applyMoneyCap(g); if (capInfo) R(`Teto de ${C.money.short}: ${capInfo} acima de ${C.money.cap} foram perdidos (caixa parado não rende).`, "bad");
+  { const A = apFor(g); g.ap = A.total; g.apParts = A.parts; if (C.apScale) R(`Ações neste turno: ${A.total} (${A.parts.filter((p, i) => i === 0 || p.v).map((p, i) => i === 0 ? `base ${p.v}` : `${p.label} ${p.v > 0 ? "+" : "−"}${Math.abs(p.v)}`).join(" · ")}).`); }
+  g.used = {}; g.dealtWith = {};
   g.report = rep; finishLog(g, rep);
   return true;
 }
@@ -3402,7 +3502,7 @@ function mapSVG(control, changed, opts){
   for (const uf in MAP_DATA.states){
     const s = MAP_DATA.states[uf], f = STORY.factions[control[uf]] || STORY.factions[STORY.defaultFaction || "federal"];
     const fill = opts.mode === "agitacao" && opts.g ? unrestColor(opts.g.uf[uf].unrest) : f.color;
-    paths += `<path class="uf${ch.has(uf)?" changed":""}${opts.sel===uf?" sel":""}${control[uf]==="disputa"?" contested":""}${tg[uf] ? " tgt tgt-" + tg[uf] : ""}${opts.selArmy && opts.selArmy.uf === uf ? " origin" : ""}" data-uf="${uf}" d="${s.d}" fill="${fill}"></path>`;
+    paths += `<path class="uf${ch.has(uf)?" changed":""}${opts.sel===uf?" sel":""}${control[uf]==="disputa"?" contested":""}${tg[uf] ? " tgt tgt-" + tg[uf] : ""}${opts.selArmy && opts.selArmy.uf === uf ? " origin" : ""}${opts.pend && opts.pend.to === uf ? " pend" : ""}" data-uf="${uf}" d="${s.d}" fill="${fill}"></path>`;
     const o = LABEL_POS[uf], x = o ? o[0] : s.lx, y = o ? o[1] : s.ly;
     if (o) labels += `<line x1="${s.lx}" y1="${s.ly}" x2="${o[0]-10}" y2="${o[1]}"/>`;
     labels += `<text x="${x}" y="${y}">${uf}</text>`;
@@ -3411,8 +3511,9 @@ function mapSVG(control, changed, opts){
   let L = { fronts: "", pulses: "", arrows: "", counters: "" }, w = 620;
   if (mil){
     L = militaryLayers(opts.g, control, { armies: opts.armies, arrows: opts.arrows !== undefined ? opts.arrows : currentArrows(opts.g), selArmy: opts.selArmy });
+    if (opts.pend && opts.selArmy) L.arrows += arrowSVG(opts.selArmy.uf, opts.pend.to, orderArrowClass(opts.pend.type, "player") + " pv");
     const xs = [...L.counters.matchAll(/translate\(([\d.]+),/g)].map(m => +m[1]);
-    if (xs.length) w = Math.max(620, Math.ceil(Math.max(...xs) + 22 * (MOBILE_MAP() ? 1.3 : 1)));
+    if (xs.length) w = Math.max(620, Math.ceil(Math.max(...xs) + 24 * CNT_K()));
   }
   return `<svg viewBox="0 0 ${w} ${MAP_DATA.size[1]+6}" class="${mil ? "milmap" : ""}${MOBILE_MAP() ? " small" : ""}" role="img" aria-label="Mapa do Brasil por facção${mil ? ", com exércitos e ordens" : ""}">${mil ? ARROW_DEFS : ""}${paths}<g class="fx">${L.pulses}${L.fronts}</g>${labels}<g class="arrows">${L.arrows}</g><g class="counters">${L.counters}</g></svg>`;
 }
@@ -3425,8 +3526,15 @@ function legendHTML(control){
 function renderMap(el, control, changed, withNotes, opts){
   const notes = withNotes && changed && changed.length ? `<div class="mapnotes">${changeNotes(changed).map(t => `<div>${esc(t)}</div>`).join("")}</div>` : "";
   const agit = opts && opts.mode === "agitacao";
+  const milLeg = opts && opts.military && opts.g && !phaseOf(opts.g).noArmies ? `<div class="milleg" aria-hidden="true">
+    <span><svg viewBox="-21 -10 42 20" width="34" height="16"><g class="cnt p">${counterInner("player", 30, 1)}</g></svg>seu exército (força)</span>
+    <span><svg viewBox="-21 -10 42 20" width="34" height="16"><g class="cnt e">${counterInner("enemy", 30, 1)}</g></svg>inimigo</span>
+    ${phaseOf(opts.g).war ? `<span><svg viewBox="0 0 30 10" width="30" height="10"><path d="M2,5H28" stroke="#1a0b06" stroke-width="6"/><path d="M2,5H28" stroke="#ff6a3d" stroke-width="3" stroke-dasharray="5 3"/></svg>frente de batalha</span>` : ""}
+    <span><svg viewBox="0 0 30 10" width="30" height="10"><path d="M2,5H24" stroke="#f3c969" stroke-width="3"/><path d="M22,1L29,5L22,9z" fill="#f3c969"/></svg>seu ataque</span>
+    <span><svg viewBox="0 0 30 10" width="30" height="10"><path d="M2,5H24" stroke="#cfe3f5" stroke-width="2.4"/><path d="M22,1L29,5L22,9z" fill="#cfe3f5"/></svg>movimento</span>
+    <span><svg viewBox="0 0 30 10" width="30" height="10"><path d="M2,5H24" stroke="#ff6a52" stroke-width="2.6" stroke-dasharray="4 3"/><path d="M22,1L29,5L22,9z" fill="#ff6a52"/></svg>intenção inimiga</span></div>` : "";
   const legend = agit ? `<div class="gradlegend" aria-label="Legenda da agitação: de 0, calmo, a 100, revolta"><div class="gbar" style="background:linear-gradient(90deg,${[0, 20, 40, 60, 80, 100].map(v => unrestColor(v)).join(",")})"></div><div class="gticks"><span style="left:0">0<br>calmo</span><span style="left:30%">30<br>tenso</span><span style="left:62%">62<br>derruba apoio</span><span style="left:88%">88<br>revolta</span><span style="left:100%">100</span></div></div>` : `<div class="legend">${legendHTML(control)}</div>`;
-  el.innerHTML = mapSVG(control, changed, opts) + `<div class="maptip"></div>${legend}` + notes;
+  el.innerHTML = mapSVG(control, changed, opts) + `<div class="maptip"></div>${opts && opts.overlay ? opts.overlay : ""}${legend}${milLeg}` + notes;
   const tip = el.querySelector(".maptip"), svg = el.querySelector("svg");
   const show = (e) => {
     const p = e.target.closest("path.uf, g.cnt"); if (!p) { tip.style.display = "none"; return; }
@@ -3461,18 +3569,29 @@ function sharedBorder(a, b){
 }
 const MOBILE_MAP = () => window.innerWidth < 600;
 function ufAnchor(uf){ const s = MAP_DATA.states[uf], o = LABEL_POS[uf]; return o ? { x: o[0], y: o[1], side: true } : { x: s.lx, y: s.ly }; }
+const CNT_K = () => MOBILE_MAP() ? 1.2 : 1;
 function counterPos(uf, side, both){
-  const a = ufAnchor(uf), k = MOBILE_MAP() ? 1.3 : 1;
-  if (a.side) return { x: a.x + 26 * k + (both && side === "enemy" ? 30 * k : 0), y: a.y };
-  return { x: a.x + (both ? (side === "player" ? -16 : 16) * k : 0), y: a.y + 16 * k };
+  const a = ufAnchor(uf), k = CNT_K();
+  if (a.side) return { x: a.x + 31 * k + (both && side === "enemy" ? 42 * k : 0), y: a.y };
+  return { x: a.x + (both ? (side === "player" ? -21 : 21) * k : 0), y: a.y + 19 * k };
+}
+// Ficha de exército: moldura azul (sua) ou vermelha (inimiga), símbolo OTAN (retângulo = amigo, losango = hostil),
+// força em número grande e barra de força embaixo — legível sem depender só da cor.
+function counterInner(side, str, n, cap){
+  const pct = Math.max(0.04, Math.min(1, str / (cap || ARMY_MAX))), sym = side === "player"
+    ? `<rect class="sym" x="-17" y="-5" width="11" height="8"/><path class="sym" d="M-17,-5L-6,3M-17,3L-6,-5"/>`
+    : `<path class="sym" d="M-11.5,-6.5L-5.5,-1L-11.5,4.5L-17.5,-1z"/><path class="sym" d="M-14.5,-3.8L-8.5,1.8M-14.5,1.8L-8.5,-3.8"/>`;
+  return `<rect class="bg" x="-20" y="-9" width="40" height="18" rx="3"/>${sym}
+    <text class="cn" x="7" y="-1">${str}</text><rect class="sb0" x="-17" y="5" width="34" height="2.2" rx="1"/><rect class="sb" x="-17" y="5" width="${(34 * pct).toFixed(1)}" height="2.2" rx="1"/>
+    ${n > 1 ? `<circle class="badge" cx="18" cy="-8" r="5"/><text class="cb" x="18" y="-7.6">${n}</text>` : ""}`;
 }
 function counterSVG(side, uf, list, opts){
-  const both = opts.both, p = counterPos(uf, side, both), k = MOBILE_MAP() ? 1.3 : 1;
+  const both = opts.both, p = counterPos(uf, side, both), k = CNT_K();
   const str = Math.round(list.reduce((s, a) => s + a.str, 0)), sel = opts.selArmy && list.some(a => a.id === opts.selArmy.id);
   const ordered = side === "player" && list.some(a => a.order), n = list.length;
-  return `<g class="cnt ${side === "player" ? "p" : "e"}${sel ? " sel" : ""}${ordered ? " ord" : ""}" data-uf="${uf}" data-side="${side}" data-id="${list[0].id}" transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)}) scale(${k})">
-    <rect class="bg" x="-15" y="-7.5" width="30" height="15" rx="2"/><rect class="sym" x="-13" y="-5.5" width="10" height="11"/><path class="sym" d="M-13,-5.5L-3,5.5M-13,5.5L-3,-5.5"/>
-    <text class="cn" x="6.5" y="0.5">${str}</text>${n > 1 ? `<circle class="badge" cx="14" cy="-7" r="4.6"/><text class="cb" x="14" y="-6.6">${n}</text>` : ""}</g>`;
+  const nm = `${side === "player" ? "Seu" : "Inimigo"}${n > 1 ? `s ${n} exércitos` : ": " + list[0].name}, força ${str}${ordered ? ", com ordem" : ""} em ${uf}`;
+  return `<g class="cnt ${side === "player" ? "p" : "e"}${sel ? " sel" : ""}${ordered ? " ord" : ""}" data-uf="${uf}" data-side="${side}" data-id="${list[0].id}" transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)}) scale(${k})"><title>${esc(nm)}</title>
+    ${counterInner(side, str, n, ARMY_MAX * n)}${ordered ? `<path class="ordmk" d="M-20,-9L-13,-9L-20,-2z"/>` : ""}</g>`;
 }
 function arrowSVG(from, to, cls){
   const a = MAP_DATA.states[from], b = MAP_DATA.states[to];
@@ -3494,7 +3613,7 @@ function militaryLayers(g, control, opts){
     if (a > b) continue;
     const sa = side(a), sb = side(b);
     const hostile = (sa === "player" && (sb === "enemy" || sb === "contested")) || (sb === "player" && (sa === "enemy" || sa === "contested")) || (sa === "contested" && sb === "enemy") || (sb === "contested" && sa === "enemy");
-    if (hostile){ const d = sharedBorder(a, b); if (d) fronts += `<path class="front${sa === "contested" || sb === "contested" ? " hot" : ""}" d="${d}"/>`; }
+    if (hostile){ const d = sharedBorder(a, b); if (d) fronts += `<path class="frontcase" d="${d}"/><path class="front${sa === "contested" || sb === "contested" ? " hot" : ""}" d="${d}"/>`; }
   }
   for (const uf in control) if (war && side(uf) === "contested") pulses += `<path class="battlefx" d="${MAP_DATA.states[uf].d}"/>`;
   const armies = opts.armies || g.armies || [];
@@ -3618,6 +3737,44 @@ function openForecast(uf){
   const ratio = ep > 0 ? pp / ep : (pp > 0 ? 9.99 : 1);
   openBattle(rec, { forecast: true, ratio, note: s === "contested" ? `A frente está em ${G.uf[uf].progress > 0 ? "+" : ""}${Math.round(G.uf[uf].progress)} (+100 conquista · −100 perda). Ela é disputada a cada Encerrar mês; mande exércitos para pesar a balança.` : "Estimativa sem sorte: a batalha real tem até 5 rodadas e quem perder a moral recua." });
 }
+// Prévia de uma ordem antes de confirmar (selecionar → destino → previsão → confirmar)
+function orderForecast(a, to, type){
+  const ph = phaseOf(G), name = MAP_DATA.states[to].name, ts = sideOf(G, G.control[to], ph);
+  const lim = commandLimit(G), used = ordersUsed(G), already = a.order && MANEUVER.includes(a.order.type);
+  const slot = already ? "Substitui a ordem atual deste exército." : used >= lim ? `<b class="neg">Limite de manobras atingido (${used}/${lim}).</b> Cancele outra ordem antes.` : `Usa 1 das ${lim} manobras do mês (restam ${lim - used - 1} depois).`;
+  const base = { type, to, name, slot, full: !already && used >= lim };
+  if (type !== "atacar") return Object.assign(base, { title: `${type === "recuar" ? "↩ Recuar" : "➜ Mover"} para ${to}`,
+    lines: [`<b>${esc(a.name)}</b> (força ${Math.round(a.str)}) sai de ${esc(a.uf)} e chega a ${esc(name)} no Encerrar mês.`, type === "recuar" ? "Sai da frente: perde a posição, mas preserva o exército." : "Sem combate. Tropas paradas no próprio território recuperam moral e baixam a agitação."] });
+  const others = armiesOf(G, "player").filter(x => x.id !== a.id && x.order && x.order.type === "atacar" && x.order.to === to);
+  const att = [a, ...others], o = battleOdds(G, "player", att, to), tot = Math.max(1, o.pa + o.pd);
+  const defStr = Math.round(o.def.reduce((t, d) => t + d.str, 0)), nArm = o.def.filter(d => !d.militia).length;
+  const mods = milMods(G, "player", to, "att", att).concat(milMods(G, "enemy", to, "def", o.def).map(m => Object.assign({}, m, { v: -m.v, foe: true })))
+    .sort((x, y) => Math.abs(y.v) - Math.abs(x.v)).slice(0, 3);
+  const prog = Math.round(G.uf[to].progress || 0);
+  const ifWin = !o.def.length ? (ts === "contested" ? `Sem defensores: a frente avança +60 (hoje ${prog > 0 ? "+" : ""}${prog}).` : `Sem defensores: ${esc(name)} é ocupado sem combate.`)
+    : ts === "contested" ? `Se vencer, a frente avança (hoje ${prog > 0 ? "+" : ""}${prog}; +100 conquista). Se perder, ela recua.`
+    : `Se vencer, ${esc(name)} entra em disputa (vitória esmagadora conquista direto). Se perder, o ataque é repelido e suas tropas perdem moral.`;
+  return Object.assign(base, { title: `⚔ Atacar ${to}`, odds: o, ratio: o.ratio, att,
+    lines: [`<b>${att.map(x => esc(x.name) + " (" + Math.round(x.str) + ")").join(" + ")}</b> contra ${o.def.length ? `${nArm ? nArm + " exército" + (nArm > 1 ? "s" : "") + " e " : ""}guarnição — força ${defStr}` : "ninguém"}.`, ifWin],
+    bar: `<div class="pw"><b style="color:#9cc3ea">Você ${o.pa}</b><div class="bar2"><i class="p" style="width:${o.pa / tot * 100}%"></i><i class="e" style="width:${o.pd / tot * 100}%"></i></div><b style="color:#f0a493">${o.pd} Inimigo</b></div>`,
+    mods: mods.map(m => `<li class="${m.v > 0 ? "up" : "down"}">${esc(m.label)}${m.foe ? (m.v < 0 ? " — ajuda a defesa inimiga" : " — atrapalha a defesa inimiga") : ""} <b>${m.v > 0 ? "+" : "−"}${Math.abs(Math.round(m.v * 100))}%</b></li>`).join("") });
+}
+function forecastCardHTML(a, pend){
+  const f = orderForecast(a, pend.to, pend.type), cls = f.ratio === undefined ? "mv" : f.ratio >= 1.15 ? "good" : f.ratio >= 0.87 ? "mid" : "bad";
+  return `<div class="fcard ${cls}" role="dialog" aria-label="Previsão da ordem" aria-live="polite">
+    <div class="fch"><b>${esc(f.title)}</b><span>${esc(f.name)}</span></div>
+    ${f.ratio !== undefined ? `<div class="fodds">Chance <b>${esc(oddsLabel(f.ratio))}</b> <small>(${f.ratio >= 9 ? "sem oposição" : f.ratio.toFixed(1) + "× de poder"})</small></div>${f.bar}` : ""}
+    ${f.lines.map(l => `<p>${l}</p>`).join("")}${f.mods ? `<ul class="fmods">${f.mods}</ul>` : ""}
+    <p class="fslot">${f.slot}</p>
+    <div class="fbtns"><button class="primary" data-fc="ok" ${f.full ? "disabled" : ""}>✔ Confirmar ordem</button>${f.ratio !== undefined ? `<button class="secondary small" data-fc="full">Comparação completa</button>` : ""}<button class="secondary small" data-fc="no">✕ Cancelar</button></div>
+    <small class="muted">${MOBILE_MAP() ? "Toque de novo no estado para confirmar." : "Clique de novo no estado para confirmar · Esc cancela."}</small></div>`;
+}
+function openAttackForecast(a, uf){
+  const f = orderForecast(a, uf, "atacar"), toU = u => ({ name: u.name, gen: u.gen || null, militia: !!u.militia, str0: Math.round(u.str), org0: Math.round(u.org) });
+  const def = f.odds.def, rec = { uf, kind: sideOf(G, G.control[uf]) === "contested" ? "frente" : "ataque", month: G.month, rounds: [],
+    sides: [{ side: "player", role: "att", mods: milMods(G, "player", uf, "att", f.att), units: f.att.map(toU) }, { side: "enemy", role: "def", mods: milMods(G, "enemy", uf, "def", def), units: def.length ? def.map(toU) : [{ name: "Nenhuma força inimiga", militia: true, str0: 0, org0: 0 }] }] };
+  openBattle(rec, { forecast: true, ratio: f.ratio, note: "Estimativa sem sorte: a batalha real tem até 5 rodadas e quem perder a moral recua." });
+}
 function battleAt(uf){ const ev = G.mil; return ev && ev.month === G.month ? [...ev.battles].reverse().find(b => b.uf === uf) : null; }
 
 /* ---------- Resolução animada do mês (pulável) ---------- */
@@ -3666,8 +3823,8 @@ function playResolution(ev, done){
     cap.textContent = "Movimentos e recuos"; cap.className = "rcap";
     for (const m of ev.moves){
       const a = ev.start.find(x => x.id === m.id) || { str: 0 }, from = counterPos(m.from, m.side, false), to = counterPos(m.to, m.side, false);
-      const k = MOBILE_MAP() ? 1.3 : 1;
-      fxLayer.insertAdjacentHTML("beforeend", `<g class="cnt ghost ${m.side === "player" ? "p" : "e"}" style="transform:translate(${from.x}px,${from.y}px) scale(${k})"><rect class="bg" x="-15" y="-7.5" width="30" height="15" rx="2"/><rect class="sym" x="-13" y="-5.5" width="10" height="11"/><path class="sym" d="M-13,-5.5L-3,5.5M-13,5.5L-3,-5.5"/><text class="cn" x="6.5" y="0.5">${Math.round(a.str)}</text></g>`);
+      const k = CNT_K();
+      fxLayer.insertAdjacentHTML("beforeend", `<g class="cnt ghost ${m.side === "player" ? "p" : "e"}" style="transform:translate(${from.x}px,${from.y}px) scale(${k})">${counterInner(m.side, Math.round(a.str), 1)}</g>`);
       const gh = fxLayer.lastElementChild; requestAnimationFrame(() => requestAnimationFrame(() => { gh.style.transform = `translate(${to.x}px,${to.y}px) scale(${k})`; }));
     }
   }, t + 200);
@@ -3882,8 +4039,8 @@ function renderGame(){
     <div class="hud">
       <div class="hud-date"><strong>${esc(monthLabel(G.month))}</strong><small>Turno ${G.turn} · ${esc(ph.label)}${ph.war ? " · em guerra" : ""}</small></div>
       <div class="hud-res">
-        <div title="Pontos de ação deste turno"><span class="k">Ações</span><span class="ap">${apDots}</span><b>${G.ap}</b></div>
-        <div title="${esc(C.money.label)}"><span class="k">${esc(C.money.label)}</span><b class="${G.money < 0 ? "neg" : ""}">${Math.round(G.money)}</b><small>${sgn(inc.total)}/mês</small></div>
+        <div class="ecocell" data-eco="ap" role="button" tabindex="0" title="De onde vêm suas ações (clique)"><span class="k">Ações <i class="ecoi">i</i></span><span class="ap">${apDots}</span><b>${G.ap}</b>${apSrcLine()}</div>
+        <div class="ecocell" data-eco="money" role="button" tabindex="0" title="${esc(C.money.label)}: renda, teto e usos (clique)"><span class="k">${esc(C.money.label)} <i class="ecoi">i</i></span><b class="${G.money < 0 ? "neg" : G.money >= moneyCap(G) ? "capped" : ""}">${Math.round(G.money)}${Number.isFinite(moneyCap(G)) ? `<small class="cap">/${moneyCap(G)}</small>` : ""}</b><small>${sgn(inc.total)}/mês${paceFor(G) > 1 ? ` (×${paceFor(G)} por turno)` : ""}</small></div>
         <div title="${esc(C.forces.label)}" class="hudarmy" data-tab="mapa"><span class="k">${esc(C.forces.short)}</span><b>${totStr}</b><small>${ph.noArmies ? "sem comando" : `${myA.length} exérc. · ordens ${ordersUsed(G)}/${commandLimit(G)}`}</small></div>
       </div>
       <button class="primary endbtn" id="btnEnd" ${pend ? "disabled" : ""} title="${pend ? "Resolva os eventos pendentes na aba História" : "Avança o tempo e resolve economia, combates, facções e diplomacia"}">Encerrar ${paceFor(G) > 1 && !(G.story.pending && G.story.due - G.month < paceFor(G)) ? `${paceFor(G)} meses` : "mês"} ▸</button>
@@ -3904,7 +4061,7 @@ function renderGame(){
   };
   if (UI.tab !== "decisoes" && UI.ffull){ UI.ffull = false; if (!document.querySelector(".overlay, .major")) document.body.classList.remove("noscroll"); }
   ({ historia: tabHistoria, decisoes: tabDecisoes, mapa: tabMapa, diplomacia: tabDiplomacia, faccoes: tabFaccoes, acoes: tabAcoes })[UI.tab]($("#tabBody"), nextStory);
-  setTimeout(tutAfterRender, 80);
+  document.querySelectorAll(".ecocell").forEach(b => { b.onclick = () => openEco(b.dataset.eco); b.onkeydown = e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); openEco(b.dataset.eco); } }; }); setTimeout(tutAfterRender, 80);
 }
 function chapterKicker(node){
   const ch = node.chapter || "", m = ch.match(/^(Capítulo [^—]+|Capítulo Final|Epílogo|Guerra Civil)/);
@@ -3965,13 +4122,16 @@ function tabMapa(el){
   const ph = phaseOf(G);
   if (UI.selArmy && !armyById(G, UI.selArmy)) UI.selArmy = null;
   const sel = UI.selArmy ? armyById(G, UI.selArmy) : null, uf = UI.selUF;
+  if (UI.pend && (!sel || sel.id !== UI.pend.army || !armyTargets(G, sel).some(t => t.uf === UI.pend.to))) UI.pend = null;
+  const pend = UI.pend;
   const panel = sel ? armyPanel(sel) : uf ? ufPanel(uf) : overviewPanel();
-  const hint = ph.noArmies ? "" : sel && sel.side === "player" ? `<div class="maphint">${esc(sel.name)} selecionado — ${MOBILE_MAP() ? "toque" : "clique"} num estado destacado (<b class="hl-a">vermelho</b> = atacar, <b class="hl-m">azul</b> = mover). Toque de novo no exército para soltar.</div>`
-    : `<div class="maphint">${MOBILE_MAP() ? "Toque" : "Clique"} num <b>contador azul</b> (seu exército) e depois no estado-alvo. Setas douradas: suas ordens · vermelhas: intenções inimigas conhecidas · linhas pulsantes: frentes.</div>`;
+  const hint = ph.noArmies ? "" : sel && sel.side === "player" ? `<div class="maphint">${esc(sel.name)} selecionado. <b>2.</b> ${MOBILE_MAP() ? "Toque" : "Clique"} num estado destacado (<b class="hl-a">borda vermelha</b> = atacar, <b class="hl-m">borda azul</b> = mover). <b>3.</b> Confira a previsão e confirme.</div>`
+    : `<div class="maphint"><b>1.</b> ${MOBILE_MAP() ? "Toque" : "Clique"} numa <b>ficha azul</b> (seu exército; o número é a força). <b>2.</b> Escolha o destino. <b>3.</b> Confira a previsão e confirme. Legenda abaixo do mapa.</div>`;
   const lim = commandLimit(G), used = ordersUsed(G), nA = armiesOf(G, "player").length;
   const infoOpen = UI.layerInfo === true;
   const chip = ph.noArmies ? "" : `<button class="ordchip${used >= lim ? " full" : ""}" id="btnOrders" title="Lista de ordens">⚑ Ordens ${used}/${lim}${nA ? ` · ${armiesOf(G, "player").filter(a => a.order).length}/${nA} exérc.` : ""}</button>`;
-  el.innerHTML = `<div class="maplayout"><div class="panel"><div class="maphead"><h3>Mapa</h3>${chip}</div>
+  const big = !!UI.mapBig;
+  el.innerHTML = `<div class="maplayout${ph.noArmies ? "" : " war"}${big ? " big" : ""}"><div class="panel"><div class="maphead"><h3>Mapa</h3><span class="mhr">${chip}<button class="ordchip" id="btnMapBig" aria-pressed="${big}" title="${big ? "Reduzir o mapa" : "Ampliar o mapa"}">${big ? "⊖ Reduzir mapa" : "⊕ Ampliar mapa"}</button></span></div>
     <div class="layerbar" role="group" aria-label="Camadas do mapa"><span class="lk">Camada:</span><div class="seg" role="radiogroup"><button role="radio" aria-checked="${UI.mapMode==="controle"}" data-mode="controle" class="${UI.mapMode==="controle"?"on":""}">🗺 Controle</button><button role="radio" aria-checked="${UI.mapMode==="agitacao"}" data-mode="agitacao" class="${UI.mapMode==="agitacao"?"on":""}">🔥 Agitação</button></div><button class="infobtn" id="btnLayerInfo" aria-expanded="${infoOpen ? "true" : "false"}" aria-controls="layerInfo" title="O que é agitação?">i</button></div>
     ${!infoOpen && UI.mapMode === "agitacao" ? `<div class="layerinfo short"><b>Agitação</b> (0–100) = tensão em cada estado. <b>Roxo</b> = calmo · <b>azul/verde</b> = tenso · <b>amarelo</b> = revolta. Média acima de 62 derruba seu apoio; acima de 88, revolta. <button class="linkbtn" id="btnLayerMore">Saiba mais (i)</button></div>` : ""}
     ${infoOpen ? `<div class="layerinfo" id="layerInfo">${UI.mapMode === "agitacao" ? `<b>Agitação</b> (0–100) mede a tensão em cada estado: protestos, greves, bloqueios. A cor vai do <b>roxo (calmo)</b>, passando por azul e verde, ao <b>amarelo (revolta)</b>; o número aparece sob a sigla.
@@ -3981,31 +4141,42 @@ function tabMapa(el){
       <li>Agitação alta também enfraquece suas tropas em combate ali.</li>
       <li>Para baixar: <b>investir</b> (−15), <b>propaganda</b> (−8) ou <b>acordo com o governador</b> (−20), clicando no estado; tropas estacionadas também ajudam.</li></ul>` : `<b>Controle</b> mostra quem governa cada estado (cores na legenda). Troque para <b>Agitação</b> para ver onde o país está prestes a explodir.`}</div>` : ""}${UI.mapMode === "agitacao" ? "" : hint}<div class="mapbox" id="mapMain"></div></div><aside class="panel sidepanel">${panel}</aside></div>`;
   const toPanel = () => { if (window.innerWidth < 900) setTimeout(() => $(".sidepanel") && $(".sidepanel").scrollIntoView({ behavior: "smooth", block: "start" }), 30); };
-  const order = (a, type, to) => { const r = setOrder(G, a.id, type, to); if (r.ok && type !== "reforcar" && type !== "defender" && type) UI.selArmy = null; afterAct(r); };
+  const order = (a, type, to) => { UI.pend = null; const r = setOrder(G, a.id, type, to); if (r.ok && type !== "reforcar" && type !== "defender" && type) UI.selArmy = null; afterAct(r); };
+  // passo 3: prévia; tocar de novo no mesmo destino confirma
+  const propose = (a, t) => { if (UI.pend && UI.pend.army === a.id && UI.pend.to === t.uf){ order(a, t.type, t.uf); return; } UI.pend = { army: a.id, to: t.uf, type: t.type }; renderGame(); };
   const pickArmy = (ufc, side) => {
     const list = (G.armies || []).filter(a => a.uf === ufc && a.side === side);
     if (!list.length) return;
     if (side === "player"){
       const i = list.findIndex(a => a.id === UI.selArmy);
+      UI.pend = null;
       if (i >= 0 && list.length === 1){ UI.selArmy = null; UI.selUF = ufc; renderGame(); return; }
       const next = i >= 0 ? list[(i + 1) % list.length] : (list.find(a => !a.order) || list[0]);
       UI.selArmy = next.id; UI.selUF = ufc; renderGame(); toPanel();
     } else {
-      if (sel && sel.side === "player" && armyTargets(G, sel).some(t => t.uf === ufc)){ const t = armyTargets(G, sel).find(t => t.uf === ufc); order(sel, t.type, ufc); return; }
+      if (sel && sel.side === "player" && armyTargets(G, sel).some(t => t.uf === ufc)){ propose(sel, armyTargets(G, sel).find(t => t.uf === ufc)); return; }
       UI.selArmy = list[0].id; UI.selUF = ufc; renderGame(); toPanel();
     }
   };
   const onPick = p => {
     if (sel && sel.side === "player"){
       const t = armyTargets(G, sel).find(x => x.uf === p);
-      if (t){ order(sel, t.type, p); return; }
-      if (p === sel.uf){ UI.selArmy = null; UI.selUF = p; renderGame(); return; }
+      if (t){ propose(sel, t); return; }
+      if (p === sel.uf){ UI.pend = null; UI.selArmy = null; UI.selUF = p; renderGame(); return; }
     }
-    UI.selArmy = null; UI.selUF = p; renderGame();
+    UI.pend = null; UI.selArmy = null; UI.selUF = p; renderGame();
     if (ph.war && sideOf(G, G.control[p], ph) === "contested"){ const b = battleAt(p); b ? openBattle(b) : openForecast(p); return; }
     toPanel();
   };
-  renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, selArmy: sel, mode: UI.mapMode, military: UI.mapMode !== "agitacao", onPick, onArmy: pickArmy });
+  const milOn = UI.mapMode !== "agitacao", wideFc = window.innerWidth > 900 && !big;
+  renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, selArmy: sel, pend: milOn && sel ? pend : null, mode: UI.mapMode, military: milOn, onPick, onArmy: pickArmy, overlay: milOn && sel && pend && !wideFc ? forecastCardHTML(sel, pend) : "" });
+  if (milOn && sel && pend && wideFc) $(".sidepanel").insertAdjacentHTML("afterbegin", forecastCardHTML(sel, pend));
+  if (!tabMapa._esc){ tabMapa._esc = e => { if (e.key !== "Escape" || UI.tab !== "mapa" || document.querySelector(".overlay, .modal, #ecoModal") || (typeof coachBusy === "function" && coachBusy())) return;
+      if (UI.pend){ UI.pend = null; renderGame(); } else if (UI.selArmy){ UI.selArmy = null; renderGame(); } }; document.addEventListener("keydown", tabMapa._esc); }
+  if ($("#btnMapBig")) $("#btnMapBig").onclick = () => { UI.mapBig = !big; renderGame(); };
+  el.querySelectorAll("[data-fc]").forEach(b => b.onclick = e => { e.stopPropagation(); const k = b.dataset.fc;
+    if (k === "ok") order(sel, pend.type, pend.to); else if (k === "full") openAttackForecast(sel, pend.to); else { UI.pend = null; renderGame(); } });
+  if (pend && $(".fcard [data-fc=ok]") && MOBILE_MAP()) setTimeout(() => { const c = $(".fcard"); if (c) c.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, 40);
   el.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { UI.mapMode = b.dataset.mode; renderGame(); });
   if ($("#btnLayerInfo")) $("#btnLayerInfo").onclick = () => { UI.layerInfo = !infoOpen; renderGame(); };
   if ($("#btnLayerMore")) $("#btnLayerMore").onclick = () => { UI.layerInfo = true; renderGame(); };
@@ -4016,7 +4187,7 @@ function tabMapa(el){
   { const recent = (G.battleLog || []).filter(b => G.mil && b.month === G.mil.month);
     el.querySelectorAll(".batrow[data-bat]").forEach(b => b.onclick = () => { const r = recent[+b.dataset.bat]; if (r) openBattle(r); }); }
   if (sel){
-    el.querySelectorAll(".tglist .tgt").forEach(b => b.onclick = () => order(sel, b.dataset.type, b.dataset.to));
+    el.querySelectorAll(".tglist .tgt").forEach(b => b.onclick = () => { propose(sel, { uf: b.dataset.to, type: b.dataset.type }); window.scrollTo({ top: Math.max(0, ($("#mapMain").getBoundingClientRect().top + window.scrollY) - 70), behavior: "smooth" }); });
     el.querySelectorAll("[data-ord]").forEach(b => b.onclick = () => order(sel, b.dataset.ord || null));
   }
   if ($("#btnRecruit")) $("#btnRecruit").onclick = () => { const r = recruitArmy(G, $("#btnRecruit").dataset.uf || null); if (r.ok) UI.selArmy = r.id; afterAct(r); };
@@ -4088,11 +4259,12 @@ function facNow(F, f){
   if (L < 15) out.push(f.influence >= 25 ? `<b style="color:#f09a86">crise a qualquer momento</b> (influência ${Math.round(f.influence)} ≥ 25)` : "em crise, mas fraca demais para reagir (influência < 25)");
   return out.length ? out.join(" · ") : "nenhum efeito agora (só bônus a partir de 65–70 ou penalidades a partir de 25)";
 }
+function facCostTxt(F, kind){ const c = facCost(G, F, kind), M = SCEN.campaign.money.short; return [c.ap ? `${c.ap} AP` : "", c.money ? `${c.money} ${M}` : ""].filter(Boolean).join(" · ") + (c.ap ? "" : " · sem gastar ações"); }
 function facWhat(F){
-  const C = SCEN.campaign, cost = F.favorCost ?? C.favorCost ?? 4, li = [];
+  const C = SCEN.campaign, li = [];
   const rivals = (F.rivals || []).map(r => (C.factions.find(x => x.id === r) || {}).short || r);
-  li.push(`<b>Agradar</b> (1 AP · ${cost} ${esc(C.money.short)}): lealdade +14${rivals.length ? `; ${esc(rivals.join(", "))} −5 de lealdade (rival)` : ""}${F.favorFx ? `; ${esc(fxSummary(G, F.favorFx))}` : ""}.`);
-  li.push(`<b>Enfraquecer</b> (1 AP): influência −10 e lealdade −12${F.pressFx ? `; ${esc(fxSummary(G, F.pressFx))}` : ""}. Útil para tirar uma facção hostil do jogo: com influência abaixo de 25 ela não provoca crises.`);
+  li.push(`<b>Agradar</b> (${esc(facCostTxt(F, "agradar"))}): lealdade +14${rivals.length ? `; ${esc(rivals.join(", "))} −5 de lealdade (rival)` : ""}${F.favorFx ? `; ${esc(fxSummary(G, F.favorFx))}` : ""}.`);
+  li.push(`<b>Enfraquecer</b> (${esc(facCostTxt(F, "pressionar"))}): influência −10 e lealdade −12${F.pressFx ? `; ${esc(fxSummary(G, F.pressFx))}` : ""}. Útil para tirar uma facção hostil do jogo: com influência abaixo de 25 ela não provoca crises.`);
   if (F.boost) li.push(`<b>Leal (≥70):</b> ${esc(Object.entries(F.boost).map(([k, v]) => `${STORY.stats[k].label} +${v}/mês`).join(", "))}. <b>Insatisfeita (≤25):</b> o mesmo, negativo.`);
   if (F.boostMoney) li.push(`<b>Leal (≥65):</b> +${F.boostMoney} ${esc(C.money.short)}/mês. <b>Insatisfeita (≤25):</b> −${F.boostMoney}/mês.`);
   if (C.nationalFac === F.id) li.push(`<b>Comando das tropas:</b> a lealdade define a moral máxima dos seus exércitos; ≥65 dá +1 ordem por mês e abaixo de 25, −1.`);
@@ -4107,16 +4279,17 @@ function tabFaccoes(el){
   const cards = C.factions.map(F => {
     const f = G.fac[F.id], stt = facStatus(f), cls = { "Leal": "good", "Neutra": "", "Insatisfeita": "mid", "Em crise": "bad" }[stt];
     const used1 = G.used["fac_agradar_" + F.id], used2 = G.used["fac_pressionar_" + F.id], busy = G.queue.length > 0;
-    const cost = F.favorCost ?? C.favorCost ?? 4;
-    const why1 = used1 ? "já feito neste turno" : busy ? "resolva os eventos" : G.ap < 1 ? "sem AP" : G.money < cost ? `faltam ${esc(C.money.short)}` : `lealdade +14${(F.rivals || []).length ? ", rivais −5" : ""}`;
-    const why2 = used2 ? "já feito neste turno" : busy ? "resolva os eventos" : G.ap < 1 ? "sem AP" : "influência −10, lealdade −12";
+    const c1 = facCost(G, F, "agradar"), c2 = facCost(G, F, "pressionar"), cost = c1.money;
+    const bad1 = used1 || busy || G.ap < c1.ap || G.money < c1.money, bad2 = used2 || busy || G.ap < c2.ap || G.money < c2.money;
+    const why1 = used1 ? "já feito neste turno" : busy ? "resolva os eventos" : G.ap < c1.ap ? "sem AP" : G.money < c1.money ? `faltam ${esc(C.money.short)}` : `lealdade +14${(F.rivals || []).length ? ", rivais −5" : ""}`;
+    const why2 = used2 ? "já feito neste turno" : busy ? "resolva os eventos" : G.ap < c2.ap ? "sem AP" : G.money < c2.money ? `faltam ${esc(C.money.short)}` : "influência −10, lealdade −12";
     return `<div class="fac ${cls}"><div class="fh"><strong>${esc(F.name)}</strong><em class="chip ${cls}">${stt}</em></div><p>${esc(F.desc)}</p>
       <div class="fbar"><span>Lealdade</span><div class="bar" title="Linhas: 15 crise · 35 neutra · 65 leal"><i style="width:${f.loyalty}%;background:${f.loyalty < 15 ? "#c2563f" : f.loyalty < 35 ? "#d0902a" : "#6fae6a"}"></i><u style="left:15%"></u><u class="t35" style="left:35%"></u><u class="t65" style="left:65%"></u></div><b>${Math.round(f.loyalty)}</b></div>
       <div class="fbar"><span>Influência</span><div class="bar"><i style="width:${f.influence}%;background:#7d8fb3"></i></div><b>${Math.round(f.influence)}</b></div>
       <div class="fnow"><b>Agora:</b> ${facNow(F, f)}</div>
       <details class="fwhat"><summary>O que acontece se…</summary>${facWhat(F)}</details>
-      <div class="fbtns"><button class="secondary sm" data-f="${F.id}" data-k="agradar" ${used1 || busy || G.ap < 1 || G.money < cost ? "disabled" : ""}>Agradar (1 AP · ${cost} ${esc(C.money.short)})<small>${why1}</small></button>
-      <button class="secondary sm" data-f="${F.id}" data-k="pressionar" ${used2 || busy || G.ap < 1 ? "disabled" : ""}>Enfraquecer (1 AP)<small>${why2}</small></button></div></div>`;
+      <div class="fbtns"><button class="secondary sm" data-f="${F.id}" data-k="agradar" ${bad1 ? "disabled" : ""}>Agradar (${esc(facCostTxt(F, "agradar").replace(" · sem gastar ações", ""))})<small>${why1}</small></button>
+      <button class="secondary sm" data-f="${F.id}" data-k="pressionar" ${bad2 ? "disabled" : ""}>Enfraquecer (${esc(facCostTxt(F, "pressionar").replace(" · sem gastar ações", ""))})<small>${why2}</small></button></div></div>`;
   }).join("");
   const ex = `<div class="facx">
     <div><h4>Lealdade: o que cada nível faz</h4><div class="lv">
@@ -4125,8 +4298,9 @@ function tabFaccoes(el){
       <em style="color:#e0a85a">Insatisfeita 15–34</em><span>A partir de 25 ou menos, o bônus vira penalidade.</span>
       <em style="color:#f09a86">Em crise &lt; 15</em><span>Se a influência for 25 ou mais: <b>crise</b> (greves, defecções, rebeliões, até golpe), no máximo uma a cada 4 meses.</span></div></div>
     <div><h4>Agradar × Enfraquecer</h4><ul>
-      <li><b>Agradar</b>: 1 AP + ${esc(C.money.short)}. Lealdade +14; rivais perdem 5. Para manter aliados acima de 65–70 e colher os bônus.</li>
-      <li><b>Enfraquecer</b>: 1 AP. Influência −10 e lealdade −12. Uma facção hostil com influência abaixo de 25 não provoca crise.</li>
+      <li><b>Agradar</b>: ${esc(facCostTxt(C.factions[0], "agradar"))}. Lealdade +14; rivais perdem 5. Para manter aliados acima de 65–70 e colher os bônus.</li>
+      <li><b>Enfraquecer</b>: ${esc(facCostTxt(C.factions[0], "pressionar"))}. Influência −10 e lealdade −12. Uma facção hostil com influência abaixo de 25 não provoca crise.</li>
+      ${C.facMoney ? `<li>Facções são pagas <b>só com ${esc(C.money.label)}</b>: suas ações ficam livres para o resto.</li>` : ""}
       <li>Cada botão uma vez por facção, por turno.</li></ul></div>
     <div><h4>O que mais mexe com elas</h4><ul>
       <li>Escolhas da história e dos eventos.</li>
@@ -4138,8 +4312,9 @@ function tabFaccoes(el){
 function tabAcoes(el){
   const C = SCEN.campaign, cats = [["dip", "Diplomacia"], ["eco", "Economia"], ["mil", "Militar"], ["pol", "Política interna"]];
   const acts = visibleActions(G);
-  el.innerHTML = `<p class="muted intro">Cada ação custa pontos de ação (AP) e, às vezes, recursos. Cada uma pode ser usada uma vez por turno. Você tem <strong>${G.ap} AP</strong>.</p><div class="actgrid">${cats.map(([c, l]) => `<div class="panel"><h3>${l}</h3>${acts.filter(a => a.cat === c).map(a => { const st = actionState(G, a); return `<button class="act" data-id="${a.id}" ${st.ok?"":"disabled"}><span>${esc(a.name)}</span><em>${a.ap ?? 1} AP${a.cost ? ` · ${a.cost} ${esc(C.money.short)}` : ""}</em><small>${esc(a.desc)}</small><small class="fx">${esc(fxSummary(G, a.fx))}${a.risk ? ` · risco ${Math.round(a.risk.p*100)}%` : ""}</small>${st.ok ? "" : `<small class="why">${esc(st.why)}</small>`}</button>`; }).join("") || `<p class="muted">Nada nesta fase.</p>`}${c === "dip" ? `<button class="linkbtn" data-tab2="diplomacia">Abrir a tela de Diplomacia →</button>` : ""}</div>`).join("")}</div>`;
+  el.innerHTML = `<p class="muted intro">Cada ação custa pontos de ação (AP) e, às vezes, ${esc(C.money.short)}. Cada uma pode ser usada uma vez por turno. Você tem <strong>${G.ap} AP</strong>.</p>${ecoStrip()}<div class="actgrid">${cats.map(([c, l]) => `<div class="panel"><h3>${l}</h3>${acts.filter(a => a.cat === c).map(a => { const st = actionState(G, a); return `<button class="act" data-id="${a.id}" ${st.ok?"":"disabled"}><span>${esc(a.name)}</span><em>${a.ap ?? 1} AP${a.cost ? ` · ${a.cost} ${esc(C.money.short)}` : ""}</em><small>${esc(a.desc)}</small><small class="fx">${esc(fxSummary(G, a.fx))}${a.risk ? ` · risco ${Math.round(a.risk.p*100)}%` : ""}</small>${st.ok ? "" : `<small class="why">${esc(st.why)}</small>`}</button>`; }).join("") || `<p class="muted">Nada nesta fase.</p>`}${c === "dip" ? `<button class="linkbtn" data-tab2="diplomacia">Abrir a tela de Diplomacia →</button>` : ""}</div>`).join("")}</div>`;
   el.querySelectorAll(".act[data-id]").forEach(b => b.onclick = () => afterAct(doAction(G, b.dataset.id)));
+  bindEcoStrip(el);
   el.querySelectorAll("[data-tab2]").forEach(b => b.onclick = () => { UI.tab = b.dataset.tab2; renderGame(); });
 }
 /* ---------- Aba Decisões: árvore de focos nacionais ---------- */
@@ -4322,8 +4497,8 @@ function tutSteps(ctx){
     hud: [
       { t: "Bem-vindo ao comando", h: `<p>Estas dicas aparecem <b>uma vez</b>, na primeira vez que você abre cada aba ou função. São curtas — leia e clique em <b>Próximo</b>.</p><p>Não quer ajuda? <b>Pular tutorial</b> desliga todas. Dá para refazer depois em <b>? Ajuda</b>.</p>` },
       { sel: ".hud-date", t: "Data, turno e fase", h: `<p>Cada turno vale <b>um mês</b> (em fases calmas, até 3 meses).</p><p>A <b>fase</b> (ex.: “${esc(ph.label || "")}”) define as regras do momento: se há guerra, se você comanda tropas e quanto recebe por mês.</p>` },
-      { sel: ".hud-res > div:first-child", t: "Ações (AP)", h: `<p>Os <b>pontos de ação</b> são o seu tempo e a sua atenção neste turno. Quase tudo custa <b>1 AP</b>: ações, agradar ou enfraquecer facções, propostas diplomáticas e iniciar um foco.</p><p>Os AP <b>recarregam</b> ao encerrar o mês e <b>não acumulam</b> — use-os.</p>` },
-      { sel: ".hud-res > div:nth-child(2)", t: M, h: `<p>Capital político: verbas, cargos e favores. Paga investimentos, agrados a facções, missões e tropas.</p><p>O número pequeno (<b>+N/mês</b>) é a renda líquida: território, economia e facções leais, menos manutenção de tropas e sanções.</p><p><b>Abaixo de zero</b>, você perde apoio todo mês.</p>` },
+      { sel: ".hud-res > div:first-child", t: "Ações (AP)", h: `<p>Os <b>pontos de ação</b> são o seu tempo e a sua atenção neste turno. Quase tudo custa <b>1 AP</b>: ações, propostas diplomáticas e iniciar um foco${C.facMoney ? " (facções são pagas só com " + esc(M) + ")" : ", agradar ou enfraquecer facções"}.</p>${C.apScale ? `<p><b>Quantas você tem:</b> 3 de base; com <b>Apoio Popular 60+</b> são 4, e com <b>75+</b> são 5. Também dá para <b>comprar +1</b> com ${esc(M)} uma vez por turno. Clique aqui para ver de onde vem cada uma.</p>` : ""}<p>Os AP <b>recarregam</b> ao encerrar o mês e <b>não acumulam</b> — use-os.</p>` },
+      { sel: ".hud-res > div:nth-child(2)", t: M, h: `<p>Capital político: verbas, cargos e favores. Paga investimentos, agrados a facções, missões e tropas.</p><p>O número pequeno (<b>+N/mês</b>) é a renda líquida: território, economia e facções leais, menos manutenção de tropas e sanções.</p>${Number.isFinite(moneyCap(G)) ? `<p><b>Teto de ${moneyCap(G)}:</b> o que passar disso ao encerrar o turno se perde — gaste em facções, no mapa ou converta em ações.</p>` : ""}<p><b>Abaixo de zero</b>, você perde apoio todo mês. Clique aqui para ver renda e usos.</p>` },
       { sel: ".hudarmy", t: C.forces.label, h: `<p>Soma da força dos seus exércitos. Clique para abrir o mapa militar.</p><p>Em algumas fases (por exemplo, fora do governo) você <b>não comanda tropas</b>.</p>` },
       { sel: ".stats", t: "Os quatro pilares", h: `<ul>${Object.entries(STORY.stats).map(([k, s]) => `<li><b>${esc(s.label)}</b>: ${esc(STAT_HELP[k] || "")}</li>`).join("")}</ul><p>Vão de 0 a 100. <b>Se algum chegar a zero, a campanha acaba.</b> Eles também liberam ou bloqueiam escolhas da história.</p>` },
       { sel: "#btnEnd", t: "Encerrar mês", h: `<p>Quando terminar de agir, clique aqui. O mês passa: renda, combates, agitação nos estados, humor das facções e reação de outros países.</p><p>Fica bloqueado enquanto houver evento esperando decisão.</p>` },
@@ -4363,7 +4538,7 @@ function tutSteps(ctx){
   return S[ctx] || [];
 }
 const STAT_HELP = {
-  apoio: "opinião pública. Alto acalma os estados; baixo alimenta protestos e revoltas.",
+  apoio: "opinião pública. Alto acalma os estados e, em 2022, dá mais ações por turno (60+ → 4, 75+ → 5); baixo alimenta protestos e revoltas.",
   militar: "o quanto os quartéis seguem você. Define a moral e o limite de ordens das tropas.",
   base: "partidos e Congresso. Dá governabilidade e abre opções políticas.",
   internacional: "imagem no exterior. Baixa traz sanções e isolamento.",
@@ -4509,7 +4684,7 @@ function openHelp(){
       <label class="tgl"><input type="checkbox" id="hOn" ${s.off ? "" : "checked"}> Mostrar dicas ao abrir abas novas</label>
     </div>
     <details><summary>Glossário rápido</summary><dl class="gloss">
-      <dt>Ações (AP)</dt><dd>Pontos de ação do turno. Quase tudo custa 1 AP. Recarregam a cada mês e não acumulam.</dd>
+      <dt>Ações (AP)</dt><dd>Pontos de ação do turno. Quase tudo custa 1 AP. Recarregam a cada mês e não acumulam.${C && C.apScale ? " Em 2022: 3 de base, 4 com Apoio Popular 60+, 5 com 75+; +1 comprando com Recursos (1×/turno)." : ""}</dd>
       <dt>${esc(C ? C.money.label : "Recursos")}</dt><dd>Capital político para gastar em investimentos, agrados, missões e tropas. Ganho por mês: território, economia e facções leais, menos manutenção e sanções. No negativo, você perde apoio todo mês.</dd>
       ${STORY ? Object.entries(STORY.stats).map(([k, v]) => `<dt>${esc(v.label)}</dt><dd>${esc(STAT_HELP[k] || "")} Se chegar a zero, a campanha termina.</dd>`).join("") : ""}
       <dt>Agitação</dt><dd>Tensão em cada estado (0–100). Média acima de 62 nos seus estados derruba o apoio; um estado acima de 88 sem tropas pode se revoltar. Investir, fazer propaganda e negociar com o governador baixam a agitação.</dd>
@@ -4530,6 +4705,68 @@ function openHelp(){
   setTimeout(() => $("#hRedo").focus(), 30);
 }
 
+/* ---------- Ações e Recursos: de onde vêm e para onde vão ---------- */
+function apSrcLine(){
+  const C = SCEN.campaign; if (!C.apScale && !C.convert) return "";
+  const A = { parts: G.apParts || apFor(G).parts }, bits = [`base ${A.parts[0].v}`];
+  for (const p of A.parts.slice(1)) if (p.v) bits.push(`${p.id === "apoio" ? "apoio" : p.label.toLowerCase()} ${p.v > 0 ? "+" : "−"}${Math.abs(p.v)}`);
+  if (G.used && G.used.convert) bits.push("+1 comprada");
+  const nx = apNextTier(G);
+  return `<small>${bits.join(" · ")}${nx ? ` · apoio ${nx.at} → ${nx.ap}` : ""}</small>`;
+}
+function ecoStrip(){
+  const C = SCEN.campaign, K = C.convert; if (!K && !Number.isFinite(moneyCap(G))) return "";
+  const cap = moneyCap(G), used = G.used && G.used.convert, busy = G.queue.length > 0, why = used ? "já feito neste turno" : busy ? "resolva os eventos" : G.money < K.cost ? `faltam ${C.money.short}` : "uma vez por turno";
+  return `<div class="ecostrip panel"><div class="eco-m"><span class="k">${esc(C.money.label)}</span><b>${Math.round(G.money)}${Number.isFinite(cap) ? `<small>/${cap}</small>` : ""}</b>${Number.isFinite(cap) ? `<div class="bar" aria-hidden="true"><i style="width:${Math.max(0, Math.min(100, 100 * G.money / cap))}%"></i></div>` : ""}</div>
+    ${K ? `<button class="secondary sm" id="btnConvert" ${used || busy || G.money < K.cost ? "disabled" : ""}>Converter ${K.cost} ${esc(C.money.short)} → +${K.ap} ação<small>${esc(why)}</small></button>` : ""}
+    <button class="linkbtn" id="btnEcoHow">Como funcionam ações e ${esc(C.money.short)}?</button></div>`;
+}
+function bindEcoStrip(el){
+  const b = el.querySelector("#btnConvert"); if (b) b.onclick = () => afterAct(convertMoney(G));
+  const h = el.querySelector("#btnEcoHow"); if (h) h.onclick = () => openEco("money");
+}
+function openEco(focus){
+  document.querySelectorAll("#ecoModal").forEach(x => x.remove());
+  const C = SCEN.campaign, M = C.money.short, A = { parts: G.apParts || apFor(G).parts }, Anext = apFor(G), inc = incomeFor(G), cap = moneyCap(G), pace = paceFor(G), nx = apNextTier(G), K = C.convert;
+  const row = (l, v, cls) => `<tr class="${cls || ""}"><td>${l}</td><td>${v}</td></tr>`;
+  const n = v => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(Math.round(v));
+  const apRows = A.parts.map((p, i) => row(i === 0 ? "Base do cenário" : p.id === "apoio" ? `Apoio Popular no início (${(p.label.match(/\d+/) || [""])[0]})` : p.label, i === 0 ? p.v : n(p.v), p.v > 0 && i ? "up" : "")).join("")
+    + (G.used && G.used.convert ? row(`Comprada com ${esc(M)}`, "+1", "up") : "");
+  const scale = C.apScale ? `<ul class="tiers">${[[0, 0], ...C.apScale.tiers].map(([t, b], i, arr) => { const hi = arr[i + 1] ? arr[i + 1][0] - 1 : 100, on = G.stats[C.apScale.stat] >= t && G.stats[C.apScale.stat] <= hi; return `<li class="${on ? "on" : ""}"><b>${C.ap + b} ações</b><span>Apoio Popular ${i === 0 ? `abaixo de ${arr[1][0]}` : `${t}${arr[i + 1] ? `–${hi}` : " ou mais"}`}</span></li>`; }).join("")}</ul>` : "";
+  const incRows = [row("Renda básica da fase", n(inc.base)), inc.terr ? row("Território", n(inc.terr), "up") : "", inc.econ ? row("Economia", n(inc.econ), inc.econ > 0 ? "up" : "down") : "", inc.facBonus ? row("Facções leais/insatisfeitas", n(inc.facBonus), inc.facBonus > 0 ? "up" : "down") : "", inc.upkeep ? row("Manutenção de tropas", n(-inc.upkeep), "down") : "", inc.sanc ? row("Sanções", n(-inc.sanc), "down") : "", row("<b>Total por mês</b>", `<b>${n(inc.total)}</b>`), pace > 1 ? row(`<b>Por turno</b> (${pace} meses)`, `<b>${n(inc.total * pace)}</b>`) : ""].join("");
+  const facC = C.facMoney ? `${C.facMoney.agradar} para agradar, ${C.facMoney.pressionar} para enfraquecer — <b>sem gastar ações</b>` : `${C.favorCost ?? 4} + 1 AP para agradar`;
+  const m = document.createElement("div");
+  m.className = "modal"; m.id = "ecoModal"; m.setAttribute("role", "dialog"); m.setAttribute("aria-modal", "true"); m.setAttribute("aria-labelledby", "ecoT");
+  m.innerHTML = `<div class="modal-card ecomodal"><h2 id="ecoT">Ações e ${esc(C.money.label)}</h2>
+    <div class="ecogrid">
+      <section class="${focus === "ap" ? "hl" : ""}"><h3>Ações deste turno: ${G.ap}</h3>
+        <p class="muted sm">Calculadas no início do turno. Restam <b>${G.ap}</b>.</p>
+        <table class="ecotab">${apRows}</table>
+        ${C.apScale ? `<p class="muted">Com o apoio de agora (${Math.round(G.stats[C.apScale.stat])}), o <b>próximo turno</b> terá <b>${Anext.total} ações</b>.</p>` : ""}
+        ${scale}
+        ${nx ? `<p class="muted">Suba o <b>Apoio Popular</b> para ${nx.at} e tenha <b>${nx.ap} ações</b> por turno.</p>` : C.apScale ? `<p class="muted">Você está no máximo de ações pelo apoio.</p>` : ""}
+        ${K ? `<p class="muted">Precisa de mais? Converta <b>${K.cost} ${esc(M)} → +${K.ap} ação</b>, uma vez por turno (aba Ações).</p>` : ""}
+        <p class="muted">As ações não acumulam: o que sobrar se perde ao encerrar o turno.</p></section>
+      <section class="${focus === "money" ? "hl" : ""}"><h3>${esc(C.money.label)}: ${Math.round(G.money)}${Number.isFinite(cap) ? ` de ${cap}` : ""}</h3>
+        <table class="ecotab">${incRows}</table>
+        ${Number.isFinite(cap) ? `<p><b>Teto de ${cap}.</b> Ao encerrar o turno, o que passar disso se perde: capital político parado não rende. ${G.money + inc.total * pace > cap ? `<b class="warn">Neste ritmo, você vai perder ${Math.round(G.money + inc.total * pace - cap)} no próximo turno.</b>` : ""}</p>` : ""}
+        <h4>Onde gastar</h4><ul class="uses">
+          <li><b>Facções</b>: ${facC}.</li>
+          ${K ? `<li><b>Converter em ação</b>: ${K.cost} → +${K.ap} ação (1×/turno).</li>` : ""}
+          <li><b>Mapa</b>: investir num estado (baixa a agitação) e negociar adesões.</li>
+          <li><b>Ações do governo</b> e <b>missões diplomáticas</b>: algumas custam ${esc(M)}.</li>
+          <li><b>Decisões</b>: alguns focos têm custo.</li>
+          <li><b>Exércitos</b> (em guerra): recrutar e reforçar.</li></ul>
+        <p class="muted">Abaixo de zero, você perde 2 de Apoio Popular por mês.</p></section>
+    </div>
+    <div class="row2"><button class="primary" id="btnEcoClose">Fechar</button></div></div>`;
+  document.body.appendChild(m);
+  const close = () => { m.remove(); document.removeEventListener("keydown", key, true); };
+  const key = e => { if (e.key === "Escape"){ e.stopPropagation(); close(); } };
+  document.addEventListener("keydown", key, true);
+  m.onclick = e => { if (e.target === m) close(); };
+  $("#btnEcoClose").onclick = close; $("#btnEcoClose").focus({ preventScroll: true }); { const h = $("#ecoModal section.hl"); const cd = m.querySelector(".modal-card"); if (h && cd) setTimeout(() => { cd.scrollTop = Math.max(0, h.getBoundingClientRect().top - cd.getBoundingClientRect().top + cd.scrollTop - 12); }, 60); }
+}
 $("#btnMenu").onclick = renderMenu;
 $("#btnHelp").onclick = openHelp;
 $("#btnRestart").onclick = () => {

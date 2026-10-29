@@ -181,6 +181,12 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 
 - **Decisões:** zoom em `UI.fz` (0,3–1,6), tela cheia em `UI.ffull`; arrastar com limiar de 5px (`dataset.dragged` evita clique acidental).
 - **Agitação:** `unrestColor` usa a escala VIRIDIS; `unrestLabel(v)`; limiares exibidos 30/62/88 (62 = média que derruba apoio; 88 = revolta).
 
+## 7c. Fase 2 (out/2026): economia e mapa de guerra
+- **CORE (CAMPAIGN_2022):** `money.cap: 80`, `apScale: { stat: "apoio", tiers: [[60,1],[75,2]] }`, `facMoney: { agradar: 8, pressionar: 6 }`, `convert: { cost: 12, ap: 1 }`. Funções `apFor(g)` → `{ total, parts }` (base, apoio, fase), `apNextTier`, `moneyCap`, `applyMoneyCap`, `convertMoney` (usa `g.used.convert`, 1×/turno), `facCost(g, F, kind)`. `newCampaign` e `endTurn` gravam `g.ap` e `g.apParts` (a origem das ações no início do turno; saves antigos sem `apParts` usam `apFor` na hora). `endTurn` aplica o teto e registra no relatório. Sem mudança de formato que exija migração.
+- **sim.js:** métricas `g.simEco` + linha "economia"; invariante "Recursos ≤ teto"; as IAs gastam em facções/conversão (guerra e golpista guardam 35 de reserva e só socorrem facções < 22).
+- **UI:** `apSrcLine`, células `.ecocell` no topo, `ecoStrip` na aba Ações, `openEco(focus)` (modal `#ecoModal`). Facções mostram o custo em Recursos (`facCostTxt`).
+- **Mapa de guerra:** `counterInner(side, str, n)` desenha a ficha (também nos fantasmas da resolução e na legenda `.milleg`); `CNT_K()` é a escala (1,2 no celular). Frentes = `path.frontcase` + `path.front`. Fluxo de ordem: `UI.pend = { army, to, type }` (validado a cada render), `orderForecast(a, to, type)` calcula a previsão com `battleOdds`/`milMods`, `forecastCardHTML` vira painel lateral (desktop) ou bloco sob o mapa (≤ 900px), `openAttackForecast` abre a tela de batalha em modo previsão com os atacantes. `UI.mapBig` = mapa ampliado. Esc cancela a prévia/seleção.
+
 ## 8. Limitações conhecidas
 - Quem conclui `c_ruptura` e depois recua para a transição fica só com os ramos temáticos, porque democ e jurid ficam excluídos.
 - Depois de 2023-03 os turnos valem 3 meses, então os focos terminam em saltos.
