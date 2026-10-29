@@ -235,9 +235,9 @@ for (const sc of SCENARIOS) {
   console.log("  Finais em 40.000 partidas aleatórias:", JSON.stringify(endings));
   for (const [e, set] of Object.entries(endMaps)) console.log(`    mapa final ${e}: ${[...set].slice(0,3).join("  |  ")}${set.size>3?` (+${set.size-3})`:""}`);
 }
-// ---- saves: migração v2 → v3 e um combate de teste ----
+// ---- saves: migração v2 → v4 e v3 → v4, e um combate de teste ----
 {
-  const API = new Function(src + msrc + csrc + "; return { SCENARIOS, newCampaign, migrateSave, SAVE_VERSION, endTurn, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices };")();
+  const API = new Function(src + msrc + csrc + "; return { SCENARIOS, newCampaign, migrateSave, SAVE_VERSION, endTurn, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices, battleReport };")();
   let n = 0;
   for (const sc of API.SCENARIOS){ if (sc.soon || !sc.campaign) continue;
     for (let seed = 1; seed <= 25; seed++){
@@ -260,11 +260,28 @@ for (const sc of SCENARIOS) {
       n++;
     }
   }
+  // v3 → v4: sem histórico de batalhas nem reserva de alistamento
+  let n3 = 0;
+  for (const sc of API.SCENARIOS){ if (sc.soon || !sc.campaign) continue;
+    for (let seed = 1; seed <= 15; seed++){
+      const g = API.newCampaign(sc, seed);
+      for (let t = 0; t < seed % 7 && !g.ended; t++){ while (g.queue.length && !g.ended){ const ch = API.queueChoices(g); const ok = ch.findIndex(c => c.ok); API.choose(g, ok < 0 ? 0 : ok); } if (!g.ended) API.endTurn(g); }
+      if (g.ended) continue;
+      const v3 = JSON.parse(JSON.stringify(g)); v3.v = 3; delete v3.battleLog; delete v3.mobPool; if (v3.used) v3.used._recruit = true;
+      const m = API.migrateSave(v3);
+      if (!m || m.v !== API.SAVE_VERSION || !Array.isArray(m.battleLog) || m.mobPool !== 0) { err(`${sc.id}#${seed}: migração v3→v4 falhou`); continue; }
+      if (!API.endTurn(m) && !m.queue.length) err(`${sc.id}#${seed}: save v3 migrado não avança`);
+      n3++;
+    }
+  }
   const g = API.newCampaign(API.SCENARIOS.find(s => s.id === "brasil2022"), 7);
   const A = { side: "player", role: "att", units: [{ name: "A", str: 30, org: 70, xp: 10 }] }, B = { side: "enemy", role: "def", units: [{ name: "B", str: 20, org: 60, xp: 10, militia: true }] };
   const rec = API.fight(g, "MG", A, B, "ataque");
   if (!(rec.rounds.length >= 1 && rec.rounds.length <= 5) || ![0, 1].includes(rec.win) || !(rec.margin >= 0 && rec.margin <= 1) || rec.loss.some(x => !(x >= 0))) err("combate de teste inválido");
-  console.log(`\nSaves: ${n} saves v2 sintéticos migrados para v${API.SAVE_VERSION} e jogados mais 1 mês; combate de teste OK (${rec.rounds.length} rodadas)`);
+  const BR = API.battleReport(rec);
+  if (!BR.summary || !BR.tips.length || BR.rows.length < 3 || BR.won !== (rec.win === 0)) err("relatório de batalha de teste inválido");
+  console.log(`\nSaves: ${n} saves v2 e ${n3} saves v3 sintéticos migrados para v${API.SAVE_VERSION} e jogados mais 1 mês; combate de teste OK (${rec.rounds.length} rodadas)`);
+  console.log(`  relatório de teste: ${BR.summary}`);
 }
 console.log(errors ? `\nFALHOU (${errors} problemas)` : "\nOK: todos os cenários íntegros, todos os nós e finais alcançáveis.");
 if (errors) process.exit(1);

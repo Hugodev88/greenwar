@@ -43,6 +43,9 @@ Fica no fim do CORE (procure `const ADJ`). Compartilhado pelos cenários (2022 e
 - **Dados:** `g.armies = [{ id, side: "player"|"enemy", fac, uf, name, gen, str, org, xp, order }]`; `g.enemyPlans` (intenções do mês, planejadas por `planEnemy` antes do jogador agir); `g.mil` (registro do último mês: `control0`, `start`, `orders`, `moves`, `battles`, `flips` — usado pela animação); `g.armsAid` (bônus temporário de armas estrangeiras).
 - **Geografia:** `ADJ` (adjacência das 27 UFs, simétrica, validada contra a geometria do mapa em `check.js`) e `TERRAIN`/`TERRAIN_TYPES` (selva, metrópole, serras, sertão… dão bônus de defesa).
 - **Escala:** `STR_UNIT = 10` (1 "unidade" antiga = 10 de força), `ARMY_MAX = 60`, `ARMY_CAP` 8 por lado. A antiga `reserve`/`u.force` não existe mais; o efeito `reserve: n` em `applyFx` vira `addPlayerStrength(g, n*10)` (reforça exércitos ou cria um novo).
+- **Recrutamento:** `recruitState(g, uf)` diz se dá para recrutar e por quê (texto em PT); `recruitArmy(g, uf)` cria um exército de `RECRUIT_STR = 20` (moral até 55, xp 5) por `recruitCost` (8), até `RECRUIT_PER_MONTH = 2` por mês (`g.used._recruit` é um contador; `recruitsLeft(g)`). `reinforceCost` = 3. Manutenção `C.army.upkeep` = 0,3 por 10 de força.
+- **Alistamento:** `mobilization(g)` = 3 + 0,35 × estados seus + (apoio − 50)/10, entre 2 e 12. `playerMobilize(g, R)` (no `endTurn`, depois de `enemyReinforce`) dá até +6 a cada exército seu parado em território seu, com força < 45 e que não lutou no mês; o resto vai para `g.mobPool` (máx. 30), que ao chegar a 15 vira um exército novo na capital.
+- **Relatório de batalha:** `fight()` guarda `rec.pow` (poder inicial), `rec.powEnd`, `rec.luck` (multiplicador médio de dano por sorte) e `rec.broke`. `battleReport(rec)` (puro, CORE) devolve `{pi, won, forecast, rows, summary, how, tips, loss, power}`; funciona para previsões e para recs antigos. `logBattles` guarda as últimas 30 batalhas em `g.battleLog`. UI: `battleReportHTML` (seção `.brep` em `openBattle`), `resolBtn` (lista da resolução), `battleRowsHTML` (aba História e painel do mapa), `recruitBoxHTML` (caixa "Recrutar tropas" em `overviewPanel`/`ufPanel`).
 - **Ordens do jogador:** `setOrder(g, id, type, to)`, `armyTargets(g, a)`, `recruitArmy(g, uf)`, `commandLimit(g)` (1–5, pelo atributo militar e lealdade da facção militar), `ordersUsed(g)`. Atacar/mover/recuar contam no limite; defender e reforçar não.
 - **Milícias:** cada estado tem uma força local implícita (`militia`): polícia/milícias leais nos seus estados, voluntários nos disputados (dependem do apoio popular e da simpatia), guarnição inimiga (`u.enemy * 5`).
 - **Combate:** `fight()` faz até 5 rodadas; o poder é força × moral × experiência × modificadores (`milMods`: terreno, posições preparadas, apoio local, comando/lealdade, suprimentos, armas estrangeiras, qualidade/mobilização inimiga, sanções). Quem perde a moral (< 20) recua. O registro (`rec`) guarda as rodadas para a tela de batalha.
@@ -59,7 +62,7 @@ As linhas são aproximadas; procure pelos marcadores.
 | `<style>` | início | Todo o CSS, incluindo mobile (`@media max-width:700/860px`) e o da árvore (`.focuslayout`, `.fnode`, `.ftree*`) |
 | `/*SCENARIOS_START*/ … /*SCENARIOS_END*/` | ~483–1660 | Todos os dados: `STORY_1964`, `STORY_2022`; `CAMPAIGN_1964`, `CAMPAIGN_2022`; `CAMPAIGN_2022.focus` (a árvore); e a lista **`const SCENARIOS = [...]`** |
 | `/*MAP_START*/ … /*MAP_END*/` | ~1662 | `MAP_DATA`: SVG paths dos 27 estados, gerado por `tools/build-map.js` |
-| `/*CORE_START*/ … /*CORE_END*/` | ~1667–2876 | Lógica pura, sem DOM: `SAVE_VERSION`, `cond()`, `applyFx()`, `newCampaign()`, ações, diplomacia (`dealScore`), eventos, focos (`focusStatus`, `startFocus`, `focusTick`, `completeFocus`, `focusStoryGrant`), `endTurn()`; no fim, o sistema militar (`ADJ`, `TERRAIN`, `fight`, `militaryMonth`, `planEnemy`, `setOrder`, `migrateSave`…) |
+| `/*CORE_START*/ … /*CORE_END*/` | ~1704–3047 | Lógica pura, sem DOM: `SAVE_VERSION`, `cond()`, `applyFx()`, `newCampaign()`, ações, diplomacia (`dealScore`), eventos, focos (`focusStatus`, `startFocus`, `focusTick`, `completeFocus`, `focusStoryGrant`), `endTurn()`; no fim, o sistema militar (`ADJ`, `TERRAIN`, `fight`, `militaryMonth`, `planEnemy`, `setOrder`, `migrateSave`…) |
 | depois do CORE | ~2877–fim | UI: ponte `cloud()` e `window.GWGame` (no fim), além de `UI` (estado da interface), `loadInfo` (carregar e migrar save), `playable`/`setScenario`/`renderMenu` (menu: card grande de 2022 com mapa, cards bloqueados "Em breve"), `renderTitle` (tela de título do cenário), `renderGame` (abas), `tabMapa` (exércitos e ordens), `openBattle`/`playResolution` (combate visual), `tabDecisoes` (árvore), `openHelp` etc. |
 
 **Os marcadores são usados por `check.js` e `sim.js`,** que extraem esses trechos e executam em Node. Não os remova. Mantenha o CORE livre de DOM.
@@ -78,7 +81,7 @@ As linhas são aproximadas; procure pelos marcadores.
 - **Efeitos (`applyFx`):** `s` (atributos), `money`, `reserve` (+10 de força militar por ponto), `fac`, `infl`, `unrest`, `unrestAll`, `unrestUF`, `act`, `actAll`, `enemy`, `flag`, `map`, `ap`, `ceasefire`, `malus {v, months}`.
 
 ### Saves e localStorage
-- `SAVE_VERSION = 3` (exércitos). Saves **v2** são migrados em `loadInfo` por `migrateSave` (CORE): `reserve` e `u.force` viram exércitos (10 de força por unidade), as forças inimigas ficam como guarnições/milícias, e aparece um aviso no menu (`milMigrated`). Saves de versão desconhecida ou formato antigo são arquivados em `<saveKey>_legacy`, e o jogador vê um aviso.
+- `SAVE_VERSION = 4` (4: `battleLog` e `mobPool`; 3: exércitos). Saves v3 ganham `battleLog` (das batalhas do último mês) e `mobPool = 0`. Saves **v2** são migrados em `loadInfo` por `migrateSave` (CORE): `reserve` e `u.force` viram exércitos (10 de força por unidade), as forças inimigas ficam como guarnições/milícias, e aparece um aviso no menu (`milMigrated`). Saves de versão desconhecida ou formato antigo são arquivados em `<saveKey>_legacy`, e o jogador vê um aviso.
 - Saves de 2022 sem `g.focus` (anteriores à árvore) são **migrados** em `loadInfo`: `focusInit` aplica as concessões da história já vividas e marca `focusMigrated`, e aparece um aviso no menu.
 - **Se mudar o formato do save, aumente a versão ou escreva uma migração em `loadInfo`.**
 - Chaves do localStorage:
@@ -113,7 +116,7 @@ As linhas são aproximadas; procure pelos marcadores.
   - save só local: é enviado;
   - os dois diferentes: aparece um modal por cenário, com mês, turno, data e o selo "mais recente";
   - finais: união nos dois sentidos.
-  - Saves da nuvem com `save_version` entre `GWGame.minSaveVersion` (2) e `SAVE_VERSION` (3) são aceitos; um v2 baixado é migrado pelo jogo ao abrir e reenviado como v3 no próximo save. Versões fora dessa faixa são ignoradas. Se `SAVE_VERSION` mudar, pense também nos saves da nuvem.
+  - Saves da nuvem com `save_version` entre `GWGame.minSaveVersion` (2) e `SAVE_VERSION` (4) são aceitos; um v2/v3 baixado é migrado pelo jogo ao abrir e reenviado como v4 no próximo save. Versões fora dessa faixa são ignoradas. Se `SAVE_VERSION` mudar, pense também nos saves da nuvem.
 - **Cenários removidos/bloqueados na nuvem:** saves e finais de `itavera` (1924) e `brasil1964` continuam no banco (nada é apagado) e são ignorados. O perfil, as estatísticas e o ranking mostram totais **só dos cenários jogáveis** (`playTotals` em `cloud.js`, calculado de `endings`/`campaigns_by_scenario`); os campos `endings_count`/`campaigns_played` do banco ainda somam tudo, então o ranking busca os 300 primeiros por `endings_count` e reordena no cliente.
 - **Sem tabelas:** se o SQL ainda não foi rodado, a API devolve `PGRST205`. Nesse caso `cloud.js` mantém o login, avisa no perfil que o servidor não foi configurado e não tenta sincronizar.
 
@@ -144,14 +147,15 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 
   - `excl` simétrico, sem ciclos, raiz única;
   - todo foco alcançável por algum caminho;
   - chaves de efeito válidas e flags `fo_*` válidas;
-  - sistema militar: `ADJ` simétrico, 27 UFs, conexo e conferido com a geometria do mapa; terreno completo; `C.army` de cada cenário; ações de recrutamento com `ap: 0`; migração de 50 saves v2 sintéticos e um teste de `fight()`.
+  - sistema militar: `ADJ` simétrico, 27 UFs, conexo e conferido com a geometria do mapa; terreno completo; `C.army` de cada cenário; ações de recrutamento com `ap: 0`; migração de 50 saves v2 e 30 saves v3 sintéticos e um teste de `fight()` + `battleReport()`.
   - Depois roda o `sim.js`.
-- **`node sim.js [N] [cenário]`:** partidas automáticas com as IAs aleatória, gulosa e radical, e a "golpista" (roteiro só de cobertura, em 2022). As IAs também dão ordens aos exércitos (`giveOrders`: aleatória ao acaso; gulosa recruta, reforça e ataca em grupo com razão de forças ≥ 1,2) e o sim confere invariantes do exército (ordens limpas, território permitido, limites). Mostra a distribuição de finais, os focos concluídos por partida e quais focos nunca são concluídos. Falha se algum final ou foco ficar inalcançável.
+- **`node sim.js [N] [cenário]`:** partidas automáticas com as IAs aleatória, gulosa e radical, e a "golpista" (roteiro só de cobertura, em 2022). As IAs também dão ordens aos exércitos (`giveOrders`: aleatória ao acaso; gulosa recruta, reforça e ataca em grupo com razão de forças ≥ 1,2) e o sim confere invariantes do exército (ordens limpas, território permitido, limites). Mostra a distribuição de finais, os focos concluídos por partida e quais focos nunca são concluídos. Falha se algum final ou foco ficar inalcançável ou se o relatório de alguma batalha sair inválido (NaN, sem resumo/dica). Nas partidas com guerra imprime a linha `guerra:` (meses, % de batalhas vencidas, % dos seus ataques vencidos, força máxima média, estados no início → fim da guerra, % de partidas em que ganhou território, finais).
 - **Referência atual (300 partidas por IA, 2022):**
   - aleatória: ostracismo 31%, oposição 21%, retorno 19%, golpe fracassado 8%…;
   - gulosa: retorno 81%;
   - radical: golpe fracassado 53%;
-  - golpista: divisão 82%, restauração 13%, regime 5% (~34 batalhas por partida).
+  - golpista: divisão 82%, restauração 9%, regime 9% (~35 batalhas por partida); guerra: 66% das batalhas vencidas (ataques 93%), força máx. média 256, estados 11,1 → 11,8, ganhou território em 54% das partidas.
+  - Antes do recrutamento facilitado (out/2026): golpista divisão 82%, restauração 13%, regime 5%; batalhas vencidas 62% (ataques 90%), força máx. 185, estados 11,1 → 10,4, ganhou território em 28%. Aleatória (14 partidas com guerra): batalhas vencidas 25% → 29%, estados no fim 4,5 → 7,8.
 
 ## 7. Regras de design (obrigatórias)
 1. **UI e textos em português do Brasil.**
