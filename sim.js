@@ -196,8 +196,9 @@ const COUP = { brasil2022: { apuracao: 3, sondagem: 1, expurgo: 0, decreto: 0, r
 for (const sc of API.SCENARIOS){
   if (sc.soon || !sc.campaign) continue;
   if (process.argv[3] && sc.id !== process.argv[3]) continue;
+  if (sc.locked && process.argv[3] !== sc.id) continue; // cenário bloqueado: só roda se pedido explicitamente (node sim.js N brasil1964)
   const endings = Object.entries(sc.story.nodes).filter(([, n]) => n.ending).map(([id]) => id);
-  console.log(`\n[${sc.year}] ${sc.title}`);
+  console.log(`\n[${sc.year}] ${sc.title}${sc.locked ? " (bloqueado — teste de integridade)" : ""}`);
   const R = report[sc.id] = {}; FC[sc.id] = {};
   for (const mode of ["aleatoria", "gulosa", "radical", ...(COUP[sc.id] ? ["golpista"] : [])]){
     if (mode === "golpista") sc.campaign.coupScript = COUP[sc.id];
@@ -232,6 +233,6 @@ for (const sc of API.SCENARIOS){
     if (never.length) fail(`${sc.id}: focos nunca concluídos: ${never.join(", ")}`);
   }
 }
-fs.writeFileSync(__dirname + "/sim-resultados.json", JSON.stringify(report, null, 1));
+if (!process.argv[3]) fs.writeFileSync(__dirname + "/sim-resultados.json", JSON.stringify(report, null, 1));
 console.log(fails ? `\n${fails} falha(s).` : "\nSimulação OK: nenhuma falha.");
 process.exitCode = fails ? 1 : 0;

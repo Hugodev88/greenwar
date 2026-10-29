@@ -1,15 +1,16 @@
 # Greenwar — Crônicas da Separação
 
-Jogo de estratégia e história interativa sobre o Brasil, inspirado em Hearts of Iron. Funciona offline, num único arquivo HTML. Você escolhe um ano, toma decisões mês a mês e vê no mapa quem controla cada estado.
+Jogo de estratégia e história interativa sobre o Brasil, inspirado em Hearts of Iron. Funciona offline, num único arquivo HTML. Você toma decisões mês a mês e vê no mapa quem controla cada estado.
 
 > **Aviso:** este jogo é uma **obra de ficção**. Eventos, diálogos e desfechos são hipotéticos. Pessoas reais são tratadas de forma neutra, sem citações inventadas atribuídas a elas. Caminhos autoritários ou de ruptura têm consequências sérias dentro do jogo: o jogo não endossa nenhum deles.
 
 ## Cenários
-| Ano | Cenário | Resumo |
-|---|---|---|
-| 1924 | **Aurora do Sul** | Você lidera um movimento separatista fictício no Sul do país. |
-| 1964 | **Os Anos Decisivos** | A crise política de 1964 e suas alternativas. |
-| 2022 | **A Faixa Presidencial** | Depois da eleição de 2022: aceitar o resultado, contestar ou tentar uma ruptura. Tem a **árvore de decisões nacionais** (44 focos). |
+| Ano | Cenário | Situação | Resumo |
+|---|---|---|---|
+| 2022 | **A Faixa Presidencial** | ✅ jogável | Depois da eleição de 2022: aceitar o resultado, contestar ou tentar uma ruptura. Tem a **árvore de decisões nacionais** (44 focos). |
+| 1964 | **Os Anos Decisivos** | 🔒 em breve | A crise política de 1964 e suas alternativas. Os dados continuam no código, mas o cenário aparece no menu como "Em breve" e não pode ser aberto. |
+
+O foco atual é o cenário de **2022**. (O antigo cenário fictício de 1924, "Aurora do Sul", foi removido; continua no histórico do git.)
 
 ## Sistemas
 - **Turnos:** um turno por mês (em 2022, a partir de março de 2023, cada turno vale 3 meses), com Pontos de Ação.
@@ -77,7 +78,9 @@ node check.js          # valida história, mapa, campanha e árvore de decisões
 node check.js 300      # igual, com 300 partidas por IA
 node sim.js 300        # só a simulação de campanhas, com distribuição de finais por IA
 node sim.js 300 brasil2022   # só um cenário
+node sim.js 40 brasil1964    # cenário bloqueado: só roda se pedido pelo id
 ```
+O `check.js` também valida os dados do 1964 (bloqueado) e roda um teste curto de integridade dele (40 partidas por IA), para o cenário não quebrar enquanto o motor muda. Esse teste não entra no balanceamento.
 `check.js` termina com código 1 se houver qualquer problema. **Rode depois de qualquer mudança na história, nos eventos ou na árvore.**
 
 `tools/build-map.js` gera a geometria simplificada dos estados (`tools/brazil-map.json`, já embutida no `index.html`) a partir de um GeoJSON do IBGE. O GeoJSON tem 3,3 MB e não está no repositório. Para regerar o mapa, baixe `brazil-states.geojson` do projeto codeforamerica/click_that_hood, salve como `tools/brazil-states.geojson.json` e rode `node tools/build-map.js`.

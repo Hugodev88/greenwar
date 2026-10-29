@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Aurora do Sul — Crônicas da Separação</title>
+<title>Crônicas da Separação — Brasil 2022</title>
 <style>
   :root{
     --bg:#0e0d0c; --panel:#171513; --panel2:#1f1c19; --ink:#e9e1d3; --muted:#9c9182;
@@ -73,9 +73,30 @@
   .scen .ds{font-size:.95rem;color:#cfc6b6;flex:1}
   .scen .meta{font-family:system-ui,sans-serif;font-size:.75rem;color:var(--muted);margin-top:10px;display:flex;justify-content:space-between;gap:8px}
   .scen .saved{color:#8fc488}
-  .scen.soon{cursor:default;opacity:.55;border-top-color:#555;border-style:dashed}
+  .scen.soon{cursor:not-allowed;opacity:.55;border-top-color:#555;border-style:dashed;filter:grayscale(.85)}
   .scen.soon:hover{transform:none;border-color:var(--line)}
   .scen.soon .yr{color:#777}
+  .scen.soon .tag{color:#8a8178}
+  .scen .lockbadge{align-self:flex-start;font-family:system-ui,sans-serif;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:#bbb;border:1px solid #666;border-radius:20px;padding:3px 10px;margin-top:10px}
+  /* cenário em destaque (o único jogável) */
+  .scen.feat{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:22px;padding:26px 26px 22px;border-top-width:4px;box-shadow:0 10px 40px #0008}
+  .scen.feat:hover{transform:translateY(-2px)}
+  .scen.feat .yr{font-size:5rem}
+  .scen.feat h3{font-size:1.9rem}
+  .scen.feat .ds{font-size:1.05rem;line-height:1.5;flex:none}
+  .scen.feat .txt{display:flex;flex-direction:column}
+  .scen.feat .cta{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .scen.feat .cta .go{font-family:system-ui,sans-serif;font-size:1rem;background:var(--red);color:#fff;border-radius:6px;padding:10px 22px;letter-spacing:.04em}
+  .scen.feat:hover .cta .go{filter:brightness(1.15)}
+  .scen.feat .mapbox{pointer-events:none;align-self:center;justify-self:center;width:100%;max-width:390px}
+  .scen-later{margin-top:26px}
+  .scen-later h4{font-family:system-ui,sans-serif;font-weight:normal;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+  .scen-later .scen-grid{grid-template-columns:repeat(auto-fill,minmax(260px,360px))}
+  .scen-later .scen{padding:14px 16px}
+  .scen-later .scen .yr{font-size:2.2rem}
+  .scen-later .scen h3{font-size:1.1rem}
+  .scen-later .scen .ds{font-size:.85rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  @media (max-width:760px){ .scen.feat{grid-template-columns:1fr;padding:18px} .scen.feat .yr{font-size:3.6rem} .scen.feat h3{font-size:1.5rem} .scen-later .scen-grid{grid-template-columns:1fr} }
   /* ---- Mapa ---- */
   .layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px;align-items:start}
   .layout.single{grid-template-columns:minmax(0,1fr);max-width:820px;margin:0 auto}
@@ -460,373 +481,7 @@
    Nós com ending:true são finais.
    ===================================================================== */
 /*SCENARIOS_START*/
-/* ---------- Cenário 1: Aurora do Sul (1924, ficção) ---------- */
-const STORY_ITAVERA = {
-  start: "inicio",
-  stats: {
-    apoio:      { label: "Apoio Popular",  color: "#c9a45c", initial: 45 },
-    tesouro:    { label: "Tesouro",        color: "#5f8f5a", initial: 40 },
-    militar:    { label: "Força Militar",  color: "#a8402f", initial: 35 },
-    diplomacia: { label: "Relações Int.",  color: "#4f7aa3", initial: 30 }
-  },
-  // Facções do mapa (cores e nomes)
-  factions: {
-    federal:  { label: "Governo Federal (Brandão)", color: "#4b5868" },
-    aurora:   { label: "Movimento Aurora do Sul",   color: "#d9a43c" },
-    disputa:  { label: "Em disputa",                 color: "#9a3b2c" },
-    levante:  { label: "Levante do Norte",           color: "#5f8a63" },
-    autonomo: { label: "Autonomia federativa",       color: "#6f6fa8" }
-  },
-  // Controle inicial: todos os estados são federais, exceto os listados aqui.
-  // Itaverá corresponde ao território do atual RS (núcleo do movimento); SC e PR são o "front" de expansão.
-  // Mudanças no mapa: escolhas podem ter  map: { UF: "faccao" };  nós podem ter
-  //   onEnter: { map: { UF: "faccao" }, resolve: { faccaoAntiga: "faccaoNova" } }  (aplicado ao entrar no nó)
-  initialMap: { RS: "disputa" },
-  legendAlways: ["federal", "aurora", "disputa"],
-  // Se algum atributo chegar a 0, o jogo desvia para estes finais:
-  collapse: { apoio: "fim_deposto", militar: "fim_derrota", tesouro: "fim_falencia" },
-  nodes: {
-    inicio: {
-      chapter: "Capítulo I — Outono de 1924",
-      title: "O Decreto do Marechal",
-      text: [
-        "A notícia chega a Porto Itaverá com o vapor da manhã: o Governo Central, sob o Presidente-Marechal Otávio Brandão, dobrou o imposto sobre o charque e a erva-mate e dissolveu a Assembleia Provincial. O deputado Aurélio Mendes, a voz mais querida da província, foi preso no Rio por \"sedição\".",
-        "Há anos você lidera o Movimento Aurora do Sul — nascido nas terras de Itaverá, o extremo sul do país (no mapa, o atual Rio Grande do Sul) —, uma rede de comerciantes, peões, professores e estivadores que sonham com uma Itaverá livre. Esta noite, no armazém do cais, centenas esperam sua palavra. O tempo das reuniões discretas acabou.",
-        "Lá fora, a chuva bate nos telhados. Dentro, todos os olhos estão em você."
-      ],
-      choices: [
-        { text: "Subir no caixote e proclamar a rebelião aberta.", effects: { apoio: 15, militar: 5, diplomacia: -10 }, next: "quartel" },
-        { text: "Pedir calma e enviar uma petição formal ao Rio, exigindo a soltura de Mendes.", effects: { diplomacia: 10, apoio: -5 }, next: "peticao" }
-      ]
-    },
-    peticao: {
-      chapter: "Capítulo I",
-      title: "A Resposta do Rio",
-      text: [
-        "Três semanas depois, a resposta vem em forma de baionetas. Os cinco delegados que levaram a petição foram presos no porto do Rio, e um destacamento federal desembarca em Porto Itaverá com ordens de fechar os jornais da oposição.",
-        "Mas algo mudou: a moderação do Movimento ganhou simpatia. Até velhos estancieiros, antes neutros, agora murmuram contra o Marechal. E cônsules estrangeiros notaram a petição pacífica.",
-        "A cidade espera o seu próximo passo."
-      ],
-      choices: [
-        { text: "Convocar uma greve geral: parar o porto, os frigoríficos e as ferrovias.", effects: { apoio: 15, tesouro: -10 }, next: "greve" },
-        { text: "Armar os voluntários e cercar o quartel federal.", effects: { militar: 10, apoio: 5, diplomacia: -5 }, next: "quartel" }
-      ]
-    },
-    greve: {
-      chapter: "Capítulo I",
-      title: "A Cidade Parada",
-      text: [
-        "Por nove dias, nenhum navio é carregado. Os fornos dos frigoríficos esfriam, os trens apodrecem nos trilhos. A greve é um sucesso — e um perigo. O comandante federal ameaça atirar na multidão se o cais não for reaberto.",
-        "Os estivadores, armados com ganchos e coragem, ocupam a alfândega. O porto, com seus cofres e armazéns, está ao alcance da mão do Movimento."
-      ],
-      choices: [
-        { text: "Tomar o porto e a alfândega: é ali que está o dinheiro da guerra.", effects: { tesouro: 10, militar: 5 }, next: "porto" },
-        { text: "Encerrar a greve com dignidade e concentrar forças no quartel.", effects: { apoio: 5, militar: 5 }, next: "quartel" }
-      ]
-    },
-    porto: {
-      chapter: "Capítulo I",
-      title: "As Chaves da Alfândega",
-      text: [
-        "O porto é seu. Nos cofres da alfândega há ouro federal; nos armazéns, couro e erva-mate prontos para exportar. Navios de bandeira estrangeira aguardam ao largo, sem saber se devem atracar.",
-        "Dr. Henrique Salles, o advogado elegante que cuida da diplomacia do Movimento, sussurra: \"Quem controla o comércio controla a guerra. Mas quem fecha o porto fecha também as portas do mundo.\""
-      ],
-      choices: [
-        { text: "Confiscar o ouro federal e fechar o porto aos estrangeiros.", effects: { tesouro: 20, diplomacia: -10 }, next: "quartel_porto" },
-        { text: "Manter o porto aberto e garantir os contratos estrangeiros.", effects: { tesouro: 10, diplomacia: 15 }, next: "quartel_porto" }
-      ]
-    },
-    quartel_porto: {
-      chapter: "Capítulo I",
-      title: "A Guarnição Isolada",
-      text: [
-        "Com o porto em suas mãos, a guarnição federal do Forte de Santa Bárbara está isolada, sem suprimentos. Sua comandante, a Coronel Isabel Duarte — itaverense de nascimento, federal por juramento —, envia um bilhete: deseja conversar.",
-        "Seus voluntários, embriagados pela vitória no cais, querem tomar o forte de assalto."
-      ],
-      choices: [
-        { text: "Encontrar a Coronel Duarte e oferecer-lhe o comando do exército rebelde.", effects: { militar: 15, tesouro: -5 }, flag: "isabel_aliada", map: { SC: "disputa" }, next: "conselho" },
-        { text: "Negar o encontro. Cercar o forte e esperar a fome render a guarnição.", effects: { militar: 10, apoio: -5 }, next: "conselho" }
-      ]
-    },
-    quartel: {
-      chapter: "Capítulo I",
-      title: "O Forte de Santa Bárbara",
-      text: [
-        "O Forte de Santa Bárbara domina a baía de Porto Itaverá. Sem ele, não há rebelião. Dentro, quatrocentos soldados federais sob o comando da Coronel Isabel Duarte — uma itaverense que serve ao Rio há vinte anos e que, dizem, odeia o Marechal tanto quanto você.",
-        "Seus voluntários têm fuzis velhos e muita vontade. Um mensageiro da coronel aparece no portão do armazém, com um lenço branco."
-      ],
-      choices: [
-        { text: "Encontrar a Coronel Duarte em segredo e oferecer-lhe o comando do exército rebelde.", effects: { militar: 20, tesouro: -10 }, flag: "isabel_aliada", map: { SC: "disputa" }, next: "conselho" },
-        { text: "Atacar o forte de madrugada, antes que chegue reforço.", effects: { militar: 5, apoio: -10 }, next: "conselho" },
-        { text: "Sitiar o forte e cortar sua água, evitando derramamento de sangue.", effects: { militar: 5, apoio: 5, tesouro: -5 }, next: "conselho" }
-      ]
-    },
-    conselho: {
-      onEnter: { map: { RS: "aurora" } },
-      chapter: "Capítulo II — Inverno de 1924",
-      title: "O Primeiro Conselho",
-      text: [
-        "A bandeira do Movimento — um sol nascente sobre faixas verde e ouro — tremula sobre o Forte de Santa Bárbara. Porto Itaverá é livre. Mas uma província inteira não se defende com entusiasmo: são precisos fuzis, botas, pão e cavalos.",
-        "No salão do antigo Palácio Provincial, o primeiro Conselho Revolucionário discute como financiar a guerra. Os estancieiros cruzam os braços; os operários desconfiam dos estancieiros; Dr. Salles tem uma carta de um banco estrangeiro no bolso."
-      ],
-      choices: [
-        { text: "Impor um imposto de guerra sobre as grandes estâncias.", effects: { tesouro: 15, apoio: 5, militar: -5 }, next: "radicais" },
-        { text: "Lançar Bônus da Liberdade, comprados pelo povo.", effects: { tesouro: 10, apoio: 10 }, next: "radicais" },
-        { text: "Aceitar o empréstimo do Banco Anglo-Atlântico, com juros pesados.", effects: { tesouro: 25, diplomacia: 5, apoio: -10 }, next: "radicais" }
-      ]
-    },
-    radicais: {
-      chapter: "Capítulo II",
-      title: "Os Gaviões da Serra",
-      text: [
-        "Notícias chegam do interior: Teodoro Lins, chefe dos Gaviões da Serra, uma milícia de serranos endurecidos, está incendiando estâncias de famílias leais ao Rio e fuzilando \"traidores\" sem julgamento. Em nome da Aurora.",
-        "Lins tem oitocentos cavaleiros e nenhum escrúpulo. Ele manda dizer que luta por você — mas não obedece a ninguém. Os jornais estrangeiros já falam em \"bandidos de Itaverá\"."
-      ],
-      choices: [
-        { text: "Incorporar os Gaviões ao exército, com patentes e soldo.", effects: { militar: 15, diplomacia: -10, tesouro: -5 }, flag: "gavioes_integrados", map: { SC: "disputa" }, next: "emissario" },
-        { text: "Prender Lins e julgar publicamente os crimes dos Gaviões.", effects: { militar: -10, apoio: 5, diplomacia: 15 }, flag: "lins_preso", next: "emissario" },
-        { text: "Fingir não saber. Uma guerra precisa de homens assim.", effects: { militar: 10, apoio: -10 }, flag: "lins_solto", map: { SC: "disputa" }, next: "emissario" }
-      ]
-    },
-    emissario: {
-      onEnter: { map: { PE: "levante", PB: "levante" } },
-      chapter: "Capítulo II",
-      title: "O Emissário do Marechal",
-      text: [
-        "Um trem com bandeira branca cruza a fronteira provincial. Dele desce o Ministro Álvaro Quintela, enviado pessoal do Marechal Brandão. Ele traz uma proposta: anistia para os líderes, retorno da Assembleia, e uma comissão para \"rever\" os impostos — em troca da deposição imediata das armas.",
-        "Ao mesmo tempo, telegramas confirmam: em Pernambuco e na Paraíba, o Levante do Norte também pegou em armas contra o Marechal. Nas ruas, uns falam em traição se você o receber. Outros, cansados, querem apenas que os filhos voltem para casa."
-      ],
-      choices: [
-        { text: "Receber o ministro e negociar com seriedade.", effects: { diplomacia: 10, apoio: -5 }, next: "negociacao" },
-        { text: "Mandá-lo de volta no mesmo trem: \"Itaverá não se vende por promessas\".", effects: { apoio: 10, diplomacia: -5 }, next: "ofensiva" }
-      ]
-    },
-    negociacao: {
-      chapter: "Capítulo II",
-      title: "Mesa de Mogno",
-      text: [
-        "Durante quatro dias, você e Quintela discutem linha por linha. O ministro é hábil e cansado; confidencia que o Marechal enfrenta revoltas também no Norte, e que o Tesouro Federal está vazio. O Rio precisa de paz tanto quanto você.",
-        "No último dia ele estende um rascunho: autonomia fiscal, milícia provincial própria, mas Itaverá permanece parte da União. Do lado de fora, chegam boatos de que tropas federais se concentram no Rio Jaguarari."
-      ],
-      choices: [
-        { text: "Assinar uma trégua preliminar e levar a proposta ao povo.", effects: { diplomacia: 15, militar: -5 }, flag: "tregua", next: "prata" },
-        { text: "Arrastar a negociação para ganhar tempo e armar a fronteira.", effects: { militar: 10, diplomacia: -5 }, next: "ofensiva" }
-      ]
-    },
-    ofensiva: {
-      onEnter: { map: { SC: "disputa" } },
-      chapter: "Capítulo III — Primavera de 1925",
-      title: "Às Margens do Jaguarari",
-      text: [
-        "Doze mil soldados federais, com artilharia moderna e dois aeroplanos de observação, descem por Santa Catarina, cruzam a fronteira e avançam rumo ao Rio Jaguarari, a última barreira natural antes de Porto Itaverá.",
-        "A Coronel Duarte — ou quem comanda em seu lugar — abre o mapa sobre a mesa. \"Podemos cavar trincheiras na margem e aguentar o choque. Ou podemos recuar para as coxilhas e sangrá-los aos poucos.\""
-      ],
-      choices: [
-        { text: "Defender a linha do rio a qualquer custo.", effects: { tesouro: -10, militar: 5 }, next: "batalha" },
-        { text: "Recuar e travar uma guerra de guerrilha no interior.", effects: { apoio: -10, militar: 10 }, next: "batalha" },
-        { text: "Contra-atacar de surpresa à noite com a cavalaria dos Gaviões.", req: { flags: ["gavioes_integrados"] }, effects: { militar: 15, apoio: -5 }, next: "batalha" }
-      ]
-    },
-    batalha: {
-      chapter: "Capítulo III",
-      title: "A Batalha do Jaguarari",
-      text: [
-        "Por três dias o céu ruge. A névoa do rio se mistura à fumaça dos canhões. Mensageiros chegam cobertos de lama com notícias contraditórias, e você aprende o que nenhum livro ensina: na guerra, o comandante decide sem saber.",
-        "Na terceira noite, a linha federal oscila. É agora ou nunca."
-      ],
-      choices: [
-        {
-          text: "Lançar todas as reservas no ataque final.",
-          effects: { tesouro: -5 },
-          next: [ { if: { min: { militar: 55 } }, to: "vitoria_rio" }, { to: "derrota_rio" } ]
-        },
-        {
-          text: "Preservar as tropas e recuar em ordem.",
-          effects: { militar: -5 },
-          next: [ { if: { min: { militar: 70 } }, to: "vitoria_rio" }, { to: "derrota_rio" } ]
-        }
-      ]
-    },
-    vitoria_rio: {
-      onEnter: { map: { SC: "aurora" } },
-      chapter: "Capítulo III",
-      title: "A Manhã do Jaguarari",
-      text: [
-        "Ao amanhecer, os federais recuam em desordem, abandonando canhões e cavalos. Santa Catarina inteira se declara pela Aurora. A notícia corre pelos telégrafos do continente: os rebeldes de Itaverá derrotaram o exército do Marechal.",
-        "Em Porto Itaverá, os sinos tocam o dia inteiro. Mas no hospital de campanha, as fileiras de macas não terminam. E nas capitais estrangeiras, diplomatas começam a levar a Aurora a sério."
-      ],
-      choices: [
-        { text: "Perseguir o inimigo além da fronteira provincial.", effects: { militar: 5, tesouro: -10, diplomacia: -5 }, map: { PR: "disputa" }, next: "prata" },
-        { text: "Consolidar a vitória e libertar os prisioneiros com honra.", effects: { apoio: 10, diplomacia: 10 }, next: "prata" }
-      ]
-    },
-    derrota_rio: {
-      onEnter: { map: { SC: "federal" } },
-      chapter: "Capítulo III",
-      title: "A Ponte Perdida",
-      text: [
-        "A linha cede. Os federais cruzam o Jaguarari e só a chuva torrencial impede que a retirada vire massacre. Metade da artilharia está perdida, e Santa Catarina volta às mãos federais. Nas vilas do interior, as bandeiras da Aurora começam a desaparecer das janelas.",
-        "Você ainda tem um exército — ferido, mas vivo. E ainda tem uma escolha."
-      ],
-      choices: [
-        { text: "Decretar mobilização total: todo homem de 16 a 50 anos às armas.", effects: { militar: 15, apoio: -15 }, next: "prata" },
-        { text: "Pedir mediação internacional, admitindo a fraqueza.", effects: { diplomacia: 15, militar: -5 }, next: "prata" }
-      ]
-    },
-    prata: {
-      chapter: "Capítulo IV — Verão de 1925",
-      title: "O Embaixador do Prata",
-      text: [
-        "O Embaixador Ramón Etcheverría, da vizinha República do Prata, chega a Porto Itaverá com luvas brancas e uma oferta: o Prata reconhecerá Itaverá como nação soberana e abrirá a fronteira para armas e comércio.",
-        "O preço: os Campos de Santa Luzia, uma faixa de pastagens na fronteira onde vivem doze mil itaverenses. \"Uma pequena retificação de mapas\", diz ele, sorrindo."
-      ],
-      choices: [
-        { text: "Aceitar: o reconhecimento vale mais que algumas léguas de campo.", effects: { diplomacia: 20, militar: 10, apoio: -15 }, flag: "santa_luzia_cedida", next: "cerco" },
-        { text: "Recusar com firmeza: \"Nenhum palmo de Itaverá está à venda\".", effects: { apoio: 10, diplomacia: -10 }, next: "cerco" },
-        { text: "Contrapropor um tratado comercial vantajoso, pago em ouro.", req: { min: { tesouro: 35 } }, effects: { tesouro: -15, diplomacia: 15 }, next: "cerco" }
-      ]
-    },
-    cerco: {
-      onEnter: { map: { CE: "levante" } },
-      chapter: "Capítulo IV",
-      title: "O Inverno da Fome",
-      text: [
-        "O Marechal muda de estratégia: a Marinha Federal bloqueia Porto Itaverá. Nenhum navio entra. O trigo acaba em semanas, e o tifo aparece nos cortiços do cais. Do Norte, a única boa notícia: o Levante tomou o Ceará.",
-        "Nas filas do pão, mulheres que antes cantavam o hino da Aurora agora olham para o Palácio em silêncio. Seus intendentes relatam que as estâncias do interior escondem gado e grãos."
-      ],
-      choices: [
-        { text: "Abrir os depósitos do governo e distribuir comida gratuitamente.", effects: { tesouro: -15, apoio: 15 }, next: "traicao" },
-        { text: "Requisitar à força o gado e os grãos das estâncias.", effects: { tesouro: 5, militar: 5, apoio: -15 }, next: "traicao" },
-        { text: "Furar o bloqueio com navios contratados no Prata.", req: { min: { diplomacia: 45 } }, effects: { tesouro: -10, apoio: 10, diplomacia: 5 }, next: "traicao" }
-      ]
-    },
-    traicao: {
-      chapter: "Capítulo V — Outono de 1926",
-      title: "Cartas na Gaveta",
-      text: [
-        "Um jovem secretário entra em seu gabinete, trêmulo, com um maço de cartas. São do Dr. Henrique Salles — seu diplomata, seu amigo de faculdade — para o Ministro Quintela. Há meses ele negocia em segredo com o Rio.",
-        "As cartas não falam em traição, mas em \"salvar o que for possível\". Salles oferece sua cabeça a prêmio e, ao mesmo tempo, um canal direto com o Marechal."
-      ],
-      choices: [
-        { text: "Prender Salles e julgá-lo por traição.", effects: { apoio: 5, diplomacia: -10 }, next: "decisao" },
-        { text: "Confrontá-lo em particular e usá-lo como canal secreto com o Rio.", effects: { diplomacia: 15, apoio: -5 }, flag: "canal_salles", next: "decisao" },
-        { text: "Expor as cartas em praça pública e exigir unidade total.", effects: { apoio: 10, diplomacia: -5, militar: 5 }, next: "decisao" }
-      ]
-    },
-    decisao: {
-      onEnter: { map: { RN: "levante" } },
-      chapter: "Capítulo Final — 1926",
-      title: "A Hora da Aurora",
-      text: [
-        "Dois anos de guerra. Porto Itaverá está de pé, mas cansada. O Marechal Brandão, acuado por revoltas em outras províncias, — agora também com o Rio Grande do Norte em revolta — envia uma última mensagem: um Pacto Federativo — autonomia real, constituição própria, exército provincial — ou guerra total até o fim.",
-        "Na sacada do Palácio, a multidão espera. A Coronel Duarte, os conselheiros, os viúvos e os órfãos: todos esperam. O que você disser agora será lembrado por cem anos."
-      ],
-      choices: [
-        {
-          text: "Proclamar a República de Itaverá, livre e soberana.",
-          next: [
-            { if: { min: { apoio: 55, militar: 55, diplomacia: 45 } }, to: "fim_independencia" },
-            { if: { max: { militar: 39 } }, to: "fim_derrota" },
-            { if: { max: { apoio: 29 } }, to: "fim_derrota" },
-            { to: "fim_guerra_longa" }
-          ]
-        },
-        {
-          text: "Aceitar o Pacto Federativo e selar a paz.",
-          req: { min: { diplomacia: 35 } },
-          next: [
-            { if: { flags: ["lins_solto"] }, to: "fim_fratricida" },
-            { if: { min: { apoio: 40 } }, to: "fim_federacao" },
-            { to: "fim_fratricida" }
-          ]
-        },
-        {
-          text: "Recusar tudo e marchar sobre a capital federal.",
-          effects: { militar: -10, tesouro: -10 },
-          map: { SP: "disputa" },
-          next: [
-            { if: { min: { militar: 60, tesouro: 35, apoio: 50 } }, to: "fim_guerra_longa" },
-            { to: "fim_derrota" }
-          ]
-        }
-      ]
-    },
-
-    /* ======================= FINAIS ======================= */
-    fim_independencia: {
-      onEnter: { map: { RS: "aurora" }, resolve: { disputa: "federal" } },
-      ending: true, endingName: "Independência",
-      chapter: "Epílogo",
-      title: "A República do Sol Nascente",
-      text: [
-        "Em 7 de março de 1927, sob uma chuva fina, a bandeira da República de Itaverá sobe no mastro do Palácio. O Prata a reconhece primeiro; depois, um a um, os demais. Exausto e cercado de crises, o Marechal Brandão assina o armistício.",
-        "Você é eleito o primeiro presidente de uma nação pequena, pobre e orgulhosa. Nas escolas, as crianças aprendem o nome do Jaguarari. Mas, à noite, você ainda ouve os sinos de finados — e se pergunta se cada nome no monumento valeu a bandeira."
-      ]
-    },
-    fim_federacao: {
-      onEnter: { map: { RS: "autonomo" }, resolve: { aurora: "autonomo", levante: "autonomo", disputa: "federal" } },
-      ending: true, endingName: "Pacto Federativo",
-      chapter: "Epílogo",
-      title: "A Paz dos Cansados",
-      text: [
-        "O Pacto de Porto Itaverá é assinado num salão sem enfeites. Itaverá ganha constituição própria, autonomia fiscal e sua milícia. A Assembleia é reaberta, e o deputado Aurélio Mendes volta para casa nos braços do povo.",
-        "Os mais radicais chamam você de traidor; os livros de história, de estadista. A Aurora não virou nação — mas o modelo de Itaverá inspira outras províncias, e o poder do Rio nunca mais será o mesmo. Talvez a revolução, afinal, tenha vencido de outra forma."
-      ]
-    },
-    fim_guerra_longa: {
-      onEnter: { map: { RS: "aurora", SC: "disputa", PR: "disputa" } },
-      ending: true, endingName: "Guerra Sem Fim",
-      chapter: "Epílogo",
-      title: "As Coxilhas em Chamas",
-      text: [
-        "Nem vitória, nem derrota. A guerra se arrasta por mais sete anos, entre emboscadas nas coxilhas e cercos nas vilas. As fronteiras mudam a cada estação. Uma geração inteira cresce sem conhecer a paz.",
-        "Quando finalmente um armistício é assinado — por outros homens, em outro governo —, ninguém se lembra direito pelo que se lutava. Seu nome sobrevive nas canções dos dois lados: herói para uns, carrasco para outros."
-      ]
-    },
-    fim_derrota: {
-      onEnter: { resolve: { aurora: "federal", disputa: "federal" } },
-      ending: true, endingName: "Derrota",
-      chapter: "Epílogo",
-      title: "A Aurora Apagada",
-      text: [
-        "As tropas federais entram em Porto Itaverá sob silêncio. A bandeira do sol nascente é queimada na praça; os líderes do Conselho são presos ou fogem pela fronteira. Você parte num barco de pesca, de madrugada, para um exílio do qual talvez nunca volte.",
-        "Anos depois, num quarto alugado em terra estrangeira, você recebe uma carta sem remetente. Dentro, apenas um pedaço de pano verde e ouro e uma frase: \"A aurora sempre volta.\""
-      ]
-    },
-    fim_fratricida: {
-      onEnter: { resolve: { aurora: "disputa" } },
-      ending: true, endingName: "Tragédia Fratricida",
-      chapter: "Epílogo",
-      title: "Irmão contra Irmão",
-      text: [
-        "No dia em que a paz é anunciada, os Gaviões da Serra e os exaltados do cais a chamam de rendição. Teodoro Lins — ou quem assumiu sua bandeira — marcha sobre Porto Itaverá. A revolução, que lutou contra o Rio, agora luta contra si mesma.",
-        "Nas ruas onde antes se cantava o hino da Aurora, itaverenses atiram em itaverenses. O Rio assiste e espera. Quando a poeira baixa, não há mais Movimento — apenas cruzes, e uma província que levará décadas para se perdoar."
-      ]
-    },
-    fim_deposto: {
-      onEnter: { map: { RS: "disputa" }, resolve: { aurora: "federal" } },
-      ending: true, endingName: "Deposto pelo Povo",
-      chapter: "Epílogo",
-      title: "A Revolta dentro da Revolta",
-      text: [
-        "O povo que o carregou nos ombros agora cerca o Palácio. Cansados de fome, de recrutamentos e de promessas, os itaverenses se voltam contra o próprio Movimento. O Conselho vota sua destituição numa sessão de quinze minutos.",
-        "Você sai pela porta dos fundos, sem escolta. A causa continua, talvez — mas não mais com você. Toda revolução precisa do povo; nenhuma sobrevive sem ele."
-      ]
-    },
-    fim_falencia: {
-      onEnter: { resolve: { aurora: "federal", disputa: "federal" } },
-      ending: true, endingName: "Ruína Financeira",
-      chapter: "Epílogo",
-      title: "Os Cofres Vazios",
-      text: [
-        "Não é uma batalha que derruba a Aurora: é a conta. Sem ouro para pagar soldos, as tropas desertam em massa; sem crédito, nenhum navio traz trigo. Os credores estrangeiros exigem garantias que você não tem.",
-        "Em poucas semanas, o Movimento se desfaz como papel molhado. Os federais retomam a província quase sem disparar um tiro. A história lembrará que a liberdade, além de coragem, também precisa de pão."
-      ]
-    }
-  }
-};
-
-/* ---------- Cenário 3: Brasil 1964 (história alternativa) ---------- */
+/* ---------- Cenário 1964 (história alternativa) — BLOQUEADO (locked:true): dados mantidos, não jogável ---------- */
 const STORY_1964 = {
   start: "abril",
   stats: {
@@ -1126,7 +781,7 @@ const STORY_1964 = {
   }
 };
 
-/* ---------- Cenário 2: Brasil 2022 (história alternativa) ---------- */
+/* ---------- Cenário 2022 (história alternativa) — único jogável ---------- */
 const STORY_2022 = {
   start: "apuracao",
   stats: {
@@ -1491,132 +1146,6 @@ const STORY_2022 = {
 function act(id, cat, name, desc, o){ return Object.assign({ id, cat, name, desc, ap: 1, cost: 0 }, o); }
 // ev(id, título, textos, escolhas, opções {if, weight, once, cooldown, crisisOf})
 function ev(id, title, text, choices, o){ return Object.assign({ id, title, text: Array.isArray(text) ? text : [text], choices }, o || {}); }
-
-/* ---------- Campanha 1924: Aurora do Sul ---------- */
-const CAMPAIGN_ITAVERA = {
-  start: "1924-04", ap: 3,
-  money: { label: "Caixa de guerra", short: "contos", initial: 18, comfort: 20 },
-  forces: { label: "Força militar (soma dos exércitos)", short: "Tropas", initial: 2 },
-  army: { capital: "RS", recruitCost: 10, reinforceCost: 4, enemyStart: 3,
-    start: [{ uf: "RS", str: 20, name: "Brigada de Itaverá", gen: "Cel. Duarte" }],
-    names: { player: ["1ª Divisão da Aurora", "Coluna da Serra", "Brigada Ferroviária", "Legião dos Pampas", "Batalhão Operário"],
-      enemy: ["1ª Divisão Federal", "Divisão do Paraná", "Brigada Paulista", "Coluna de Minas", "Regimento da Capital"] },
-    gens: { player: ["Teodoro Lins", "Maj. Clara Anselmo", "Cap. Otávio Brum"], enemy: ["Gen. Plácido Moraes", "Gen. Aurélio Sampaio", "Cel. Firmino Lacerda"] } },
-  keys: { pop: "apoio", mil: "militar", econ: "tesouro", legit: "diplomacia", money: "tesouro" },
-  contested: "disputa", enemyBase: 3, enemyPower: 1.1, enemyQuality: 0.85, upkeep: 0.5, loan: 15, drain: 2,
-  unrestBase: 30, unrest: { RS: 62, SC: 45 }, home: ["RS"], homeBonus: 2.5, lowShare: 0.05, highShare: 0.15,
-  pace: [{ from: "1924-04", months: 1 }],
-  defaultDelay: 1,
-  storyDelay: { peticao: 1, greve: 1, porto: 1, quartel_porto: 1, quartel: 1, conselho: 2, radicais: 2, emissario: 2, negociacao: 1, ofensiva: 3, batalha: 1, vitoria_rio: 0, derrota_rio: 0, prata: 2, cerco: 2, traicao: 3, decisao: 2 },
-  phases: [
-    { id: "guerra", if: { visited: ["conselho"] }, label: "Guerra de secessão", war: true,
-      player: ["aurora"], enemy: ["federal"], playerMain: "aurora", enemyMain: "federal",
-      flipTo: { federal: "disputa" }, income: 4, perWeight: 0.6 },
-    { id: "revolta", label: "Revolta em Itaverá", war: false, player: ["aurora"], enemy: [],
-      income: 3, perWeight: 0, diplo: { req: ["dinheiro", "mediacao"] } }
-  ],
-  enterFx: { conselho: { reserve: 2 } },
-  checks: [
-    { if: { phase: "guerra", sideCount: { player: { max: 0 }, contested: { max: 0 } } }, to: "fim_derrota", why: "O Movimento perdeu o controle de todos os estados." },
-    { if: { phase: "guerra", visited: ["prata"], sideCount: { player: { min: 3 } }, recognized: { min: 2 }, min: { apoio: 50, militar: 50 } }, to: "fim_independencia", why: "Três estados sob controle e reconhecimento de duas potências: a independência se impôs no campo e na diplomacia." }
-  ],
-  nationalFac: "oficiais",
-  offerFac: { bases: { oficiais: -6, clero: -4 }, concessoes: { comerciantes: 5, estancieiros: -3 }, commodities: { estancieiros: 4 } },
-  offLabels: { commodities: "Charque, couro e trigo", bases: "Porto de Itaverá para frota estrangeira", onu: "Apoio na Liga das Nações", concessoes: "Concessões ferroviárias e de minas", alinhamento: "Alinhamento diplomático" },
-  actors: [
-    { id: "prata", name: "República do Prata", short: "Prata", tag: "Vizinho (fictício)", ideology: "República conservadora, quer Santa Luzia e rotas comerciais.", opinion: 10, democracy: 0.2,
-      interests: { commodities: 0.6, bases: 0.4, onu: 0.3, concessoes: 1.1, alinhamento: 0.8 }, gives: { dinheiro: 0.6, armas: 1, reconhecimento: 1, sancoes: 0.3, mediacao: 0.8 },
-      rel: { reino_unido: 0.3, eua: -0.2 }, reactions: { estancieiros: 2 } },
-    { id: "reino_unido", name: "Reino Unido", short: "R. Unido", tag: "Potência financeira", ideology: "Credores e ferrovias: estabilidade e contratos acima de tudo.", opinion: 0, democracy: 0.3,
-      interests: { commodities: 1.2, bases: 0.5, onu: 0.5, concessoes: 1.2, alinhamento: 0.4 }, gives: { dinheiro: 1.3, armas: 0.6, reconhecimento: 0.6, sancoes: 0.2, mediacao: 1 },
-      rel: { eua: -0.2, prata: 0.3, franca: 0.4 }, reactions: { comerciantes: 3 } },
-    { id: "eua", name: "Estados Unidos", short: "EUA", tag: "Potência emergente", ideology: "Doutrina Monroe: desconfia de interferência europeia no continente.", opinion: -10, democracy: 0.4,
-      interests: { commodities: 0.8, bases: 1, onu: 0.2, concessoes: 0.8, alinhamento: 1 }, gives: { dinheiro: 1, armas: 0.8, reconhecimento: 0.5, sancoes: 0.5, mediacao: 0.7 },
-      rel: { reino_unido: -0.2, prata: -0.2 }, reactions: { oficiais: -2 } },
-    { id: "franca", name: "França", short: "França", tag: "Potência europeia", ideology: "Vende o excedente de armas da Grande Guerra e busca influência cultural.", opinion: 5, democracy: 0.5,
-      interests: { commodities: 0.6, bases: 0.2, onu: 0.8, concessoes: 0.8, alinhamento: 0.5 }, gives: { dinheiro: 0.7, armas: 1.1, reconhecimento: 0.5, sancoes: 0.2, mediacao: 0.8 },
-      rel: { reino_unido: 0.4 }, reactions: { clero: 2 } },
-    { id: "liga", name: "Liga das Nações", short: "Liga", tag: "Organismo internacional", ideology: "Quer evitar guerras e valoriza compromissos com a arbitragem.", opinion: 0, democracy: 0.8,
-      interests: { commodities: 0, bases: 0, onu: 1.3, concessoes: 0, alinhamento: 0.2 }, gives: { dinheiro: 0, armas: 0, reconhecimento: 0.4, sancoes: 0.4, mediacao: 1.5 },
-      rel: { reino_unido: 0.4, franca: 0.4 } }
-  ],
-  factions: [
-    { id: "estancieiros", name: "Estancieiros", short: "Estancieiros", desc: "Grandes proprietários de terra e gado. Financiam a causa — ou a abandonam.", loyalty: 45, influence: 55, links: { tesouro: 0.4, apoio: -0.2 }, boostMoney: 2, rivals: ["operarios"] },
-    { id: "operarios", name: "Operários e estivadores", short: "Operários", desc: "O porto e os frigoríficos. Sem eles, a cidade para.", loyalty: 55, influence: 40, links: { apoio: 0.6 }, boost: { apoio: 1 }, rivals: ["estancieiros"] },
-    { id: "comerciantes", name: "Comerciantes e banqueiros", short: "Comerciantes", desc: "Querem portos abertos e contratos honrados.", loyalty: 45, influence: 45, links: { tesouro: 0.4, diplomacia: 0.4 }, boostMoney: 2 },
-    { id: "oficiais", name: "Oficiais dissidentes", short: "Oficiais", desc: "Militares de carreira que aderiram à causa, ao redor da Coronel Duarte.", loyalty: 45, influence: 50, links: { militar: 0.8 }, boost: { militar: 1 }, rivals: ["gavioes"] },
-    { id: "gavioes", name: "Gaviões da Serra", short: "Gaviões", desc: "A milícia irregular de Teodoro Lins: eficaz e indisciplinada.", loyalty: 50, influence: 30, links: { militar: 0.4, diplomacia: -0.3 }, rivals: ["oficiais"] },
-    { id: "clero", name: "Clero e imprensa local", short: "Clero", desc: "Moldam a opinião nas cidades e no interior.", loyalty: 50, influence: 30, links: { apoio: 0.5, diplomacia: 0.3 }, boost: { apoio: 1 } }
-  ],
-  choiceFx: {
-    porto: [ { act: { reino_unido: -15, eua: -10 } }, { act: { reino_unido: 10 } } ],
-    quartel_porto: [ { fac: { oficiais: 15 } }, {} ],
-    quartel: [ { fac: { oficiais: 15 } }, { fac: { oficiais: -5 } }, {} ],
-    conselho: [ { fac: { estancieiros: -15, operarios: 5 } }, { fac: { operarios: 6, comerciantes: 3 } }, { fac: { comerciantes: 8 }, act: { reino_unido: 15 } } ],
-    radicais: [ { fac: { gavioes: 20, clero: -6, oficiais: -5 } }, { fac: { gavioes: -30, clero: 8 }, act: { liga: 8 } }, { fac: { gavioes: 8, clero: -8 } } ],
-    negociacao: [ { act: { liga: 10 } }, {} ],
-    prata: [ { act: { prata: 25 }, fac: { estancieiros: -8 } }, { act: { prata: -15 } }, { act: { prata: 12 } } ],
-    traicao: [ { fac: { comerciantes: -6 } }, {}, { fac: { clero: 4 } } ]
-  },
-  actions: [
-    act("e_bonus", "eco", "Bônus da Liberdade", "Nova emissão de títulos patrióticos vendidos à população.", { fx: { money: 6, s: { apoio: -2 } } }),
-    act("e_imposto", "eco", "Taxar as grandes estâncias", "Dinheiro rápido, às custas dos estancieiros.", { fx: { money: 8, fac: { estancieiros: -10, operarios: 3 } } }),
-    act("e_porto", "eco", "Reabrir o comércio do porto", "Exportações financiam a guerra e agradam a quem negocia.", { fx: { money: 4, s: { diplomacia: 2 }, fac: { comerciantes: 6 } } }),
-    act("e_sanear", "eco", "Sanear as contas da Aurora", "Usa o caixa para pagar fornecedores e soldos atrasados: o tesouro se recupera.", { cost: 8, fx: { s: { tesouro: 6 }, fac: { comerciantes: 3 } } }),
-    act("e_cozinhas", "eco", "Racionamento e cozinhas populares", "Comida garantida nos bairros pobres.", { cost: 5, fx: { s: { apoio: 5 }, unrest: -8, fac: { operarios: 6 } } }),
-    act("m_recrutar", "mil", "Recrutar voluntários", "+10 de força para seus exércitos (sem PA; custa só recursos).", { ap: 0, cost: 5, fx: { reserve: 1, s: { militar: 1, apoio: -1 } } }),
-    act("m_instrucao", "mil", "Instrução com oficiais de carreira", "Disciplina e treino para as milícias.", { cost: 4, fx: { s: { militar: 4 }, fac: { oficiais: 6 } } }),
-    act("m_gavioes", "mil", "Soltar os Gaviões na retaguarda", "Ataques irregulares desgastam o inimigo, mas mancham a causa.", { req: { phase: "guerra" }, reqText: "Só durante a guerra", fx: { s: { militar: 3, diplomacia: -3, apoio: -1 }, fac: { gavioes: 10, oficiais: -4 } }, risk: { p: 0.3, msg: "Excessos dos Gaviões viram notícia.", fx: { s: { diplomacia: -5 }, fac: { clero: -6 } } } }),
-    act("m_fortificar", "mil", "Fortificar a fronteira", "Trincheiras e paióis ao longo do Jaguarari.", { cost: 6, req: { phase: "guerra" }, reqText: "Só durante a guerra", fx: { s: { militar: 3 }, unrest: -4 } }),
-    act("p_comicio", "pol", "Comício na Praça", "Discursos e bandeiras para manter a chama acesa.", { fx: { s: { apoio: 4 } }, risk: { p: 0.2, msg: "Confronto com a polícia federal.", fx: { s: { apoio: -3 } } } }),
-    act("p_jornal", "pol", "Jornal da Aurora", "Uma imprensa própria explica a causa.", { cost: 3, fx: { s: { apoio: 3 }, unrest: -5, fac: { clero: 3 } } }),
-    act("p_conselho", "pol", "Ampliar o Conselho", "Dar assento a representantes do interior e das associações.", { fx: { s: { diplomacia: 2, apoio: 2 }, fac: { estancieiros: 4, oficiais: -4 } } }),
-    act("p_jornais_hostis", "pol", "Fechar jornais hostis", "Silencia críticos; custa legitimidade lá fora e aqui dentro.", { fx: { unrest: -10, s: { apoio: -2, diplomacia: -5 }, fac: { clero: -10 } } }),
-    act("d_correspondentes", "dip", "Receber correspondentes estrangeiros", "Jornalistas de fora contam a sua versão.", { cost: 3, fx: { s: { diplomacia: 3 }, actAll: 3 } }),
-    act("d_peticao", "dip", "Petição à Liga das Nações", "Pede arbitragem e observadores.", { cost: 2, fx: { act: { liga: 10 }, s: { diplomacia: 2 } } })
-  ],
-  events: [
-    ev("c_estancieiros", "Os estancieiros escondem o gado", "Fazendeiros descontentes desviam rebanhos para o Prata e atrasam contribuições.", [
-      { text: "Negociar: reduzir a taxa sobre o gado.", fx: { money: -4, fac: { estancieiros: 20 } } },
-      { text: "Requisitar os rebanhos à força.", fx: { money: 6, s: { apoio: -3 }, fac: { estancieiros: -5, operarios: 4 } } } ], { crisisOf: "estancieiros" }),
-    ev("c_operarios", "Greve no porto", "Estivadores cruzam os braços: salários atrasados e preços altos.", [
-      { text: "Atender às reivindicações.", fx: { money: -6, fac: { operarios: 25 } } },
-      { text: "Substituir os grevistas por voluntários.", fx: { s: { apoio: -6 }, money: -2, fac: { operarios: -5, estancieiros: 5 } } } ], { crisisOf: "operarios" }),
-    ev("c_comerciantes", "Fuga de capitais", "Casas comerciais transferem reservas para Montevidéu e Londres.", [
-      { text: "Dar garantias aos contratos.", fx: { s: { diplomacia: 3 }, fac: { comerciantes: 20 }, money: -3 } },
-      { text: "Controlar o câmbio e confiscar remessas.", fx: { money: 5, s: { diplomacia: -6 }, fac: { comerciantes: -5 } } } ], { crisisOf: "comerciantes" }),
-    ev("c_oficiais", "Deserção de oficiais", "Um grupo de oficiais ameaça voltar ao lado federal.", [
-      { text: "Promoções e soldos em dia.", fx: { money: -6, fac: { oficiais: 25 } } },
-      { text: "Deixá-los partir e confiar nas milícias.", fx: { s: { militar: -8 }, reserve: -1, fac: { gavioes: 8 } } } ], { crisisOf: "oficiais" }),
-    ev("c_gavioes", "Os Gaviões agem por conta própria", "A milícia de Lins saqueia uma vila de colonos e desafia o Conselho.", [
-      { text: "Punir os responsáveis publicamente.", fx: { s: { diplomacia: 5, militar: -3 }, fac: { gavioes: 10, clero: 5 } } },
-      { text: "Tolerar: eles ainda são úteis na serra.", fx: { s: { apoio: -5, diplomacia: -5 }, fac: { gavioes: 15 } } } ], { crisisOf: "gavioes" }),
-    ev("c_clero", "Púlpitos contra a guerra", "Padres e jornais pedem paz a qualquer custo.", [
-      { text: "Abrir diálogo com o bispo.", fx: { s: { apoio: 2 }, fac: { clero: 20 } } },
-      { text: "Ignorar e intensificar a propaganda.", fx: { s: { apoio: -5 }, money: -2 } } ], { crisisOf: "clero" }),
-    ev("r_geada", "Geada nas lavouras", "Uma geada tardia destrói parte do trigo da província.", [
-      { text: "Distribuir sementes e crédito aos colonos.", fx: { money: -5, s: { apoio: 3 } } },
-      { text: "Não há dinheiro: cada um por si.", fx: { s: { apoio: -4 }, unrest: 6 } } ], { weight: 1 }),
-    ev("r_navio", "Um navio de armas no porto", "Um cargueiro de bandeira estrangeira oferece fuzis e munição a preço alto.", [
-      { text: "Comprar o carregamento.", fx: { money: -7, reserve: 2 }, req: { money: { min: 7 } } },
-      { text: "Recusar: pode ser uma armadilha.", fx: {} } ], { if: { phase: "guerra" }, weight: 1.2 }),
-    ev("r_gripe", "Surto de gripe", "A doença se espalha nos cortiços e nos acampamentos.", [
-      { text: "Quarentena e hospitais de campanha.", fx: { money: -4, s: { apoio: 3 } } },
-      { text: "Seguir com a vida e a guerra.", fx: { s: { apoio: -5, militar: -2 } } } ]),
-    ev("r_charque", "Queda no preço do charque", "O mercado do Prata está saturado; as exportações rendem menos.", [
-      { text: "Aceitar a perda.", fx: { money: -5 } },
-      { text: "Vender ao Reino Unido com desconto.", fx: { money: -2, act: { reino_unido: 6 }, fac: { estancieiros: -4 } } } ]),
-    ev("r_espiao", "Um espião federal capturado", "Um agente do Marechal é preso com mapas das defesas.", [
-      { text: "Julgamento público e troca de prisioneiros.", fx: { s: { diplomacia: 4 }, act: { liga: 5 } } },
-      { text: "Interrogatório rigoroso e sigilo.", fx: { s: { militar: 4, diplomacia: -3 }, fac: { clero: -4 } } } ], { if: { phase: "guerra" } }),
-    ev("r_voluntarios", "Voluntários do Prata", "Gaúchos do outro lado da fronteira pedem para lutar.", [
-      { text: "Aceitar os voluntários.", fx: { reserve: 1, act: { prata: 5 }, s: { diplomacia: -2 } } },
-      { text: "Recusar para não comprometer o vizinho.", fx: { act: { prata: 3, liga: 3 } } } ], { if: { phase: "guerra", actor: { prata: { min: 25 } } } }),
-    ev("r_correspondente", "Reportagem no exterior", "Um jornal londrino publica uma reportagem sobre Itaverá.", [
-      { text: "Dar entrevista e abrir os arquivos.", fx: { s: { diplomacia: 4 }, act: { reino_unido: 5, franca: 4 } } },
-      { text: "Recusar e acusar o jornal de parcialidade.", fx: { s: { apoio: 2, diplomacia: -3 } } } ])
-  ]
-};
 
 /* ---------- Campanha 1964: Os Anos Decisivos ---------- */
 const CAMPAIGN_1964 = {
@@ -2088,28 +1617,11 @@ CAMPAIGN_2022.events.push(
 /* =====================================================================
    LISTA DE CENÁRIOS (estilo seleção de ano/bookmark).
    Para adicionar um cenário: crie um objeto STORY_x como os acima e acrescente uma entrada aqui.
-   Entradas com soon:true aparecem como "Em breve" e não são jogáveis.
+   Entradas com soon:true (só marcador) ou locked:true (dados completos, mas bloqueado) aparecem como "Em breve" e não são jogáveis.
    ===================================================================== */
 const SCENARIOS = [
   {
-    id: "itavera", year: "1924", date: "Outono de 1924",
-    title: "Aurora do Sul", tag: "Ficção histórica",
-    character: "Líder do Movimento Aurora do Sul (personagem fictício)",
-    description: "Num Brasil alternativo governado pelo Presidente-Marechal Brandão, a Província de Itaverá (atual RS) se levanta contra impostos esmagadores. Lidere a revolta e decida o destino do Sul.",
-    saveKey: "aurora_do_sul_save_v1", endingsKey: "aurora_do_sul_endings_v1",
-    intro: {
-      kicker: "Crônicas da Separação", title: "Aurora do Sul",
-      sub: "Uma história interativa de um Brasil que poderia ter sido",
-      paragraphs: [
-        "1924. Num Brasil alternativo, governado com mão de ferro pelo Presidente-Marechal Otávio Brandão, a distante Província de Itaverá arde em revolta contra impostos esmagadores e a dissolução de sua Assembleia.",
-        "Você é o líder do Movimento Aurora do Sul. Cada decisão moverá o apoio do povo, os cofres da revolução, a força das armas e o olhar das nações estrangeiras. Não há escolhas sem preço."
-      ],
-      disclaimer: "Obra de ficção histórica alternativa. Itaverá, seus personagens e facções são inventados, com inspiração livre em revoltas regionais dos séculos XIX e XX."
-    },
-    story: STORY_ITAVERA, campaign: CAMPAIGN_ITAVERA
-  },
-  {
-    id: "brasil1964", year: "1964", date: "2 de abril de 1964",
+    id: "brasil1964", year: "1964", date: "2 de abril de 1964", locked: true, // indisponível por enquanto: aparece como "Em breve"
     title: "Os Anos Decisivos", tag: "História alternativa",
     character: "Chefe do novo governo militar (papel genérico)",
     description: "Goulart caiu. Você comanda o governo instalado pelos militares. Devolver o poder aos civis em 1965 ou endurecer com atos institucionais, cassações e censura? Linha dura, Congresso, Igreja, estudantes, o Sul de Brizola e Washington vão pressionar.",
@@ -2762,7 +2274,6 @@ function endTurn(g){
   // revoltas / perdas por agitação extrema
   for (const uf of playerUFs(g)){
     const u = g.uf[uf];
-    if (u.unrest >= 88 && sideStr(g, "player", uf) < 20 && (C.home || []).includes(uf)){ applyStats(g, { [K.pop]: -3 }); u.unrest = 75; R(`Protestos violentos em ${MAP_DATA.states[uf].name}, o seu reduto.`, "bad"); continue; }
     if (u.unrest >= 88 && sideStr(g, "player", uf) < 20){
       if (ph.war && ph.revoltTo !== null){ setControl(g, uf, C.contested); g.uf[uf].enemy = Math.max(g.uf[uf].enemy, 2); R(`Revolta em ${MAP_DATA.states[uf].name}: o estado entrou em disputa.`, "bad"); }
       else if (ph.loseTo && ph.loseTo[g.control[uf]]){ setControl(g, uf, ph.loseTo[g.control[uf]]); R(`${MAP_DATA.states[uf].name} escapou da sua influência após protestos.`, "bad"); }
@@ -2778,7 +2289,7 @@ function endTurn(g){
       enemyReinforce(g, R);
       const sides = sideCounts(g), tot = sides.wPlayer + sides.wEnemy + sides.wContested;
       const share = tot ? sides.wPlayer / tot : 1;
-      if (share > (C.highShare ?? 0.65)) applyStats(g, { [K.mil]: 1 }); else if (share < (C.lowShare ?? 0.35)) { applyStats(g, { [K.mil]: -2 }); R("Você controla pouco território: o moral das tropas cai.", "bad"); }
+      if (share > 0.65) applyStats(g, { [K.mil]: 1 }); else if (share < 0.35) { applyStats(g, { [K.mil]: -2 }); R("Você controla pouco território: o moral das tropas cai.", "bad"); }
       if (sides.contested >= 3) applyStats(g, { [K.pop]: -1 });
     }
     g.enemyBoost = Math.max(0, g.enemyBoost - 0.25);
@@ -2879,7 +2390,7 @@ function natLoyalty(g){ const C = scOf(g).campaign; return C.nationalFac && g.fa
 function maxOrg(g, side){
   const C = scOf(g).campaign;
   if (side === "player") return Math.round(clamp(55 + natLoyalty(g) * 0.3 + ((g.stats[C.keys.mil] ?? 50) - 50) * 0.3, 35, 100));
-  return Math.round(clamp(72 + ((C.enemyQuality ?? 1) - 1) * 40 + (g.enemyBoost || 0) * 3, 45, 95));
+  return Math.round(clamp(72 + (g.enemyBoost || 0) * 3, 45, 95));
 }
 function armyAllowed(g, side, uf, ph){
   ph = ph || phaseOf(g);
@@ -2937,11 +2448,10 @@ function addPlayerStrength(g, str){
 // Forças locais (sem contador no mapa): guarnições inimigas (u.enemy) e polícia/voluntários do seu lado
 function militia(g, side, uf){
   const C = scOf(g).campaign, u = g.uf[uf], s = sideOf(g, g.control[uf]), pop = g.stats[C.keys.pop] ?? 50;
-  const home = (C.home || []).includes(uf) ? (C.homeBonus ?? 2) * 5 : 0;
   let str = 0, name = "";
   if (side === "enemy"){ if (s === "enemy" || s === "contested"){ str = u.enemy * GARRISON_K; name = s === "contested" ? "Milícias e guerrilheiros" : "Guarnição local"; } }
-  else if (s === "player"){ str = Math.round(6 + UF_WEIGHT[uf] * 1.2 + home); name = "Polícia e milícias leais"; }
-  else if (s === "contested"){ str = Math.round(clamp((pop - 45) / 3 + u.sway / 10, 0, 15) + home); name = "Voluntários locais"; }
+  else if (s === "player"){ str = Math.round(6 + UF_WEIGHT[uf] * 1.2); name = "Polícia e milícias leais"; }
+  else if (s === "contested"){ str = Math.round(clamp((pop - 45) / 3 + u.sway / 10, 0, 15)); name = "Voluntários locais"; }
   return str >= 1 ? { militia: true, side, name, str, org: 50, xp: 0 } : null;
 }
 function supplied(g, side, uf){ const ph = phaseOf(g); return sideOf(g, g.control[uf], ph) === side || ADJ[uf].some(n => sideOf(g, g.control[n], ph) === side); }
@@ -2957,14 +2467,13 @@ function milMods(g, side, uf, role, units){
   if (side === "player"){
     const s = sideOf(g, g.control[uf]);
     add("apoio", "Apoio local", clamp((pop - 50) / 150 + (s === "player" ? (45 - u.unrest) / 300 : 0) + u.sway / 400, -0.3, 0.3));
-    if ((C.home || []).includes(uf)) add("reduto", "Reduto do movimento", 0.1 + (C.homeBonus ?? 2) * 0.04);
     add("comando", `Moral (${sc.story.stats[K.mil] ? sc.story.stats[K.mil].label : "militar"} e lealdade militar)`, clamp((mil - 50) / 200 + (natLoyalty(g) - 50) / 300, -0.3, 0.3));
     if (g.money < 0) add("supr", "Suprimentos: cofres vazios", -0.2);
     else if (!supplied(g, "player", uf)) add("supr", "Suprimentos: linhas cortadas", -0.15);
     const aid = armsAid(g); if (aid) add("armas", "Armas estrangeiras", aid);
   } else {
     const foreign = foreignFoes(g), malus = malusNow(g);
-    add("qual", "Qualidade das tropas", (C.enemyQuality ?? 1) - 1 + ((C.enemyPower ?? 1) - 1) * 0.3);
+    add("qual", "Qualidade das tropas", ((C.enemyPower ?? 1) - 1) * 0.3);
     add("apoio", "Apoio local", clamp((50 - pop) / 200, -0.2, 0.2));
     if (foreign) add("armas", `Armas estrangeiras (${foreign} apoiador${foreign > 1 ? "es" : ""})`, 0.12 * foreign);
     if (g.enemyBoost > 0) add("mob", "Mobilização inimiga", Math.min(0.3, g.enemyBoost * 0.08));
@@ -3179,7 +2688,7 @@ function spawnWarArmies(g){
   const hot = n => { const s = sideOf(g, g.control[n], ph); return s === "player" || s === "contested"; };
   const enemyUFs = Object.keys(g.control).filter(uf => sideOf(g, g.control[uf], ph) === "enemy");
   const cand = enemyUFs.slice().sort((a, b) => (ADJ[b].some(hot) - ADJ[a].some(hot)) || UF_WEIGHT[b] - UF_WEIGHT[a] || (a < b ? -1 : 1));
-  const n = cfg.enemyStart ?? clamp(Math.round(enemyUFs.length * 0.2 + (C.enemyPower ?? 1)), 2, 5);
+  const n = clamp(Math.round(enemyUFs.length * 0.2 + (C.enemyPower ?? 1)), 2, 5);
   const have = armiesOf(g, "enemy").length;
   for (let i = 0; i < n - have && i < cand.length; i++) newArmy(g, "enemy", cand[i], (cfg.enemyStr ?? 5 + 5 * (C.enemyBase || 2)) + ri(g, 0, 5), { fac: g.control[cand[i]] });
 }
@@ -3751,11 +3260,17 @@ function ufPanel(uf){
 }
 
 /* ---------- Navegação ---------- */
+// Só cenários com dados completos e não bloqueados podem ser abertos (1964 está locked; ids antigos/desconhecidos, como o
+// cenário de 1924 removido, são recusados). Não há parâmetros de URL; o último cenário salvo em LAST_SCEN_KEY não é reaberto sozinho.
+const playable = sc => !!(sc && !sc.soon && !sc.locked && sc.story && sc.campaign);
 function setScenario(id){
-  SCEN = SCENARIOS.find(x => x.id === id && !x.soon);
+  const sc = SCENARIOS.find(x => x.id === id);
+  if (!playable(sc)) return false;
+  SCEN = sc;
   STORY = SCEN.story;
   try{ localStorage.setItem(LAST_SCEN_KEY, id); }catch(e){}
   $("#hdrTitle").textContent = SCEN.title + " · " + SCEN.year;
+  return true;
 }
 function headerButtons(inGame){
   $("#btnMenu").style.visibility = SCEN ? "" : "hidden";
@@ -3766,23 +3281,33 @@ function renderMenu(){
   SCEN = null; STORY = null; G = null;
   $("#hdrTitle").textContent = "Crônicas da Separação";
   headerButtons(false);
-  const cards = SCENARIOS.map(sc => {
-    if (sc.soon) return `<div class="scen soon"><div class="yr">${esc(sc.year)}</div><div class="tag">${esc(sc.tag)}</div>
-      <h3>${esc(sc.title)}</h3><div class="ds">${esc(sc.description)}</div><div class="meta"><span>Em breve</span></div></div>`;
+  const later = SCENARIOS.filter(sc => !playable(sc)), main = SCENARIOS.filter(playable);
+  const feat = main.map(sc => {
     const info = loadInfo(sc), found = getEndings(sc).length;
     const total = Object.values(sc.story.nodes).filter(n => n.ending).length;
-    return `<div class="scen" data-id="${sc.id}" tabindex="0" role="button">
-      <div class="yr">${esc(sc.year)}</div><div class="tag">${esc(sc.tag)}</div>
+    const sv = info.save && !info.save.ended ? info.save : null;
+    return `<div class="scen feat" data-id="${sc.id}" tabindex="0" role="button" aria-label="Jogar ${esc(sc.year)} — ${esc(sc.title)}">
+      <div class="txt"><div class="yr">${esc(sc.year)}</div><div class="tag">${esc(sc.tag)}</div>
       <h3>${esc(sc.title)}</h3><div class="dt">${esc(sc.date)}</div>
       <div class="who">Você joga como: <strong>${esc(sc.character)}</strong></div>
       <div class="ds">${esc(sc.description)}</div>
-      <div class="meta"><span>Finais: ${found}/${total}</span>${info.save && !info.save.ended ? `<span class="saved">● ${esc(monthLabel(info.save.month))}</span>` : ""}</div></div>`;
+      <div class="cta"><span class="go">${sv ? "Continuar — " + esc(monthLabel(sv.month)) : "Jogar"} ▸</span></div>
+      <div class="meta"><span>Finais descobertos: ${found}/${total}</span>${sv ? `<span class="saved">● Campanha salva</span>` : ""}</div></div>
+      <div class="mapbox" data-map="${sc.id}"></div></div>`;
   }).join("");
-  $("#app").innerHTML = `<div class="menu-head"><h2>Escolha o ano de partida</h2><p>Campanhas por turnos mensais: diplomacia, facções, mapa e eventos históricos com finais diferentes.</p></div>
-    <div class="scen-grid">${cards}</div>`;
+  // bloqueados: só leitura de dados estáticos (não lê nem migra saves locais deles)
+  const soon = later.map(sc => `<div class="scen soon" aria-disabled="true" title="Indisponível por enquanto"><div class="yr">${esc(sc.year)}</div><div class="tag">${esc(sc.tag || "Próximo cenário")}</div>
+      <h3>${esc(sc.title)}</h3><div class="ds">${esc(sc.description || "")}</div><span class="lockbadge">🔒 Em breve</span></div>`).join("");
+  $("#app").innerHTML = `<div class="menu-head"><h2>Crônicas da Separação</h2><p>Campanha por turnos mensais: diplomacia, facções, exércitos no mapa e finais diferentes.</p></div>
+    ${feat}${soon ? `<div class="scen-later"><h4>Próximos cenários</h4><div class="scen-grid">${soon}</div></div>` : ""}`;
+  for (const sc of main){
+    const el = document.querySelector(`[data-map="${sc.id}"]`); if (!el) continue;
+    try{ STORY = sc.story; const g0 = newCampaign(sc, 1); renderMap(el, g0.control, [], false, { g: g0, military: true, arrows: [], static: true }); }catch(e){ el.remove(); }
+    finally{ STORY = null; }
+  }
   document.querySelectorAll(".scen[data-id]").forEach(el => {
-    const go = () => { setScenario(el.dataset.id); renderTitle(); };
-    el.onclick = go; el.onkeydown = e => { if (e.key === "Enter") go(); };
+    const go = () => { if (setScenario(el.dataset.id)) renderTitle(); };
+    el.onclick = go; el.onkeydown = e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); go(); } };
   });
 }
 function renderTitle(){
@@ -4200,13 +3725,14 @@ $("#btnRestart").onclick = () => {
 };
 // Ponte de leitura para cloud.js (módulo separado; o jogo funciona sem ele)
 window.GWGame = {
-  scenarios: () => SCENARIOS.filter(sc => !sc.soon).map(sc => ({ id: sc.id, year: sc.year, title: sc.title, saveKey: sc.saveKey, endingsKey: sc.endingsKey,
+  scenarios: () => SCENARIOS.filter(playable).map(sc => ({ id: sc.id, year: sc.year, title: sc.title, saveKey: sc.saveKey, endingsKey: sc.endingsKey,
     endings: Object.entries(sc.story.nodes).filter(([, n]) => n.ending).map(([id, n]) => ({ id, name: n.endingName })) })),
   saveVersion: SAVE_VERSION,
   minSaveVersion: 2, // saves v2 da nuvem são aceitos e migrados ao abrir
   monthLabel: m => monthLabel(m),
   current: () => ({ scenario: SCEN ? SCEN.id : null, inGame: !!G }),
   refresh(changed){ // atualiza a tela depois de baixar dados da nuvem
+    if (SCEN && !playable(SCEN)){ G = null; renderMenu(); return; }
     if (G && SCEN && changed && changed.includes(SCEN.id)){ G = null; renderTitle(); return; }
     if (!G){ if (SCEN) renderTitle(); else renderMenu(); }
   }

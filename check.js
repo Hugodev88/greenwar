@@ -50,7 +50,7 @@ const ids = new Set();
 for (const sc of SCENARIOS) {
   if (ids.has(sc.id)) err("id de cenário duplicado: " + sc.id); ids.add(sc.id);
   if (sc.soon) { console.log(`\n[${sc.year}] ${sc.title} — placeholder "Em breve"`); continue; }
-  console.log(`\n[${sc.year}] ${sc.title} (${sc.id})`);
+  console.log(`\n[${sc.year}] ${sc.title} (${sc.id})${sc.locked ? " — BLOQUEADO (não jogável; dados validados para não apodrecerem)" : ""}`);
   for (const k of ["title","year","date","character","description","saveKey","endingsKey","intro","story","campaign"]) if (!sc[k]) err(`campo ${k} ausente`);
   const STORY = sc.story, nodes = STORY.nodes, STATS = Object.keys(STORY.stats), FAC = Object.keys(STORY.factions);
   if (!nodes[STORY.start]) err("start inválido");
@@ -270,4 +270,12 @@ console.log(errors ? `\nFALHOU (${errors} problemas)` : "\nOK: todos os cenário
 if (errors) process.exit(1);
 console.log("\n=== Simulação de campanhas (sim.js) ===");
 const r = require("child_process").spawnSync(process.execPath, [__dirname + "/sim.js", process.argv[2] || "150"], { stdio: "inherit" });
-process.exit(r.status);
+// Cenários bloqueados: teste curto de integridade (só exceções/invariantes; a cobertura de finais não é exigida)
+let lockedFail = 0;
+for (const sc of SCENARIOS.filter(s => s.locked && s.campaign)){
+  const q = require("child_process").spawnSync(process.execPath, [__dirname + "/sim.js", "40", sc.id], { encoding: "utf8" });
+  const out = (q.stdout || "") + (q.stderr || ""), fin = (out.match(/Finais alcançados: [^\n]*/) || ["?"])[0];
+  console.log(`\n[${sc.year}] ${sc.title} (bloqueado): 40 partidas por IA — ${q.status === 0 ? "sem falhas" : "FALHOU"} · ${fin}`);
+  if (q.status !== 0){ console.log(out.split("\n").filter(l => /falha|exceção|✗|!/.test(l)).slice(0, 10).join("\n")); lockedFail++; }
+}
+process.exit(r.status || (lockedFail ? 1 : 0));

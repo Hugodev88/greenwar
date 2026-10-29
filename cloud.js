@@ -444,6 +444,12 @@ function endingsStats(p) {
     return { sc, got: sc.endings.filter(e => got.has(e.id)), total: sc.endings.length, played: ((p && p.campaigns_by_scenario) || {})[sc.id] || 0 };
   });
 }
+// Totais só dos cenários jogáveis (hoje: 2022). O endings_count/campaigns_played do banco somam todos os cenários
+// (inclusive 1924, removido, e 1964, bloqueado) — os dados ficam intactos no banco, só não entram na exibição.
+function playTotals(p) {
+  const s = endingsStats(p);
+  return { endings: s.reduce((n, x) => n + x.got.length, 0), played: s.reduce((n, x) => n + x.played, 0) };
+}
 function statsHTML(p, showNames) {
   return `<table class="gwc-table"><tr><th>Cenário</th><th>Campanhas</th><th>Finais</th></tr>${endingsStats(p).map(s => `
     <tr><td>${esc(s.sc.year)} — ${esc(s.sc.title)}${showNames && s.got.length ? `<div class="gwc-muted">${s.got.map(e => esc(e.name || e.id)).join(" · ")}</div>` : ""}</td>
@@ -473,7 +479,8 @@ function openProfile(tab = "perfil") {
       <div class="gwc-msg"></div>
       <div class="gwc-row"><button class="gwc-primary">Salvar perfil</button></div></form>`;
   } else if (tab === "stats") {
-    body = `<p>Campanhas iniciadas: <b>${p.campaigns_played || 0}</b> · Finais desbloqueados: <b>${p.endings_count || 0}</b></p>${statsHTML(p, true)}
+    const t = playTotals(p);
+    body = `<p>Campanhas iniciadas: <b>${t.played}</b> · Finais desbloqueados: <b>${t.endings}</b></p>${statsHTML(p, true)}
       <p class="gwc-muted">Membro desde ${esc(fmtDate(p.created_at))}.</p>`;
   } else {
     body = `<div id="gwc-rank" class="gwc-muted">Carregando ranking…</div>`;
@@ -517,13 +524,16 @@ function openProfile(tab = "perfil") {
 
 async function loadRanking(root) {
   const box = root.querySelector("#gwc-rank");
-  const { data, error } = await st.sb.from("profiles").select("id,username,display_name,avatar,endings_count,campaigns_played")
-    .order("endings_count", { ascending: false }).order("created_at", { ascending: true }).limit(50);
+  // busca os mais bem colocados pelo total do banco e reordena pelo total só dos cenários jogáveis
+  const { data: raw, error } = await st.sb.from("profiles").select("id,username,display_name,avatar,endings,campaigns_by_scenario,endings_count,campaigns_played,created_at")
+    .order("endings_count", { ascending: false }).order("created_at", { ascending: true }).limit(300);
   if (!box.isConnected) return;
   if (error) { box.textContent = ptError(error); return; }
+  const data = (raw || []).map(u => { const t = playTotals(u); return { ...u, endings_count: t.endings, campaigns_played: t.played }; })
+    .sort((a, b) => b.endings_count - a.endings_count || String(a.created_at).localeCompare(String(b.created_at))).slice(0, 50);
   if (!data.length) { box.textContent = "Nenhum jogador ainda."; return; }
   box.className = "";
-  box.innerHTML = `<p class="gwc-muted" style="margin-top:0">Ranking por finais desbloqueados (top 50). Clique para ver o perfil.</p>
+  box.innerHTML = `<p class="gwc-muted" style="margin-top:0">Ranking por finais desbloqueados em ${esc(scenarios().map(sc => sc.year).join(", "))} (top 50). Clique para ver o perfil.</p>
     <table class="gwc-table"><tr><th>#</th><th>Jogador</th><th>Finais</th><th>Campanhas</th></tr>${data.map((u, i) => `
     <tr class="click" data-id="${esc(u.id)}"><td>${i + 1}</td><td><span class="gwc-row" style="gap:6px">${avatarHTML(u, 24)}<span>${esc(displayName(u))} <span class="gwc-muted">@${esc(u.username)}</span></span></span></td>
     <td>${u.endings_count}</td><td>${u.campaigns_played}</td></tr>`).join("")}</table>`;
@@ -537,7 +547,7 @@ async function openPublicProfile(id) {
   if (error || !p) { root.querySelector(".modal-card").insertAdjacentHTML("beforeend", `<p>${esc(error ? ptError(error) : "Perfil não encontrado.")}</p>`); return; }
   const r = openModal(`<div class="gwc-head">${avatarHTML(p, 56)}<div><h2>${esc(displayName(p))}</h2><div class="gwc-muted">@${esc(p.username)} · desde ${esc(fmtDate(p.created_at).split(" ")[0])}</div></div></div>
     ${p.bio ? `<p style="white-space:pre-wrap">${esc(p.bio)}</p>` : ""}
-    <p>Campanhas: <b>${p.campaigns_played}</b> · Finais desbloqueados: <b>${p.endings_count}</b></p>
+    <p>Campanhas: <b>${playTotals(p).played}</b> · Finais desbloqueados: <b>${playTotals(p).endings}</b></p>
     ${statsHTML(p, false)}
     <div class="gwc-row" style="margin-top:14px"><button class="btn-sm" data-act="back">← Jogadores</button></div>`);
   r.querySelector('[data-act="back"]').onclick = () => st.user ? openProfile("jogadores") : closeModal();
