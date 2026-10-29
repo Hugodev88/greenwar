@@ -18,6 +18,34 @@ const mapUfs = Object.keys(MAP_DATA.states);
 if (mapUfs.length !== 27 || UFS.some(u => !MAP_DATA.states[u])) err("MAP_DATA não tem as 27 UFs: " + mapUfs);
 for (const u of mapUfs) if (!MAP_DATA.states[u].d || MAP_DATA.states[u].d.length < 20) err("Geometria vazia: " + u);
 
+// ---- fronteiras (ADJ), terreno e exércitos ----
+const ADJ = grab("ADJ"), TERRAIN = grab("TERRAIN"), TERRAIN_TYPES = grab("TERRAIN_TYPES");
+{
+  const keys = Object.keys(ADJ);
+  if (keys.length !== 27 || UFS.some(u => !ADJ[u])) err("ADJ não cobre as 27 UFs");
+  let pairs = 0;
+  for (const u of keys) for (const n of ADJ[u]){
+    if (!UFS.includes(n)) err(`ADJ ${u}: vizinho inválido ${n}`);
+    if (n === u) err(`ADJ ${u}: vizinho de si mesmo`);
+    if (!(ADJ[n] || []).includes(u)) err(`ADJ não é simétrica: ${u}→${n} sem ${n}→${u}`);
+    if (u < n) pairs++;
+    if (ADJ[u].indexOf(n) !== ADJ[u].lastIndexOf(n)) err(`ADJ ${u}: vizinho repetido ${n}`);
+  }
+  const seen = new Set(["DF"]), st = ["DF"]; while (st.length) for (const n of ADJ[st.pop()]) if (!seen.has(n)){ seen.add(n); st.push(n); }
+  if (seen.size !== 27) err("grafo de fronteiras desconexo: " + UFS.filter(u => !seen.has(u)));
+  // conferência geométrica: vizinhos compartilham borda nos polígonos do mapa; não vizinhos ficam afastados
+  const pts = {}; for (const u of UFS) pts[u] = [...MAP_DATA.states[u].d.matchAll(/(-?\d+\.?\d*),(-?\d+\.?\d*)/g)].map(m => [+m[1], +m[2]]);
+  const segd = (p, a, b) => { const dx = b[0]-a[0], dy = b[1]-a[1], L = dx*dx+dy*dy; let t = L ? ((p[0]-a[0])*dx + (p[1]-a[1])*dy) / L : 0; t = Math.max(0, Math.min(1, t)); return Math.hypot(a[0]+t*dx-p[0], a[1]+t*dy-p[1]); };
+  const near = (A, B) => { let m = 1e9, cnt = 0; for (const p of pts[A]){ let d = 1e9; for (let i = 0; i < pts[B].length-1; i++) d = Math.min(d, segd(p, pts[B][i], pts[B][i+1])); m = Math.min(m, d); if (d < 1) cnt++; } return { m, cnt }; };
+  for (let i = 0; i < UFS.length; i++) for (let j = i+1; j < UFS.length; j++){
+    const a = UFS[i], b = UFS[j], adj = ADJ[a].includes(b), x = near(a, b), y = near(b, a), d = Math.min(x.m, y.m);
+    if (adj && d > 0.5) err(`ADJ ${a}-${b}: polígonos não se tocam no mapa (distância ${d.toFixed(2)})`);
+    if (!adj && d < 1.5) err(`${a}-${b} se tocam no mapa mas não estão na ADJ`);
+  }
+  for (const u of UFS) if (!TERRAIN_TYPES[TERRAIN[u]]) err(`TERRAIN ${u} ausente/inválido`);
+  console.log(`Fronteiras: ${pairs} pares simétricos, grafo conexo, conferidos contra a geometria do mapa; terreno em 27/27 UFs`);
+}
+
 const ids = new Set();
 for (const sc of SCENARIOS) {
   if (ids.has(sc.id)) err("id de cenário duplicado: " + sc.id); ids.add(sc.id);
@@ -98,6 +126,22 @@ for (const sc of SCENARIOS) {
         if (c.next) for (const b of c.next) if (b.to && !isNode(b.to)) err(`evento ${e.id}: next ${b.to}`); }); }
     for (const f of FCS) if (!C.events.some(e => e.crisisOf === f)) err(`facção ${f} sem evento de crise`);
     if (C.nationalFac && !FCS.includes(C.nationalFac)) err("nationalFac inválida");
+    // ---- exércitos ----
+    { const A = C.army;
+      if (!A) err("campaign.army ausente");
+      else {
+        if (!UFS.includes(A.capital)) err("army.capital inválida");
+        if (!(A.start||[]).length) err("army.start vazio: o jogador precisa de exércitos desde o início");
+        for (const s0 of A.start||[]){ if (!UFS.includes(s0.uf)) err(`army.start UF ${s0.uf}`); if (!(s0.str >= 5 && s0.str <= 60)) err(`army.start força ${s0.str}`); }
+        for (const [k, arr] of Object.entries(A.names||{})){ if (k !== "player" && k !== "enemy" && !FAC.includes(k)) err(`army.names: chave ${k}`); if (!arr.length || new Set(arr).size !== arr.length) err(`army.names.${k} vazio/duplicado`); }
+        for (const [k, arr] of Object.entries(A.gens||{})) if (!(A.names||{})[k]) err(`army.gens.${k} sem lista de nomes`);
+        if (!(A.names||{}).player) err("army.names.player ausente");
+        for (const k of ["recruitCost","reinforceCost"]) if (A[k] !== undefined && !(A[k] > 0)) err(`army.${k}`);
+        const enemyFacs = [...new Set(C.phases.flatMap(p => p.enemy||[]))];
+        if (enemyFacs.length && !(A.names||{}).enemy && !enemyFacs.every(f => (A.names||{})[f])) err("army.names sem nomes para o inimigo");
+      }
+      for (const a of C.actions) if (a.cat === "mil" && a.fx && a.fx.reserve > 0 && (a.ap ?? 1) !== 0) err(`ação ${a.id}: recrutamento não deve custar PA`);
+    }
     for (const fx of Object.values(C.offerFac||{})) checkFx("offerFac", fx);
     // ---- árvore de decisões nacionais (focos) ----
     if (C.focus){
@@ -190,6 +234,37 @@ for (const sc of SCENARIOS) {
   console.log(`  Nós: ${Object.keys(nodes).length} (${Object.keys(nodes).length - nEnd} de história, ${nEnd} finais); ${mapRefs} mudanças de mapa validadas`);
   console.log("  Finais em 40.000 partidas aleatórias:", JSON.stringify(endings));
   for (const [e, set] of Object.entries(endMaps)) console.log(`    mapa final ${e}: ${[...set].slice(0,3).join("  |  ")}${set.size>3?` (+${set.size-3})`:""}`);
+}
+// ---- saves: migração v2 → v3 e um combate de teste ----
+{
+  const API = new Function(src + msrc + csrc + "; return { SCENARIOS, newCampaign, migrateSave, SAVE_VERSION, endTurn, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices };")();
+  let n = 0;
+  for (const sc of API.SCENARIOS){ if (sc.soon || !sc.campaign) continue;
+    for (let seed = 1; seed <= 25; seed++){
+      const g = API.newCampaign(sc, seed);
+      for (let t = 0; t < seed % 9 && !g.ended; t++){ while (g.queue.length && !g.ended){ const ch = API.queueChoices(g); const ok = ch.findIndex(c => c.ok); API.choose(g, ok < 0 ? 0 : ok); } if (!g.ended) API.endTurn(g); }
+      if (g.ended) continue;
+      // reconstrói um save antigo (v2): tropas como contadores por estado + reserva
+      const v2 = JSON.parse(JSON.stringify(g)); v2.v = 2; v2.reserve = 2 + seed % 3;
+      for (const k of ["armies","armySeq","armyN","enemyPlans","enemyPool","mil","armsAid","milPhase"]) delete v2[k];
+      const ufs = Object.keys(v2.uf); for (const uf of ufs) v2.uf[uf].force = 0;
+      for (const uf of ufs.filter(uf => API.sideOf(v2, v2.control[uf]) === "player").slice(0, 2)) v2.uf[uf].force = 1 + seed % 3;
+      const total = v2.reserve + ufs.reduce((s, uf) => s + v2.uf[uf].force, 0);
+      const m = API.migrateSave(v2);
+      if (!m || m.v !== API.SAVE_VERSION) { err(`${sc.id}#${seed}: migração v2 falhou`); continue; }
+      if ("reserve" in m || ufs.some(uf => "force" in m.uf[uf])) err(`${sc.id}#${seed}: migração deixou campos antigos`);
+      const str = API.armiesOf(m, "player").reduce((s, a) => s + a.str, 0);
+      if (!API.phaseOf(m).noArmies && str < Math.min(total * 10, 8 * 60) * 0.5) err(`${sc.id}#${seed}: migração perdeu tropas (${total} unid. → ${str} de força)`);
+      for (const a of m.armies) if (!API.armyAllowed(m, a.side, a.uf)) err(`${sc.id}#${seed}: exército migrado em território impossível`);
+      JSON.parse(JSON.stringify(m)); if (!API.endTurn(m) && !m.queue.length) err(`${sc.id}#${seed}: save migrado não avança`);
+      n++;
+    }
+  }
+  const g = API.newCampaign(API.SCENARIOS.find(s => s.id === "brasil2022"), 7);
+  const A = { side: "player", role: "att", units: [{ name: "A", str: 30, org: 70, xp: 10 }] }, B = { side: "enemy", role: "def", units: [{ name: "B", str: 20, org: 60, xp: 10, militia: true }] };
+  const rec = API.fight(g, "MG", A, B, "ataque");
+  if (!(rec.rounds.length >= 1 && rec.rounds.length <= 5) || ![0, 1].includes(rec.win) || !(rec.margin >= 0 && rec.margin <= 1) || rec.loss.some(x => !(x >= 0))) err("combate de teste inválido");
+  console.log(`\nSaves: ${n} saves v2 sintéticos migrados para v${API.SAVE_VERSION} e jogados mais 1 mês; combate de teste OK (${rec.rounds.length} rodadas)`);
 }
 console.log(errors ? `\nFALHOU (${errors} problemas)` : "\nOK: todos os cenários íntegros, todos os nós e finais alcançáveis.");
 if (errors) process.exit(1);

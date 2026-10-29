@@ -153,7 +153,122 @@
   .seg button.on{background:var(--gold);color:#111}
   .mapbox path.uf.sel{stroke:#fff;stroke-width:3}
   .mapbox path.uf.contested{stroke:#ffcf6e;stroke-dasharray:4 3;stroke-width:1.6}
-  .mapbox text.mk{font-size:11px}.mapbox tspan.mf{fill:#bfe8b8}.mapbox tspan.me{fill:#ff9d8a}
+  /* ---- exércitos, frentes, setas ---- */
+  .mapbox .fx,.mapbox .arrows{pointer-events:none}
+  .mapbox path.battlefx{fill:#ff5a3a;stroke:none;opacity:0;animation:battlepulse 1.8s ease-in-out infinite}
+  @keyframes battlepulse{0%,100%{opacity:0}50%{opacity:.28}}
+  .mapbox path.front{fill:none;stroke:#ff6a3d;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:5 3;filter:drop-shadow(0 0 2px #ff3b1f);animation:frontmove 1.2s linear infinite}
+  .mapbox path.front.hot{stroke:#ffd166;stroke-width:3}
+  @keyframes frontmove{to{stroke-dashoffset:-16}}
+  .mapbox path.arw{fill:none;stroke-width:3.2;stroke-linecap:round;stroke-dasharray:9 5;animation:arwflow .9s linear infinite;filter:drop-shadow(0 0 1.5px #000)}
+  .mapbox path.arw.pl{stroke:#f3c969;stroke-width:3.8}
+  .mapbox path.arw.mv{stroke:#cfe3f5;stroke-width:2.6}
+  .mapbox path.arw.rt{stroke:#b0a898;stroke-width:2.4}
+  .mapbox path.arw.en{stroke:#ff6a52;stroke-dasharray:4 4;stroke-width:3}
+  .mapbox path.arw.fade{opacity:0;transition:opacity .6s}
+  @keyframes arwflow{to{stroke-dashoffset:-28}}
+  .mapbox svg.small path.arw{stroke-width:4.6}.mapbox svg.small path.arw.pl{stroke-width:5.4}.mapbox svg.small path.front{stroke-width:3.4}
+  .mapbox g.cnt{cursor:pointer}
+  .mapbox g.cnt rect.bg{stroke:#0b0a09;stroke-width:1;filter:drop-shadow(0 1px 1.5px #000c)}
+  .mapbox g.cnt.p rect.bg{fill:#2f5f8f}.mapbox g.cnt.e rect.bg{fill:#9a3526}
+  .mapbox g.cnt .sym{fill:none;stroke:#e9eef3;stroke-width:1.1}
+  .mapbox g.cnt.ord rect.bg{stroke:#f3c969;stroke-width:1.4}
+  .mapbox g.cnt.sel rect.bg{stroke:#fff;stroke-width:2.2;animation:selglow 1s ease-in-out infinite alternate}
+  @keyframes selglow{to{stroke:#f3c969}}
+  .mapbox g.cnt:hover rect.bg{stroke:#fff}
+  .mapbox text.cn{font-size:10px;font-weight:800;stroke:none;fill:#fff;text-anchor:middle;dominant-baseline:middle}
+  .mapbox circle.badge{fill:#f3c969;stroke:#0b0a09;stroke-width:.8}
+  .mapbox text.cb{font-size:7px;font-weight:800;stroke:none;fill:#1a1408;text-anchor:middle;dominant-baseline:middle}
+  .mapbox g.cnt.fade{opacity:.15;transition:opacity .5s}
+  .mapbox g.cnt.ghost{transition:transform 1.1s ease-in-out;pointer-events:none}
+  .mapbox path.uf.tgt{stroke-width:2.4;animation:tgtpulse 1s ease-in-out infinite alternate}
+  .mapbox path.uf.tgt-atacar{stroke:#ff5a3a}.mapbox path.uf.tgt-mover,.mapbox path.uf.tgt-recuar{stroke:#8fc8ff}
+  .mapbox path.uf.origin{stroke:#fff;stroke-width:2.6}
+  @keyframes tgtpulse{from{stroke-opacity:.45}to{stroke-opacity:1}}
+  .mapbox path.uf.flipfx{animation:flipflash .9s ease}
+  @keyframes flipflash{0%{filter:brightness(1)}25%{filter:brightness(2.6)}100%{filter:brightness(1)}}
+  .mapbox g.boom .fl{animation:boomfl .7s ease-out forwards}
+  .mapbox g.boom .sm{opacity:0;animation:smoke 1.8s ease-out forwards}
+  .mapbox g.boom .s2{animation-delay:.15s}.mapbox g.boom .s3{animation-delay:.3s}
+  @keyframes boomfl{0%{transform:scale(.2);opacity:1}60%{opacity:.9}100%{transform:scale(1.6);opacity:0}}
+  @keyframes smoke{0%{opacity:0;transform:translateY(0) scale(.5)}25%{opacity:.85}100%{opacity:0;transform:translateY(-14px) scale(1.7)}}
+  .maphint{font-size:.8rem;color:var(--muted);margin:2px 0 6px;font-family:system-ui,sans-serif}
+  .maphint .hl-a{color:#ff7a5c}.maphint .hl-m{color:#8fc8ff}
+  .ordchip{background:#1d1a15;border:1px solid var(--gold);color:var(--gold);border-radius:14px;padding:3px 10px;font-size:.78rem;cursor:pointer;font-family:system-ui,sans-serif;margin-left:auto;margin-right:8px}
+  .ordchip.full{border-color:var(--red);color:#ff9d8a}
+  .hudarmy{cursor:pointer}
+  i.nato{display:inline-block;width:18px;height:12px;border:1px solid #e9eef3;border-radius:1px;flex:none;vertical-align:-1px;margin-right:6px;background-color:#2f5f8f;
+    background-image:linear-gradient(to top right,transparent calc(50% - .7px),#e9eef3 50%,transparent calc(50% + .7px)),linear-gradient(to bottom right,transparent calc(50% - .7px),#e9eef3 50%,transparent calc(50% + .7px))}
+  i.nato.e{background-color:#9a3526}
+  i.nato.m{opacity:.6;border-style:dashed}
+  .armyh{display:flex;align-items:center}
+  .ordhead{display:flex;justify-content:space-between;align-items:baseline;margin:12px 0 6px;font-family:system-ui,sans-serif;font-size:.86rem;color:var(--gold)}
+  .ordhead span{color:var(--muted);font-size:.78rem}.ordhead span.neg{color:#ff9d8a}
+  .armylist{display:flex;flex-direction:column;gap:5px}
+  .armyrow{display:flex;align-items:center;gap:4px;text-align:left;background:#14120f;border:1px solid var(--line);border-left:3px solid #4f7aa3;color:var(--ink);padding:7px 9px;border-radius:5px;cursor:pointer;font-family:system-ui,sans-serif;font-size:.84rem}
+  .armyrow:hover{background:#211d18}.armyrow.has{border-left-color:var(--gold)}.armyrow.mil{cursor:default;border-left-color:#555;opacity:.85}
+  .armyrow span{display:flex;flex-direction:column;flex:1;min-width:0}.armyrow small{color:var(--muted);font-size:.74rem}
+  .armyrow em{font-style:normal;font-size:.74rem;color:var(--gold);white-space:nowrap}
+  .ordbox p{font-size:.8rem}
+  .tglist{display:flex;flex-direction:column;gap:5px;margin:6px 0 10px}
+  .tglist .tgt{display:flex;flex-direction:column;text-align:left;background:#14120f;border:1px solid var(--line);border-left:3px solid #8fc8ff;color:var(--ink);padding:8px 10px;border-radius:5px;cursor:pointer;font-family:system-ui,sans-serif;font-size:.86rem}
+  .tglist .tgt.atacar{border-left-color:#ff5a3a}.tglist .tgt.on{background:#2a2216;border-color:var(--gold)}
+  .tglist .tgt small{color:var(--muted);font-size:.74rem}
+  .ordbtns{display:flex;flex-direction:column;gap:6px}
+  .intents{margin:0 0 8px;padding-left:18px;font-size:.82rem;color:#f0a593;font-family:system-ui,sans-serif}
+  .frontlist{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+  button.small{padding:5px 9px;font-size:.78rem}
+  body.noscroll{overflow:hidden}
+  .overlay{position:fixed;inset:0;background:#000c;z-index:40;display:flex;align-items:center;justify-content:center;padding:12px;animation:fadein .25s}
+  @keyframes fadein{from{opacity:0}}
+  .bmodal,.rmodal{font-size:15px;background:var(--panel2,#191612);border:1px solid var(--gold);border-radius:10px;width:min(860px,100%);max-height:94vh;overflow:auto;padding:16px 18px;font-family:system-ui,sans-serif;box-shadow:0 10px 40px #000}
+  .rmodal{width:min(720px,100%)}
+  .btop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .btop h2{margin:2px 0;color:var(--gold);font-weight:normal;font-family:Georgia,serif}
+  .xbtn{background:none;border:1px solid var(--line);color:var(--ink);border-radius:50%;width:32px;height:32px;cursor:pointer}
+  .bfield{display:grid;grid-template-columns:1fr 92px 1fr;gap:10px;margin:12px 0;align-items:start}
+  .bside{position:relative;background:#14120f;border:1px solid var(--line);border-radius:8px;padding:10px;overflow:hidden;transition:box-shadow .3s}
+  .bside.p{border-top:3px solid #4f7aa3}.bside.e{border-top:3px solid #a8402f}
+  .bside.won{box-shadow:0 0 0 2px var(--gold),0 0 18px #c9a45c55}
+  .bside.hit{animation:shake .45s}
+  @keyframes shake{0%,100%{transform:none}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
+  .bhead{font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline}.bhead small{color:var(--muted);font-weight:400}
+  .bunit{margin-bottom:9px}.bunit.mil{opacity:.85}
+  .bname{display:flex;align-items:center;gap:2px;font-size:.85rem}.bgen{color:var(--muted);padding-left:24px;font-size:.74rem}
+  .bbar{position:relative;height:12px;background:#2a251f;border-radius:3px;margin-top:3px;overflow:hidden}
+  .bbar i{position:absolute;left:0;top:0;bottom:0;transition:width .6s ease}
+  .bside.p .bbar.str i{background:#5d8fc4}.bside.e .bbar.str i{background:#c2563f}.bbar.org i{background:#c9a45c}
+  .bbar.org{height:8px}
+  .bbar em{position:absolute;right:4px;top:-1px;font-style:normal;font-size:.68rem;color:#fff;text-shadow:0 0 2px #000}
+  .bbar.org em{top:-3px;font-size:.6rem}
+  .bmods{list-style:none;padding:0;margin:8px 0 0;font-size:.76rem}
+  .bmods li{display:flex;justify-content:space-between;border-top:1px dashed #3a332a;padding:3px 0;color:var(--muted)}
+  .bmods li.up b{color:#8fc488}.bmods li.down b{color:#ff8a72}
+  .bfx{position:absolute;inset:0;pointer-events:none}
+  .bfx .puff{position:absolute;width:46px;height:46px;margin:-23px;border-radius:50%;background:radial-gradient(circle,#d8d2c6cc,#6d665c00 70%);animation:puff 1.4s ease-out forwards}
+  .bfx .flash{position:absolute;width:60px;height:60px;margin:-30px;border-radius:50%;background:radial-gradient(circle,#fff6d0,#ffb347cc 35%,#ff5a2a00 70%);animation:bflash .6s ease-out forwards}
+  @keyframes puff{0%{opacity:0;transform:scale(.4)}20%{opacity:.9}100%{opacity:0;transform:translateY(-26px) scale(1.8)}}
+  @keyframes bflash{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(1.5)}}
+  .bmid{text-align:center;padding-top:24px}.bmid .vs{font-size:1.6rem;color:var(--gold);font-family:Georgia,serif}
+  .bround{color:var(--muted);font-size:.8rem;margin-top:8px}.bround b{color:var(--ink);font-size:1.05rem}
+  .bresult{min-height:0;opacity:0;transition:opacity .4s;text-align:center;padding:10px;border-radius:6px;background:#14120f;border:1px solid var(--line);font-size:.92rem}
+  .bresult.show{opacity:1}.bresult.good{border-color:#6fae6a}.bresult.good b{color:#8fc488}.bresult.bad{border-color:#a8402f}.bresult.bad b{color:#ff8a72}
+  .bbtns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
+  .rcap{margin:8px 0;font-size:.9rem;min-height:1.3em;text-align:center}.rcap.good{color:#8fc488}.rcap.bad{color:#ff8a72}
+  .rlist{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+  .rbat{background:#14120f;border:1px solid var(--line);color:var(--ink);border-radius:14px;padding:4px 10px;font-size:.8rem;cursor:pointer;animation:fadein .4s}
+  .rbat.good{border-color:#6fae6a}.rbat.bad{border-color:#a8402f}
+  @media (max-width:600px){
+    .bfield{grid-template-columns:1fr 1fr;gap:8px}
+    .bmid{grid-column:1 / 3;grid-row:1;padding-top:0;display:flex;justify-content:center;gap:12px;align-items:center}.bmid .vs{font-size:1.1rem}.bround{margin:0}
+    .bmodal,.rmodal{padding:12px 10px}.bside{padding:8px}
+    .bname{font-size:.78rem}.bmods{font-size:.7rem}
+    .ordchip{margin-right:4px;font-size:.72rem}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .mapbox path.front,.mapbox path.arw,.mapbox path.battlefx,.mapbox path.uf.tgt,.mapbox g.cnt.sel rect.bg{animation:none}
+    .mapbox path.battlefx{opacity:.18}.bside.hit{animation:none}
+  }
   .ufinfo{display:flex;flex-direction:column;gap:7px;font-size:.86rem;margin-bottom:12px}
   .ufinfo > div{display:grid;grid-template-columns:124px 1fr auto;align-items:center;gap:8px}
   .ufinfo > div > span{color:var(--muted);font-size:.76rem;text-transform:uppercase;letter-spacing:.05em}
@@ -1381,7 +1496,12 @@ function ev(id, title, text, choices, o){ return Object.assign({ id, title, text
 const CAMPAIGN_ITAVERA = {
   start: "1924-04", ap: 3,
   money: { label: "Caixa de guerra", short: "contos", initial: 18, comfort: 20 },
-  forces: { label: "Tropas na reserva", short: "Tropas", initial: 2 },
+  forces: { label: "Força militar (soma dos exércitos)", short: "Tropas", initial: 2 },
+  army: { capital: "RS", recruitCost: 10, reinforceCost: 4, enemyStart: 3,
+    start: [{ uf: "RS", str: 20, name: "Brigada de Itaverá", gen: "Cel. Duarte" }],
+    names: { player: ["1ª Divisão da Aurora", "Coluna da Serra", "Brigada Ferroviária", "Legião dos Pampas", "Batalhão Operário"],
+      enemy: ["1ª Divisão Federal", "Divisão do Paraná", "Brigada Paulista", "Coluna de Minas", "Regimento da Capital"] },
+    gens: { player: ["Teodoro Lins", "Maj. Clara Anselmo", "Cap. Otávio Brum"], enemy: ["Gen. Plácido Moraes", "Gen. Aurélio Sampaio", "Cel. Firmino Lacerda"] } },
   keys: { pop: "apoio", mil: "militar", econ: "tesouro", legit: "diplomacia", money: "tesouro" },
   contested: "disputa", enemyBase: 3, enemyPower: 1.1, enemyQuality: 0.85, upkeep: 0.5, loan: 15, drain: 2,
   unrestBase: 30, unrest: { RS: 62, SC: 45 }, home: ["RS"], homeBonus: 2.5, lowShare: 0.05, highShare: 0.15,
@@ -1444,7 +1564,7 @@ const CAMPAIGN_ITAVERA = {
     act("e_porto", "eco", "Reabrir o comércio do porto", "Exportações financiam a guerra e agradam a quem negocia.", { fx: { money: 4, s: { diplomacia: 2 }, fac: { comerciantes: 6 } } }),
     act("e_sanear", "eco", "Sanear as contas da Aurora", "Usa o caixa para pagar fornecedores e soldos atrasados: o tesouro se recupera.", { cost: 8, fx: { s: { tesouro: 6 }, fac: { comerciantes: 3 } } }),
     act("e_cozinhas", "eco", "Racionamento e cozinhas populares", "Comida garantida nos bairros pobres.", { cost: 5, fx: { s: { apoio: 5 }, unrest: -8, fac: { operarios: 6 } } }),
-    act("m_recrutar", "mil", "Recrutar voluntários", "Forma uma nova unidade (+1 tropa na reserva).", { cost: 5, fx: { reserve: 1, s: { militar: 1, apoio: -1 } } }),
+    act("m_recrutar", "mil", "Recrutar voluntários", "+10 de força para seus exércitos (sem PA; custa só recursos).", { ap: 0, cost: 5, fx: { reserve: 1, s: { militar: 1, apoio: -1 } } }),
     act("m_instrucao", "mil", "Instrução com oficiais de carreira", "Disciplina e treino para as milícias.", { cost: 4, fx: { s: { militar: 4 }, fac: { oficiais: 6 } } }),
     act("m_gavioes", "mil", "Soltar os Gaviões na retaguarda", "Ataques irregulares desgastam o inimigo, mas mancham a causa.", { req: { phase: "guerra" }, reqText: "Só durante a guerra", fx: { s: { militar: 3, diplomacia: -3, apoio: -1 }, fac: { gavioes: 10, oficiais: -4 } }, risk: { p: 0.3, msg: "Excessos dos Gaviões viram notícia.", fx: { s: { diplomacia: -5 }, fac: { clero: -6 } } } }),
     act("m_fortificar", "mil", "Fortificar a fronteira", "Trincheiras e paióis ao longo do Jaguarari.", { cost: 6, req: { phase: "guerra" }, reqText: "Só durante a guerra", fx: { s: { militar: 3 }, unrest: -4 } }),
@@ -1502,7 +1622,12 @@ const CAMPAIGN_ITAVERA = {
 const CAMPAIGN_1964 = {
   start: "1964-04", ap: 3,
   money: { label: "Orçamento disponível", short: "Cr$ bi", initial: 20, comfort: 20 },
-  forces: { label: "Unidades militares na reserva", short: "Unidades", initial: 4 },
+  forces: { label: "Força militar (soma dos exércitos)", short: "Unidades", initial: 4 },
+  army: { capital: "DF", recruitCost: 12, reinforceCost: 5,
+    start: [{ uf: "RJ", str: 20, name: "I Exército", gen: "Gen. Álvaro Reis" }, { uf: "SP", str: 20, name: "II Exército", gen: "Gen. Saulo Bittencourt" }],
+    names: { player: ["Brigada Paraquedista", "III Exército", "IV Exército", "Divisão Blindada", "Grupamento do Planalto"],
+      enemy: ["Brigada da Legalidade", "Coluna Gaúcha", "Divisão Nacionalista", "Brigada Operária", "Milícia dos Sargentos"] },
+    gens: { player: ["Gen. Ciro Mendonça", "Gen. Hélio Frota"], enemy: ["Gen. Bento Sarmento", "Cel. Rui Valença", "Gen. Ataíde Lopes"] } },
   keys: { pop: "apoio", mil: "coesao", econ: "economia", legit: "liberdades" },
   actorStat: { eua: "eua" },
   contested: "disputa", enemyBase: 2, enemyPower: 0.6, upkeep: 0.35, loan: 15, drain: 2,
@@ -1573,7 +1698,7 @@ const CAMPAIGN_1964 = {
     act("e_salarios", "eco", "Conter reajustes salariais", "Ajuda nas contas, pesa no bolso dos trabalhadores.", { fx: { money: 5, s: { economia: 2, apoio: -5 }, fac: { igreja: -4 } } }),
     act("e_capital", "eco", "Atrair capital estrangeiro", "Facilita investimentos e remessas de lucros.", { fx: { money: 6, s: { economia: 2 }, act: { eua: 6 }, fac: { moderados: 4, linhadura: -3 } } }),
     act("m_promocoes", "mil", "Promoções e reorganização", "Acomoda os quartéis com promoções e comandos.", { cost: 4, fx: { s: { coesao: 4 }, fac: { linhadura: 5, moderados: 3 } } }),
-    act("m_mobilizar", "mil", "Mobilizar unidades", "+1 unidade na reserva.", { cost: 5, fx: { reserve: 1, s: { coesao: 1 } } }),
+    act("m_mobilizar", "mil", "Mobilizar unidades", "+10 de força para seus exércitos (sem PA; custa só recursos).", { ap: 0, cost: 5, fx: { reserve: 1, s: { coesao: 1 } } }),
     act("m_ipm", "mil", "Ampliar inquéritos policial-militares", "Agrada a linha dura; aumenta prisões e o medo.", { fx: { fac: { linhadura: 10, igreja: -5, estudantes: -6 }, s: { liberdades: -6 }, unrest: -6 } }),
     act("m_afastar", "mil", "Afastar oficiais radicais de comandos", "Fortalece os moderados, mas mexe num vespeiro.", { fx: { fac: { linhadura: -15, moderados: 8 }, s: { coesao: -4, liberdades: 3 } }, risk: { p: 0.25, msg: "Manifesto de coronéis circula nos quartéis.", fx: { s: { coesao: -4 } } } }),
     act("p_congresso", "pol", "Negociar com o Congresso", "Cargos e verbas em troca de votos.", { cost: 3, fx: { fac: { udn: 10 }, s: { liberdades: 2 } } }),
@@ -1633,7 +1758,14 @@ const CAMPAIGN_1964 = {
 const CAMPAIGN_2022 = {
   start: "2022-10", ap: 3,
   money: { label: "Recursos políticos", short: "Recursos", initial: 15, comfort: 15 },
-  forces: { label: "Unidades leais na reserva", short: "Unidades", initial: 0 },
+  forces: { label: "Força militar leal (soma dos exércitos)", short: "Força", initial: 0 },
+  army: { capital: "DF", recruitCost: 12, reinforceCost: 5,
+    start: [{ uf: "DF", str: 10, name: "Batalhão da Guarda Presidencial", gen: null }],
+    names: { player: ["Comando Militar do Planalto", "Força-Tarefa Sudeste", "Brigada de Operações Especiais", "Divisão Blindada do Sul", "Grupamento Amazônico"],
+      resistencia: ["Força Constitucional do Nordeste", "Brigada da Legalidade", "Coluna Amazônica", "Divisão Democrática de Minas", "Frente Popular Armada"],
+      separatista: ["Brigada da Liga do Sul", "Guarda Farroupilha", "Divisão Catarinense"] },
+    gens: { player: ["Gen. Augusto Valadares", "Gen. Ronaldo Pessanha", "Brig. Márcio Tavares"],
+      resistencia: ["Gen. Heloísa Barreto", "Gen. Joaquim Arruda", "Cel. Iara Nogueira"], separatista: ["Cel. Gustavo Wendt", "Gen. Arno Kessler"] } },
   keys: { pop: "apoio", mil: "militar", econ: null, legit: "internacional" },
   contested: "disputa", enemyBase: 3, enemyPower: 1.3, upkeep: 0.4, loan: 15, drain: 2,
   unrestBase: 35, unrest: { DF: 45 },
@@ -1645,7 +1777,7 @@ const CAMPAIGN_2022 = {
     { id: "regime", if: { visited: ["golpe_inicial"] }, label: "Regime de exceção", war: true,
       player: ["regime"], enemy: ["resistencia", "separatista"], playerMain: "regime", enemyMain: "resistencia",
       flipTo: { resistencia: "disputa", separatista: "disputa" }, income: 6, perWeight: 0.1 },
-    { id: "oposicao", if: { visitedAny: ["transicao", "crise_janeiro", "golpe_fracassa"] }, label: "Líder da oposição", war: false,
+    { id: "oposicao", if: { visitedAny: ["transicao", "crise_janeiro", "golpe_fracassa"] }, label: "Líder da oposição", war: false, noArmies: true,
       player: ["oposicao"], enemy: [], flipTo: { legal: "oposicao", disputa: "oposicao" }, loseTo: { oposicao: "legal" },
       income: 2, perWeight: 0.04,
       diplo: { req: ["reconhecimento"], off: ["alinhamento", "concessoes", "onu"],
@@ -1711,7 +1843,7 @@ const CAMPAIGN_2022 = {
     act("e_agro", "eco", "Agenda com o agronegócio", "Feiras, entidades e promessas de apoio ao setor.", { show: { phase: "oposicao" }, fx: { money: 2, fac: { agro: 8 } } }),
     act("m_comandantes", "mil", "Reunir-se com comandantes", "Gesto de prestígio aos quartéis; acende alertas institucionais.", { show: { phase: ["governo", "regime"] }, fx: { fac: { militares: 8, stf: -4 }, s: { militar: 3, internacional: -3 } } }),
     act("m_promocoes", "mil", "Promoções e reajuste militar", "Mantém os comandos ao seu lado.", { cost: 5, show: { phase: "regime" }, fx: { s: { militar: 5 }, fac: { militares: 8 } } }),
-    act("m_mobilizar", "mil", "Mobilizar unidades leais", "+1 unidade na reserva.", { cost: 5, show: { phase: "regime" }, fx: { reserve: 1 } }),
+    act("m_mobilizar", "mil", "Mobilizar unidades leais", "+10 de força para seus exércitos (sem PA; custa só recursos).", { ap: 0, cost: 5, show: { phase: "regime" }, fx: { reserve: 1 } }),
     act("m_seguranca", "mil", "Operação de segurança nas cidades", "Reduz protestos com presença ostensiva; custo humano e de imagem.", { show: { phase: "regime" }, fx: { unrest: -10, s: { internacional: -5, apoio: -3 }, fac: { movimentos: -8 } } }),
     act("m_reserva", "mil", "Encontro com militares da reserva", "Mantém laços com a caserna fora do governo.", { show: { phase: "oposicao" }, fx: { fac: { militares: 5, stf: -3 }, s: { apoio: 1 } } }),
     act("p_live", "pol", "Transmissão ao vivo para a base", "Fala direta com os apoiadores nas redes.", { fx: { s: { apoio: 3 } }, risk: { p: 0.2, msg: "Uma declaração repercute mal no exterior.", fx: { s: { internacional: -4 } } } }),
@@ -1933,7 +2065,7 @@ CAMPAIGN_2022.actions.push(
   act("e_investchina", "eco", "Rodada de investimentos chineses", "Liberada por 'Parceria econômica com a China'.", { show: { flags: ["fo_e_china"] }, fx: { money: 5, act: { china: 3, eua: -3 } } }),
   act("e_investeua", "eco", "Rodada com investidores dos EUA", "Liberada por 'Alinhamento econômico com os EUA'.", { show: { flags: ["fo_e_eua"] }, fx: { money: 5, act: { eua: 3, china: -3 } } }),
   act("p_seguranca", "pol", "Agenda de segurança nos estados", "Liberada por 'Bandeira da segurança pública'.", { show: { flags: ["fo_s_seguranca"] }, fx: { s: { apoio: 2 }, fac: { militares: 3, movimentos: -3 } } }),
-  act("m_blindados", "mil", "Reforçar com blindados", "Liberada por 'Comando unificado'.", { cost: 8, show: { flags: ["fo_c_comando"], phase: "regime" }, fx: { reserve: 2, s: { internacional: -2 } } })
+  act("m_blindados", "mil", "Reforçar com blindados", "+20 de força (sem PA). Liberada por 'Comando unificado'.", { ap: 0, cost: 8, show: { flags: ["fo_c_comando"], phase: "regime" }, fx: { reserve: 2, s: { internacional: -2 } } })
 );
 CAMPAIGN_2022.events.push(
   ev("f_vazamento_minuta", "A minuta circula", "Cópias de um decreto de exceção chegam a jornalistas e investigadores. A pergunta agora é quem sabia.", [
@@ -2025,7 +2157,7 @@ const MAP_DATA = {"size":[574,591],"states":{"AC":{"name":"Acre","d":"M8.6,192.0
    NÚCLEO DA CAMPANHA (sem DOM) — usado pela interface e pelo check.js
    Estado da partida "g": datas em meses absolutos (ano*12 + mês-1).
    ===================================================================== */
-const SAVE_VERSION = 2;
+const SAVE_VERSION = 3;
 const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 // Peso econômico/demográfico aproximado de cada UF (1–10), usado em receita e vitórias territoriais
 const UF_WEIGHT = { SP:10, RJ:6, MG:6, RS:5, PR:5, SC:4, BA:4, DF:3, GO:3, PE:3, CE:3, PA:3, ES:2, MT:2, MS:2, AM:2, MA:2,
@@ -2103,18 +2235,19 @@ function newCampaign(sc, seed){
   const g = { v: SAVE_VERSION, scen: sc.id, seed: (seed >>> 0) || ((Date.now() ^ 0x5bd1e995) >>> 0),
     month: parseYM(C.start), startMonth: parseYM(C.start), turn: 1,
     stats: {}, flags: [], visited: [], history: [], lastDelta: {}, control: {}, lastMapChanges: [],
-    money: C.money.initial, reserve: C.forces.initial, ap: C.ap,
+    money: C.money.initial, ap: C.ap,
     uf: {}, actors: {}, fac: {}, debts: [], drains: [], queue: [], report: [], log: [], used: {}, dealtWith: {},
     eventSeen: {}, ended: null, enemyMalus: 0, malusUntil: 0, ceasefire: 0, enemyBoost: 0, counter: null,
     story: { node: null, due: 0 }, stat: { deals: 0, actions: 0, battles: 0 } };
   for (const k in S.stats) g.stats[k] = S.stats[k].initial;
   for (const uf in MAP_DATA.states) g.control[uf] = S.defaultFaction || "federal";
   Object.assign(g.control, S.initialMap || {});
-  for (const uf in MAP_DATA.states) g.uf[uf] = { unrest: (C.unrest && C.unrest[uf] !== undefined) ? C.unrest[uf] : (C.unrestBase ?? 25), force: 0, enemy: 0, progress: 0, sway: 0 };
+  for (const uf in MAP_DATA.states) g.uf[uf] = { unrest: (C.unrest && C.unrest[uf] !== undefined) ? C.unrest[uf] : (C.unrestBase ?? 25), enemy: 0, progress: 0, sway: 0 };
   for (const a of C.actors) g.actors[a.id] = { opinion: a.opinion, recognized: !!a.recognizes, dependence: 0, deals: 0, aligned: false, sanctioning: false, supportsEnemy: false };
   for (const f of C.factions) g.fac[f.id] = { loyalty: f.loyalty, influence: f.influence, lastCrisis: -99 };
   syncActorStats(g);
   prepContested(g);
+  initArmies(g);
   focusInit(g);
   enterStory(g, S.start, []);
   return g;
@@ -2149,7 +2282,7 @@ function applyFx(g, fx, rep){
   if (!fx) return;
   if (fx.s) applyStats(g, fx.s);
   if (fx.money) g.money = Math.round(g.money + fx.money);
-  if (fx.reserve) g.reserve = Math.max(0, g.reserve + fx.reserve);
+  if (fx.reserve) addPlayerStrength(g, fx.reserve * STR_UNIT);
   if (fx.fac) for (const id in fx.fac) bumpFac(g, id, fx.fac[id]);
   if (fx.infl) for (const id in fx.infl) if (g.fac[id]) g.fac[id].influence = clamp(g.fac[id].influence + fx.infl[id], 5, 100);
   if (fx.unrest) for (const uf of playerUFs(g)) g.uf[uf].unrest = clamp(g.uf[uf].unrest + fx.unrest, 0, 100);
@@ -2170,7 +2303,7 @@ function fxSummary(g, fx){
   const sc = scOf(g), S = sc.story, C = sc.campaign, out = [], sg = v => (v > 0 ? "+" : "") + v;
   if (fx.s) for (const k in fx.s) out.push(`${S.stats[k] ? S.stats[k].label : k} ${sg(fx.s[k])}`);
   if (fx.money) out.push(`${C.money.short} ${sg(fx.money)}`);
-  if (fx.reserve) out.push(`${C.forces.short} ${sg(fx.reserve)}`);
+  if (fx.reserve) out.push(`Força militar ${sg(fx.reserve * STR_UNIT)}`);
   if (fx.fac) for (const id in fx.fac){ const f = C.factions.find(x => x.id === id); out.push(`${f ? f.short || f.name : id} ${sg(fx.fac[id])}`); }
   if (fx.infl) for (const id in fx.infl){ const f = C.factions.find(x => x.id === id); out.push(`Influência ${f ? f.short || f.name : id} ${sg(fx.infl[id])}`); }
   if (fx.unrest) out.push(`Agitação nos seus estados ${sg(fx.unrest)}`);
@@ -2200,6 +2333,7 @@ function noteChanges(g, before){
   }
   g.lastMapChanges = g.lastMapChanges.filter(c => c.from !== c.to);
   prepContested(g);
+  syncMilitary(g, before);
 }
 function setControl(g, uf, fac){ const before = Object.assign({}, g.control); g.control[uf] = fac; noteChanges(g, before); }
 
@@ -2212,6 +2346,7 @@ function enterStory(g, id, rep){
   const C = sc.campaign;
   if (C.enterFx && C.enterFx[id]) applyFx(g, C.enterFx[id]);
   if (C.focus) focusStoryGrant(g, id, rep);
+  syncMilitary(g);
   if (n.ending){ endCampaign(g, id, null); return; }
   g.queue = g.queue.filter(q => q.type !== "story");
   g.queue.unshift({ type: "story", node: id });
@@ -2326,8 +2461,6 @@ function mapActions(g, uf){
   const war = !!ph.war, busy = g.queue.length > 0 || !!g.ended, mc = C.mapCost || {};
   const add = (kind, label, ap, cost, ok, why, desc) => out.push({ kind, label, ap, cost, ok: ok && !busy && g.ap >= ap && g.money >= cost, why: busy ? "Resolva os eventos pendentes" : (!ok ? why : (g.ap < ap ? "Pontos de ação insuficientes" : (g.money < cost ? "Recursos insuficientes" : ""))), desc });
   const flipTo = ph.flipTo && ph.flipTo[g.control[uf]];
-  if (war && s !== "neutral") add("tropas", "Enviar tropas", 1, 0, g.reserve > 0, "Sem tropas na reserva", s === "enemy" ? "Com 2+ unidades, o estado vira frente de combate." : "Move 1 unidade da reserva para cá.");
-  if (u.force > 0) out.push({ kind: "retirar", label: "Retirar tropas", ap: 0, cost: 0, ok: !busy, why: busy ? "Resolva os eventos pendentes" : "", desc: "Volta 1 unidade para a reserva." });
   if (s === "player") add("investir", "Investir recursos", 1, mc.investir ?? 5, true, "", "Reduz a agitação (−15) e melhora a economia local.");
   if (s === "player" || flipTo) add("propaganda", "Propaganda", 1, mc.propaganda ?? 2, true, "", s === "player" ? "Reduz a agitação (−8)." : "Aumenta a simpatia pela sua causa (rumo a 100 = adesão).");
   if (s === "player" || s === "contested" || flipTo) add("negociar", "Negociar com o governador", 1, mc.negociar ?? 3, true, "", s === "player" ? "Acalma o estado (−20 agitação) se der certo." : (s === "contested" ? "Pode enfraquecer o inimigo local." : "Chance de ganhar adesão (+35 simpatia)."));
@@ -2343,12 +2476,7 @@ function doMapAction(g, uf, kind){
   const C = scOf(g).campaign, ph = phaseOf(g), u = g.uf[uf], s = sideOf(g, g.control[uf], ph), name = MAP_DATA.states[uf].name;
   g.ap -= A.ap; g.money -= A.cost; g.stat.actions++;
   let msg = "";
-  if (kind === "tropas"){
-    g.reserve--; u.force++;
-    msg = `Tropas enviadas a ${name} (${u.force} unid.).`;
-    if (s === "enemy" && u.force >= 2){ setControl(g, uf, C.contested); u.progress = -20; msg += ` ${name} virou frente de combate.`; }
-  } else if (kind === "retirar"){ u.force--; g.reserve++; msg = `1 unidade retirou-se de ${name}.`; }
-  else if (kind === "investir"){ u.unrest = clamp(u.unrest - 15, 0, 100); applyStats(g, C.keys.econ ? { [C.keys.econ]: 1 } : { [C.keys.pop]: 1 }); msg = `Investimento em ${name}: agitação ${Math.round(u.unrest)}.`; }
+  if (kind === "investir"){ u.unrest = clamp(u.unrest - 15, 0, 100); applyStats(g, C.keys.econ ? { [C.keys.econ]: 1 } : { [C.keys.pop]: 1 }); msg = `Investimento em ${name}: agitação ${Math.round(u.unrest)}.`; }
   else if (kind === "propaganda"){
     if (s === "player"){ u.unrest = clamp(u.unrest - 8, 0, 100); msg = `Propaganda em ${name}: agitação ${Math.round(u.unrest)}.`; }
     else { u.sway = clamp(u.sway + 15 + Math.round(((g.stats[C.keys.pop] ?? 50) - 50)/5), -100, 100); msg = `Propaganda em ${name}: simpatia ${Math.round(u.sway)}/100.`; checkSway(g, uf); }
@@ -2459,7 +2587,7 @@ function applyDeal(g, aid, req, off){
   const rel = A.rel || {};
   for (const r of req){
     if (r === "dinheiro"){ const amt = C.loan || 15, due = g.month + 6; g.money += amt; g.debts.push({ aid, amount: Math.round(amt * 1.3), due }); out.push(`+${amt} ${C.money.short} (dívida de ${Math.round(amt*1.3)} vence em ${monthLabel(due)})`); }
-    if (r === "armas"){ g.reserve += 2; applyStats(g, { [K.mil]: 4 }); st.dependence += 10; out.push(`+2 unidades de tropas, ${sc.story.stats[K.mil].label} +4, dependência maior`); }
+    if (r === "armas"){ const got = addPlayerStrength(g, 2 * STR_UNIT); g.armsAid = { v: Math.min(0.3, armsAid(g) + 0.12), until: g.month + 6 }; applyStats(g, { [K.mil]: 4 }); st.dependence += 10; out.push(`${got ? `+${got} de força militar, ` : ""}armas estrangeiras (+${Math.round(g.armsAid.v * 100)}% em combate por 6 meses), ${sc.story.stats[K.mil].label} +4, dependência maior`); }
     if (r === "reconhecimento"){ st.recognized = true; applyStats(g, { [K.legit]: 8 }); for (const o in rel) if (rel[o] >= 0.5) bumpActor(g, o, 4); out.push(`reconhecimento obtido (${sc.story.stats[K.legit].label} +8)`); }
     if (r === "sancoes"){ g.enemyMalus = 1; g.malusUntil = g.month + 4; out.push("sanções enfraquecem o inimigo por 4 meses"); }
     if (r === "mediacao"){ if (isWar(g)) g.ceasefire = 2; applyFx(g, { unrestAll: -10, s: { [K.legit]: 3, [K.pop]: 2 } }); out.push(isWar(g) ? "trégua mediada de 2 meses, agitação −10" : "mediação reduz a agitação (−10)"); }
@@ -2585,9 +2713,9 @@ function paceFor(g){
 }
 function incomeFor(g){
   const sc = scOf(g), C = sc.campaign, ph = phaseOf(g), K = C.keys;
-  const sides = sideCounts(g), deployed = Object.values(g.uf).reduce((s, u) => s + u.force, 0);
+  const sides = sideCounts(g), strength = sideStr(g, "player");
   const base = ph.income ?? 4, terr = sides.wPlayer * (ph.perWeight ?? 0.2), econ = K.econ ? ((g.stats[K.econ] - 50) / 10) : 0;
-  const upkeep = (g.reserve + deployed) * (C.upkeep ?? 0.4), sanc = Object.values(g.actors).filter(a => a.sanctioning).length * 2;
+  const upkeep = strength / STR_UNIT * (C.upkeep ?? 0.4), sanc = Object.values(g.actors).filter(a => a.sanctioning).length * 2;
   const facBonus = C.factions.reduce((s, f) => s + ((f.boostMoney && g.fac[f.id].loyalty >= 65) ? f.boostMoney : 0) - ((f.boostMoney && g.fac[f.id].loyalty <= 25) ? f.boostMoney : 0), 0);
   return { base, terr, econ, upkeep, sanc, facBonus, total: Math.round(base + terr + econ - upkeep - sanc + facBonus) };
 }
@@ -2623,7 +2751,7 @@ function endTurn(g){
   let sumUnrest = 0, nP = 0;
   for (const uf in g.uf){
     const u = g.uf[uf], s = sideOf(g, g.control[uf], ph);
-    const target = clamp(55 - (pop - 50)*0.7 - (econ - 50)*0.3 - u.force*4 + (s === "contested" ? 20 : 0) + (C.unrestBias || 0), 5, 95);
+    const target = clamp(55 - (pop - 50)*0.7 - (econ - 50)*0.3 - Math.min(24, sideStr(g, "player", uf) / STR_UNIT * 4) + (s === "contested" ? 20 : 0) + (C.unrestBias || 0), 5, 95);
     u.unrest = clamp(Math.round(u.unrest + (target - u.unrest)*0.2 + (rnd(g)*8 - 4)), 0, 100);
     if (s !== "player") u.sway = clamp(u.sway - 5*pace, -100, 100);
     if (s === "player"){ sumUnrest += u.unrest; nP++; }
@@ -2634,49 +2762,27 @@ function endTurn(g){
   // revoltas / perdas por agitação extrema
   for (const uf of playerUFs(g)){
     const u = g.uf[uf];
-    if (u.unrest >= 88 && u.force < 2 && (C.home || []).includes(uf)){ applyStats(g, { [K.pop]: -3 }); u.unrest = 75; R(`Protestos violentos em ${MAP_DATA.states[uf].name}, o seu reduto.`, "bad"); continue; }
-    if (u.unrest >= 88 && u.force < 2){
+    if (u.unrest >= 88 && sideStr(g, "player", uf) < 20 && (C.home || []).includes(uf)){ applyStats(g, { [K.pop]: -3 }); u.unrest = 75; R(`Protestos violentos em ${MAP_DATA.states[uf].name}, o seu reduto.`, "bad"); continue; }
+    if (u.unrest >= 88 && sideStr(g, "player", uf) < 20){
       if (ph.war && ph.revoltTo !== null){ setControl(g, uf, C.contested); g.uf[uf].enemy = Math.max(g.uf[uf].enemy, 2); R(`Revolta em ${MAP_DATA.states[uf].name}: o estado entrou em disputa.`, "bad"); }
       else if (ph.loseTo && ph.loseTo[g.control[uf]]){ setControl(g, uf, ph.loseTo[g.control[uf]]); R(`${MAP_DATA.states[uf].name} escapou da sua influência após protestos.`, "bad"); }
       else { applyStats(g, { [K.pop]: -2 }); u.unrest = 70; R(`Grandes protestos em ${MAP_DATA.states[uf].name}.`, "bad"); }
     }
   }
+  // 2b. Operações militares: ordens dos exércitos (jogador) + plano da IA inimiga
   if (ph.war){
-    if (g.ceasefire > 0){ g.ceasefire--; R("Trégua em vigor: sem combates neste mês.", "good"); }
-    else {
-      const foreign = Object.values(g.actors).filter(a => a.supportsEnemy).length;
-      const malus = g.month <= g.malusUntil ? g.enemyMalus : 0;
-      let fronts = 0;
-      for (const uf in g.control){
-        const s = sideOf(g, g.control[uf], ph), u = g.uf[uf];
-        if (s === "enemy" && u.force >= 2){ setControl(g, uf, C.contested); u.progress = -20; R(`Suas tropas abriram uma frente em ${MAP_DATA.states[uf].name}.`); }
-      }
-      for (const uf in g.control){
-        if (sideOf(g, g.control[uf], ph) !== "contested") continue;
-        const u = g.uf[uf]; fronts++; g.stat.battles++;
-        if (rnd(g) < 0.3 + 0.08*foreign) u.enemy = Math.min(9, u.enemy + 1);
-        const home = (C.home || []).includes(uf) ? (C.homeBonus ?? 2) : 0;
-        const pp = (u.force + home) * (0.6 + mil/100), ep = Math.max(0, u.enemy + g.enemyBoost*0.5 - malus) * (C.enemyQuality ?? 1);
-        const delta = Math.round((pp - ep) * 14 + (rnd(g)*24 - 12));
-        u.progress = clamp(u.progress + delta, -100, 100);
-        if (u.force > 0 && rnd(g) < 0.18){ u.force--; R(`Baixas em ${MAP_DATA.states[uf].name}: −1 unidade.`, "bad"); }
-        if (u.enemy > 0 && rnd(g) < 0.22) u.enemy--;
-        if (u.progress >= 100){ setControl(g, uf, ph.playerMain); g.uf[uf].enemy = 0; g.uf[uf].unrest = 50; R(`Vitória: ${MAP_DATA.states[uf].name} agora está sob seu controle.`, "good"); }
-        else if (u.progress <= -100){ setControl(g, uf, ph.enemyMain); const lost = g.uf[uf].force; g.uf[uf].force = 0; g.reserve += Math.max(0, lost - 1); R(`Derrota: ${MAP_DATA.states[uf].name} caiu nas mãos do inimigo${lost ? ` (${lost > 1 ? lost - 1 : 0} unid. recuaram)` : ""}.`, "bad"); }
-      }
-      // ofensiva inimiga
-      const power = (C.enemyPower ?? 1) + foreign*0.5 + g.enemyBoost*0.3 - malus + (50 - mil)/40;
-      if (fronts < 4 && rnd(g) < clamp(0.1 + power*0.08, 0.03, 0.5)){
-        const cands = playerUFs(g).filter(uf => g.uf[uf].force < 2).sort((a, b) => g.uf[b].unrest - g.uf[a].unrest);
-        if (cands.length){ const uf = cands[0]; setControl(g, uf, C.contested); g.uf[uf].enemy = Math.max(g.uf[uf].enemy, (C.enemyBase || 2)); g.uf[uf].progress = 0; R(`Ofensiva inimiga: ${MAP_DATA.states[uf].name} virou frente de combate.`, "bad"); }
-      }
+    const cf = g.ceasefire > 0;
+    if (cf){ g.ceasefire--; R("Trégua em vigor: sem combates neste mês (só deslocamentos).", "good"); }
+    militaryMonth(g, R, !cf);
+    if (!cf && phaseOf(g).war){
+      enemyReinforce(g, R);
       const sides = sideCounts(g), tot = sides.wPlayer + sides.wEnemy + sides.wContested;
       const share = tot ? sides.wPlayer / tot : 1;
       if (share > (C.highShare ?? 0.65)) applyStats(g, { [K.mil]: 1 }); else if (share < (C.lowShare ?? 0.35)) { applyStats(g, { [K.mil]: -2 }); R("Você controla pouco território: o moral das tropas cai.", "bad"); }
-      if (fronts >= 3) applyStats(g, { [K.pop]: -1 });
+      if (sides.contested >= 3) applyStats(g, { [K.pop]: -1 });
     }
     g.enemyBoost = Math.max(0, g.enemyBoost - 0.25);
-  }
+  } else militaryMonth(g, R, false);
   // 3. Facções
   for (const F of C.factions){
     const f = g.fac[F.id];
@@ -2692,7 +2798,7 @@ function endTurn(g){
     if (g.turn % 3 === 0 && st.deals > 0) st.deals--;
     st.dependence = Math.max(0, st.dependence - 2);
     if (ph.war){
-      if (st.opinion >= 45 && (A.gives.armas || 0) > 0 && rnd(g) < 0.2){ g.reserve++; R(`${A.name} enviou equipamento por conta própria (+1 unidade).`, "good"); }
+      if (st.opinion >= 45 && (A.gives.armas || 0) > 0 && rnd(g) < 0.2){ const got = addPlayerStrength(g, STR_UNIT); if (got) R(`${A.name} enviou equipamento por conta própria (+${got} de força).`, "good"); }
       const was = st.supportsEnemy; st.supportsEnemy = st.opinion <= -45 && (A.gives.armas || 0) > 0;
       if (st.supportsEnemy && !was) R(`${A.name} passou a apoiar o lado inimigo.`, "bad");
     } else st.supportsEnemy = false;
@@ -2721,6 +2827,7 @@ function endTurn(g){
     if (dep && rnd(g) < 0.35 && g.month - (g.eventSeen._dependencia ?? -99) >= 6){ g.queue.push({ type: "event", id: "_dependencia", actor: dep.id }); g.eventSeen._dependencia = g.month; }
     else if (rnd(g) < (C.eventChance ?? 0.45)){ const ev = pickRandomEvent(g); if (ev){ g.queue.push({ type: "event", id: ev.id }); g.eventSeen[ev.id] = g.month; } }
   }
+  planEnemy(g);
   g.ap = C.ap + (ph.apBonus || 0); g.used = {}; g.dealtWith = {};
   g.report = rep; finishLog(g, rep);
   return true;
@@ -2732,6 +2839,531 @@ function resolveGenericDyn(g, q, idx){
   if (idx === 0){ bumpActor(g, aid, 10); applyStats(g, { [K.legit]: -3 }); if (C.nationalFac) bumpFac(g, C.nationalFac, -10); }
   else { bumpActor(g, aid, -25); g.actors[aid].dependence = Math.max(0, g.actors[aid].dependence - 25); applyStats(g, { [K.pop]: 3 }); }
 }
+/* ---------- Exércitos, ordens militares e batalhas (independentes dos pontos de ação) ----------
+   Cada lado tem exércitos (força, organização/moral, experiência, general) posicionados em estados.
+   A cada mês cada exército do jogador recebe UMA ordem (atacar, mover, recuar, defender, reforçar);
+   o inimigo planeja as dele (IA) e tudo se resolve em "Encerrar mês". PA ficam para política,
+   economia e diplomacia; recrutar/reforçar custa recursos. */
+// Fronteiras terrestres entre as 27 UFs (simétrica; validada contra a geometria no check.js)
+const ADJ = {
+  AC:["AM","RO"], AL:["BA","PE","SE"], AP:["PA"], AM:["AC","MT","PA","RO","RR"],
+  BA:["AL","ES","GO","MG","PE","PI","SE","TO"], CE:["PB","PE","PI","RN"], DF:["GO","MG"], ES:["BA","MG","RJ"],
+  GO:["BA","DF","MG","MS","MT","TO"], MA:["PA","PI","TO"], MT:["AM","GO","MS","PA","RO","TO"], MS:["GO","MG","MT","PR","SP"],
+  MG:["BA","DF","ES","GO","MS","RJ","SP"], PA:["AM","AP","MA","MT","RR","TO"], PB:["CE","PE","RN"], PR:["MS","SC","SP"],
+  PE:["AL","BA","CE","PB","PI"], PI:["BA","CE","MA","PE","TO"], RJ:["ES","MG","SP"], RN:["CE","PB"], RS:["SC"],
+  RO:["AC","AM","MT"], RR:["AM","PA"], SC:["PR","RS"], SP:["MG","MS","PR","RJ"], SE:["AL","BA"], TO:["BA","GO","MA","MT","PA","PI"]
+};
+// Terreno dominante de cada UF: bônus de defesa
+const TERRAIN_TYPES = { selva: { label: "Selva", def: 0.3 }, urbano: { label: "Metrópole", def: 0.25 }, serra: { label: "Serras", def: 0.2 },
+  sertao: { label: "Sertão", def: 0.1 }, planalto: { label: "Planalto", def: 0.05 }, cerrado: { label: "Cerrado", def: 0 }, campos: { label: "Pampa e campos", def: 0 } };
+const TERRAIN = { AC:"selva", AM:"selva", AP:"selva", PA:"selva", RO:"selva", RR:"selva", MA:"cerrado", TO:"cerrado", GO:"cerrado", MT:"cerrado", MS:"cerrado",
+  DF:"urbano", RJ:"urbano", SP:"urbano", MG:"serra", ES:"serra", SC:"serra", PR:"planalto", RS:"campos",
+  PI:"sertao", CE:"sertao", RN:"sertao", PB:"sertao", PE:"sertao", AL:"sertao", SE:"sertao", BA:"sertao" };
+const STR_UNIT = 10, ARMY_MAX = 60, GARRISON_K = 5;     // 1 "unidade" antiga = 10 de força; força máx. por exército
+const ARMY_CAP = { player: 8, enemy: 8 };
+const ORDER_LABEL = { atacar: "Atacar", mover: "Mover", recuar: "Recuar", defender: "Defender", reforcar: "Reforçar" };
+const MANEUVER = ["atacar", "mover", "recuar"];            // ordens que contam no limite de comando
+let MIL_QUIET = false;                                     // durante a resolução, mudanças de mapa vêm dos próprios exércitos
+
+function armyCfg(g){ return scOf(g).campaign.army || {}; }
+function armiesOf(g, side, uf){ return (g.armies || []).filter(a => a.side === side && (uf === undefined || a.uf === uf)); }
+function armyById(g, id){ return (g.armies || []).find(a => a.id === id) || null; }
+function sideStr(g, side, uf){ return armiesOf(g, side, uf).reduce((s, a) => s + a.str, 0); }
+function armyPow(a){ return Math.max(0, a.str) * (0.45 + 0.55 * clamp(a.org, 0, 100) / 100) * (1 + (a.xp || 0) / 250); }
+function removeArmy(g, a){ g.armies = g.armies.filter(x => x !== a); }
+function foreignFoes(g){ return Object.values(g.actors).filter(a => a.supportsEnemy).length; }
+function malusNow(g){ return g.month <= g.malusUntil ? g.enemyMalus : 0; }
+function armsAid(g){ return g.armsAid && g.month <= g.armsAid.until ? g.armsAid.v : 0; }
+function natLoyalty(g){ const C = scOf(g).campaign; return C.nationalFac && g.fac[C.nationalFac] ? g.fac[C.nationalFac].loyalty : 50; }
+// Organização máxima: lealdade da facção militar e o atributo militar do cenário definem o moral do jogador
+function maxOrg(g, side){
+  const C = scOf(g).campaign;
+  if (side === "player") return Math.round(clamp(55 + natLoyalty(g) * 0.3 + ((g.stats[C.keys.mil] ?? 50) - 50) * 0.3, 35, 100));
+  return Math.round(clamp(72 + ((C.enemyQuality ?? 1) - 1) * 40 + (g.enemyBoost || 0) * 3, 45, 95));
+}
+function armyAllowed(g, side, uf, ph){
+  ph = ph || phaseOf(g);
+  const s = sideOf(g, g.control[uf], ph);
+  if (side === "player") return !ph.noArmies && (s === "player" || s === "contested");
+  return !!ph.war && (s === "enemy" || s === "contested");
+}
+function enemyFacOf(g, a){ const ph = phaseOf(g); return a && a.fac && (ph.enemy || []).includes(a.fac) ? a.fac : ph.enemyMain; }
+const ROMAN = ["", " II", " III", " IV", " V", " VI", " VII", " VIII"];
+function newArmy(g, side, uf, str, o){
+  o = o || {};
+  const cfg = armyCfg(g), key = o.fac && cfg.names && cfg.names[o.fac] ? o.fac : side;
+  const n = g.armyN[key] = (g.armyN[key] || 0) + 1;
+  const names = (cfg.names && cfg.names[key]) || [side === "player" ? "Divisão leal" : "Força inimiga"];
+  const gens = (cfg.gens && cfg.gens[key]) || [];
+  const name = o.name || (names[(n - 1) % names.length] + (ROMAN[Math.floor((n - 1) / names.length)] || ""));
+  const a = { id: "a" + (++g.armySeq), side, fac: o.fac || null, name, gen: o.gen !== undefined ? o.gen : (n <= gens.length ? gens[n - 1] : null),
+    uf, str: Math.round(clamp(str, 1, ARMY_MAX)), org: o.org ?? Math.min(70, maxOrg(g, side)), xp: o.xp ?? (side === "enemy" ? 15 : 10), order: null };
+  g.armies.push(a);
+  return a;
+}
+function capitalOf(g, side){
+  const ph = phaseOf(g), want = side === "player" ? armyCfg(g).capital : null;
+  const own = Object.keys(g.control).filter(uf => sideOf(g, g.control[uf], ph) === side);
+  if (want && own.includes(want)) return want;
+  return own.sort((a, b) => UF_WEIGHT[b] - UF_WEIGHT[a] || (a < b ? -1 : 1))[0] || null;
+}
+function enemyCapitals(g){
+  const ph = phaseOf(g);
+  return Object.keys(g.control).filter(uf => sideOf(g, g.control[uf], ph) === "enemy").sort((a, b) => UF_WEIGHT[b] - UF_WEIGHT[a] || (a < b ? -1 : 1)).slice(0, 2);
+}
+// Reforços (antigo "+N unidades na reserva"): completa exércitos fracos ou forma um novo na capital
+function addPlayerStrength(g, str){
+  if (!g.armies || !str) return 0;
+  const ph = phaseOf(g);
+  if (str < 0){
+    let left = -str;
+    while (left > 0){ const a = armiesOf(g, "player").sort((x, y) => y.str - x.str)[0]; if (!a) break;
+      const d = Math.min(left, a.str); a.str -= d; left -= d; if (a.str < 3) removeArmy(g, a); }
+    return str;
+  }
+  if (ph.noArmies) return 0;
+  let left = str, added = 0;
+  while (left > 0){
+    const chunk = Math.min(STR_UNIT, left); left -= chunk;
+    const mine = armiesOf(g, "player");
+    let a = mine.filter(x => x.str < 30 && sideOf(g, g.control[x.uf], ph) === "player").sort((x, y) => x.str - y.str)[0];
+    if (!a && mine.length < ARMY_CAP.player){ const cap = armyCfg(g).capital, base = capitalOf(g, "player") || (armyAllowed(g, "player", cap, ph) ? cap : Object.keys(g.control).find(uf => armyAllowed(g, "player", uf, ph))); if (base){ newArmy(g, "player", base, chunk, { org: 60, xp: 5 }); added += chunk; continue; } }
+    if (!a) a = mine.filter(x => x.str + chunk <= ARMY_MAX).sort((x, y) => x.str - y.str)[0];
+    if (!a) break;
+    a.str += chunk; added += chunk;
+  }
+  return added;
+}
+// Forças locais (sem contador no mapa): guarnições inimigas (u.enemy) e polícia/voluntários do seu lado
+function militia(g, side, uf){
+  const C = scOf(g).campaign, u = g.uf[uf], s = sideOf(g, g.control[uf]), pop = g.stats[C.keys.pop] ?? 50;
+  const home = (C.home || []).includes(uf) ? (C.homeBonus ?? 2) * 5 : 0;
+  let str = 0, name = "";
+  if (side === "enemy"){ if (s === "enemy" || s === "contested"){ str = u.enemy * GARRISON_K; name = s === "contested" ? "Milícias e guerrilheiros" : "Guarnição local"; } }
+  else if (s === "player"){ str = Math.round(6 + UF_WEIGHT[uf] * 1.2 + home); name = "Polícia e milícias leais"; }
+  else if (s === "contested"){ str = Math.round(clamp((pop - 45) / 3 + u.sway / 10, 0, 15) + home); name = "Voluntários locais"; }
+  return str >= 1 ? { militia: true, side, name, str, org: 50, xp: 0 } : null;
+}
+function supplied(g, side, uf){ const ph = phaseOf(g); return sideOf(g, g.control[uf], ph) === side || ADJ[uf].some(n => sideOf(g, g.control[n], ph) === side); }
+// Modificadores de combate (exibidos na tela de batalha)
+function milMods(g, side, uf, role, units){
+  const sc = scOf(g), C = sc.campaign, K = C.keys, out = [], u = g.uf[uf];
+  const pop = g.stats[K.pop] ?? 50, mil = g.stats[K.mil] ?? 50;
+  const add = (k, label, v) => { v = Math.round(v * 100) / 100; if (v) out.push({ k, label, v }); };
+  if (role === "def"){
+    const T = TERRAIN_TYPES[TERRAIN[uf]]; if (T && T.def) add("terreno", `Terreno: ${T.label}`, T.def);
+    if (units.some(a => !a.militia && (!a.order || a.order.type === "defender"))) add("posicao", "Posições preparadas", 0.1);
+  }
+  if (side === "player"){
+    const s = sideOf(g, g.control[uf]);
+    add("apoio", "Apoio local", clamp((pop - 50) / 150 + (s === "player" ? (45 - u.unrest) / 300 : 0) + u.sway / 400, -0.3, 0.3));
+    if ((C.home || []).includes(uf)) add("reduto", "Reduto do movimento", 0.1 + (C.homeBonus ?? 2) * 0.04);
+    add("comando", `Moral (${sc.story.stats[K.mil] ? sc.story.stats[K.mil].label : "militar"} e lealdade militar)`, clamp((mil - 50) / 200 + (natLoyalty(g) - 50) / 300, -0.3, 0.3));
+    if (g.money < 0) add("supr", "Suprimentos: cofres vazios", -0.2);
+    else if (!supplied(g, "player", uf)) add("supr", "Suprimentos: linhas cortadas", -0.15);
+    const aid = armsAid(g); if (aid) add("armas", "Armas estrangeiras", aid);
+  } else {
+    const foreign = foreignFoes(g), malus = malusNow(g);
+    add("qual", "Qualidade das tropas", (C.enemyQuality ?? 1) - 1 + ((C.enemyPower ?? 1) - 1) * 0.3);
+    add("apoio", "Apoio local", clamp((50 - pop) / 200, -0.2, 0.2));
+    if (foreign) add("armas", `Armas estrangeiras (${foreign} apoiador${foreign > 1 ? "es" : ""})`, 0.12 * foreign);
+    if (g.enemyBoost > 0) add("mob", "Mobilização inimiga", Math.min(0.3, g.enemyBoost * 0.08));
+    if (malus) add("supr", "Suprimentos: sanções e pressão", -0.15 * malus);
+    else if (!supplied(g, "enemy", uf)) add("supr", "Suprimentos: linhas cortadas", -0.15);
+  }
+  return out;
+}
+const modsMult = mods => Math.max(0.3, 1 + mods.reduce((s, m) => s + m.v, 0));
+function defendersAt(g, side, uf){ const L = armiesOf(g, side, uf); const m = militia(g, side, uf); if (m) L.push(m); return L; }
+// Estimativa (sem sorte) de um ataque — usada pela IA, pelo sim.js e pela previsão na interface
+function battleOdds(g, side, attackers, uf){
+  const foe = side === "player" ? "enemy" : "player", def = defendersAt(g, foe, uf);
+  const ma = modsMult(milMods(g, side, uf, "att", attackers)), md = modsMult(milMods(g, foe, uf, "def", def));
+  const pa = attackers.reduce((s, a) => s + armyPow(a), 0) * ma, pd = def.reduce((s, a) => s + armyPow(a), 0) * md;
+  return { ratio: pd > 0 ? pa / pd : 99, pa: Math.round(pa), pd: Math.round(pd), def };
+}
+// Uma batalha em rodadas. A e B: { side, role: "att"|"def", units: [exércitos ou milícias] } (mutados)
+function fight(g, uf, A, B, kind){
+  const S = [A, B], mods = S.map(x => milMods(g, x.side, uf, x.role, x.units)), mult = mods.map(modsMult);
+  const total = x => x.units.reduce((s, u) => s + u.str, 0);
+  const pow = i => S[i].units.reduce((s, u) => s + armyPow(u), 0) * mult[i];
+  const avgOrg = x => { const t = total(x); return t > 0 ? x.units.reduce((s, u) => s + u.org * u.str, 0) / t : 0; };
+  const hurt = (x, dmg) => { const t = total(x) || 1; for (const u of x.units){ u.str = Math.max(0, u.str - dmg * 0.4 * u.str / t); u.org = Math.max(0, u.org - dmg / t * 90); } };
+  const rec = { uf, kind, month: g.month, rounds: [],
+    sides: S.map((x, i) => ({ side: x.side, role: x.role, mult: Math.round(mult[i] * 100) / 100, mods: mods[i],
+      units: x.units.map(u => ({ id: u.id || null, name: u.name, gen: u.gen || null, fac: u.fac || null, militia: !!u.militia, str0: Math.round(u.str), org0: Math.round(u.org), xp: Math.round(u.xp || 0) })) })) };
+  for (let r = 0; r < 5; r++){
+    const p0 = pow(0), p1 = pow(1); if (p0 < 0.5 || p1 < 0.5) break;
+    const d0 = p1 * 0.15 * (0.75 + rnd(g) * 0.5), d1 = p0 * 0.15 * (0.75 + rnd(g) * 0.5);
+    hurt(S[0], d0); hurt(S[1], d1);
+    rec.rounds.push({ hit: [Math.round(d0 * 10) / 10, Math.round(d1 * 10) / 10], u: S.map(x => x.units.map(u => [Math.round(u.str * 10) / 10, Math.round(u.org)])) });
+    if (avgOrg(S[0]) < 20 || avgOrg(S[1]) < 20) break;
+  }
+  const p0 = pow(0), p1 = pow(1), b0 = avgOrg(S[0]) < 20 || p0 < 0.5, b1 = avgOrg(S[1]) < 20 || p1 < 0.5;
+  const win = b1 && !b0 ? 0 : b0 && !b1 ? 1 : (p0 > p1 * (B.role === "def" ? 1.1 : 1) ? 0 : 1);
+  rec.win = win;
+  rec.margin = Math.round(clamp(Math.abs(p0 - p1) / Math.max(1, p0 + p1) + ((win === 0 ? b1 : b0) ? 0.25 : 0), 0, 1) * 100) / 100;
+  rec.loss = S.map((x, i) => Math.round(rec.sides[i].units.reduce((s, u) => s + u.str0, 0) - total(x)));
+  for (let i = 0; i < 2; i++) for (const u of S[i].units) if (!u.militia){ u.xp = Math.min(100, (u.xp || 0) + (i === win ? 8 : 5)); u.str = Math.round(u.str * 10) / 10; }
+  return rec;
+}
+function flipState(g, uf, fac, side, ev){
+  const from = g.control[uf]; if (from === fac) return;
+  setControl(g, uf, fac);
+  const u = g.uf[uf];
+  if (side === "player"){ u.enemy = 0; u.unrest = Math.max(u.unrest, 50); }
+  ev.flips.push({ uf, from, to: fac, side });
+}
+function retreatArmy(g, a, from, ev, R){
+  const ph = phaseOf(g), own = a.side;
+  const opts = ADJ[from].filter(n => sideOf(g, g.control[n], ph) === own);
+  const alt = opts.length ? opts : ADJ[from].filter(n => n !== from && armyAllowed(g, own, n, ph) && !armiesOf(g, own === "player" ? "enemy" : "player", n).length);
+  if (!alt.length){ removeArmy(g, a); ev.lost.push({ id: a.id, name: a.name, side: a.side, uf: from }); R(`${a.name} foi cercado em ${MAP_DATA.states[from].name} e se rendeu.`, a.side === "player" ? "bad" : "good"); return; }
+  const to = alt.sort((x, y) => armiesOf(g, own, y).length - armiesOf(g, own, x).length || UF_WEIGHT[y] - UF_WEIGHT[x] || (x < y ? -1 : 1))[0];
+  a.uf = to; a.org = Math.max(5, a.org - 10);
+  ev.moves.push({ id: a.id, side: a.side, from, to, type: "recuo" });
+}
+function cleanupArmies(g, ev, R){
+  for (const a of [...g.armies]) if (a.str < 3){ removeArmy(g, a); ev.lost.push({ id: a.id, name: a.name, side: a.side, uf: a.uf }); R(`${a.name} foi dispersado.`, a.side === "player" ? "bad" : "good"); }
+}
+function battleText(rec){
+  const S = rec.sides, name = MAP_DATA.states[rec.uf].name, att = S[0], win = S[rec.win];
+  const who = x => x.units.filter(u => !u.militia).map(u => u.name).join(" + ") || x.units.map(u => u.name).join(" + ");
+  if (rec.kind === "frente") return `Batalha em ${name}: ${win.side === "player" ? "vantagem sua" : "vantagem inimiga"} (baixas: suas ${rec.loss[S[0].side === "player" ? 0 : 1]}, inimigas ${rec.loss[S[0].side === "player" ? 1 : 0]}).`;
+  const pl = att.side === "player";
+  return `${pl ? "Ataque seu" : "Ataque inimigo"} em ${name} (${who(att)}): ${rec.win === 0 ? (pl ? "vitória" : "o inimigo venceu") : (pl ? "repelido" : "repelido pelas suas defesas")}.`;
+}
+function resolveAttack(g, side, att, uf, ev, R, fought){
+  const ph = phaseOf(g), C = scOf(g).campaign, foe = side === "player" ? "enemy" : "player", u = g.uf[uf];
+  const ts = sideOf(g, g.control[uf], ph), from = att.map(a => a.uf), name = MAP_DATA.states[uf].name;
+  const defA = armiesOf(g, foe, uf).filter(a => !fought.has(a.id)), mil = militia(g, foe, uf);
+  const defU = defA.concat(mil ? [mil] : []);
+  att.forEach(a => fought.add(a.id)); defA.forEach(a => fought.add(a.id));
+  g.stat.battles++;
+  const main = side === "player" ? ph.playerMain : enemyFacOf(g, att[0]);
+  if (!defU.length){
+    att.forEach((a, i) => { ev.moves.push({ id: a.id, side, from: from[i], to: uf, type: "ocupar" }); a.uf = uf; });
+    const dir0 = side === "player" ? 1 : -1;
+    if (ts === "contested" && Math.abs(u.progress = clamp(u.progress + dir0 * 60, -100, 100)) < 100){
+      R(`${side === "player" ? "Suas tropas avançaram" : "O inimigo avançou"} em ${name} sem encontrar resistência organizada (frente ${u.progress > 0 ? "+" : ""}${u.progress}).`, side === "player" ? "good" : "bad");
+      return;
+    }
+    flipState(g, uf, main, side, ev);
+    R(`${side === "player" ? "Suas tropas ocuparam" : "O inimigo ocupou"} ${name} sem resistência.`, side === "player" ? "good" : "bad");
+    return;
+  }
+  const rec = fight(g, uf, { side, role: "att", units: att }, { side: foe, role: "def", units: defU }, ts === "contested" ? "frente" : "ataque");
+  rec.from = from; rec.attack = true;
+  if (mil && foe === "enemy") u.enemy = Math.max(0, Math.round(mil.str / GARRISON_K));
+  const dir = side === "player" ? 1 : -1;
+  let result;
+  if (rec.win === 0){
+    for (const d of defA) if (g.armies.includes(d)) retreatArmy(g, d, uf, ev, R);
+    const left = militia(g, foe, uf);
+    let flip;
+    if (ts === "contested"){ u.progress = clamp(u.progress + dir * Math.round(45 + 60 * rec.margin), -100, 100); flip = Math.abs(u.progress) >= 100 || !left || left.str < 3; }
+    else flip = side === "player" && (rec.margin >= 0.6 || !left || left.str < 3);   // o inimigo só abre frentes em território seu
+    att.forEach((a, i) => { if (g.armies.includes(a) && a.str >= 3){ ev.moves.push({ id: a.id, side, from: from[i], to: uf, type: "avanço" }); a.uf = uf; } });
+    if (flip){ flipState(g, uf, main, side, ev); result = side === "player" ? `${name} conquistado` : `${name} perdido para o inimigo`; }
+    else if (ts !== "contested"){ const f0 = g.control[uf]; setControl(g, uf, C.contested); g.uf[uf].progress = dir * Math.round(30 + 50 * rec.margin); if (side === "enemy") g.uf[uf].enemy = Math.max(g.uf[uf].enemy, 1); ev.flips.push({ uf, from: f0, to: C.contested, side }); result = `${name} entrou em disputa`; }
+    else result = `avanço em ${name} (frente ${g.uf[uf].progress > 0 ? "+" : ""}${g.uf[uf].progress})`;
+  } else {
+    if (ts === "contested") u.progress = clamp(u.progress - dir * Math.round(20 + 40 * rec.margin), -100, 100);
+    result = "ataque repelido";
+  }
+  rec.result = result; rec.control = g.control[uf];
+  ev.battles.push(rec);
+  R(battleText(rec) + ` Baixas: ${rec.loss[0]} × ${rec.loss[1]}.`, (rec.win === 0) === (side === "player") ? "good" : "bad");
+  cleanupArmies(g, ev, R);
+}
+function resolveFront(g, uf, ev, R, fought){
+  const ph = phaseOf(g), u = g.uf[uf], name = MAP_DATA.states[uf].name;
+  const P = armiesOf(g, "player", uf).filter(a => !fought.has(a.id)), E = armiesOf(g, "enemy", uf).filter(a => !fought.has(a.id));
+  if (rnd(g) < 0.25 + 0.08 * foreignFoes(g)) u.enemy = Math.min(9, u.enemy + 1);
+  const pm = militia(g, "player", uf), em = militia(g, "enemy", uf);
+  g.stat.battles++;
+  if (!P.length && !E.length){
+    u.progress = clamp(u.progress + Math.round(((pm ? pm.str : 0) - (em ? em.str : 0)) * 0.6 + (rnd(g) * 24 - 12)), -100, 100);
+  } else {
+    P.concat(E).forEach(a => fought.add(a.id));
+    const PU = P.concat(pm ? [pm] : []), EU = E.concat(em ? [em] : []);
+    if (!EU.length) u.progress = 100;
+    else if (!PU.length) u.progress = -100;
+    else {
+      const rec = fight(g, uf, { side: "player", role: "att", units: PU }, { side: "enemy", role: "att", units: EU }, "frente");
+      if (em) u.enemy = Math.max(0, Math.round(em.str / GARRISON_K));
+      const pw = rec.win === 0, sh = Math.round(30 + 60 * rec.margin);
+      u.progress = clamp(u.progress + (pw ? sh : -sh), -100, 100);
+      if (rec.margin >= 0.25) for (const a of (pw ? E : P)) if (g.armies.includes(a)) retreatArmy(g, a, uf, ev, R);
+      rec.result = `${pw ? "vantagem sua" : "vantagem inimiga"} (frente ${u.progress > 0 ? "+" : ""}${u.progress})`;
+      ev.battles.push(rec);
+      R(battleText(rec), pw ? "good" : "bad");
+    }
+  }
+  if (u.progress >= 100){ flipState(g, uf, ph.playerMain, "player", ev); R(`Vitória: ${name} agora está sob seu controle.`, "good"); }
+  else if (u.progress <= -100){ flipState(g, uf, enemyFacOf(g, E[0]), "enemy", ev); R(`Derrota: ${name} caiu nas mãos do inimigo.`, "bad"); }
+  cleanupArmies(g, ev, R);
+}
+function moveOk(g, a, to){ const ph = phaseOf(g), s = sideOf(g, g.control[to], ph); return ADJ[a.uf].includes(to) && (s === a.side || (a.side === "player" && !ph.war && s === "contested")); }
+// Resolução mensal: movimentos → ataques → frentes em disputa → recuperação
+function militaryMonth(g, R, combat){
+  const ph = phaseOf(g), war = !!ph.war && combat !== false;
+  const ev = g.mil = { month: g.month, war, control0: Object.assign({}, g.control), moves: [], battles: [], flips: [], lost: [],
+    start: g.armies.map(a => ({ id: a.id, side: a.side, uf: a.uf, str: Math.round(a.str), name: a.name, fac: a.fac })) };
+  const plans = [];
+  for (const a of g.armies) if (a.side === "player" && a.order) plans.push({ a, type: a.order.type, to: a.order.to });
+  for (const p of (g.enemyPlans || [])){ const a = armyById(g, p.id); if (a && a.side === "enemy") plans.push({ a, type: p.type, to: p.to }); }
+  ev.orders = plans.filter(p => p.to).map(p => ({ id: p.a.id, side: p.a.side, from: p.a.uf, to: p.to, type: p.type }));
+  const fought = new Set();
+  MIL_QUIET = true;
+  try {
+    for (const p of plans){
+      const a = p.a;
+      if ((p.type === "mover" || p.type === "recuar") && moveOk(g, a, p.to)){ ev.moves.push({ id: a.id, side: a.side, from: a.uf, to: p.to, type: p.type }); a.uf = p.to; a.org = Math.max(0, a.org - 3); }
+      else if (p.type === "reforcar"){ a.str = Math.min(ARMY_MAX, a.str + STR_UNIT); a.org = Math.min(maxOrg(g, a.side), a.org + 5); }
+    }
+    if (war){
+      const groups = new Map();
+      for (const p of plans) if (p.type === "atacar"){ const k = p.a.side + ">" + p.to; if (!groups.has(k)) groups.set(k, { side: p.a.side, to: p.to, armies: [] }); groups.get(k).armies.push(p.a); }
+      const bySide = s => [...groups.values()].filter(x => x.side === s).sort((x, y) => UF_WEIGHT[y.to] - UF_WEIGHT[x.to] || (x.to < y.to ? -1 : 1));
+      const P = bySide("player"), E = bySide("enemy"), order = [];
+      for (let i = 0; i < Math.max(P.length, E.length); i++){ if (P[i]) order.push(P[i]); if (E[i]) order.push(E[i]); }
+      for (const grp of order){
+        const att = grp.armies.filter(a => g.armies.includes(a) && ADJ[a.uf].includes(grp.to) && !fought.has(a.id) && a.str >= 3);
+        if (!att.length) continue;
+        const ts = sideOf(g, g.control[grp.to], ph);
+        const hostile = grp.side === "player" ? (ts === "enemy" || ts === "contested") : (ts === "player" || ts === "contested");
+        if (!hostile) continue;
+        if (ts === "contested") for (const a of armiesOf(g, grp.side, grp.to)) if (!att.includes(a) && !fought.has(a.id)) att.push(a);
+        resolveAttack(g, grp.side, att, grp.to, ev, R, fought);
+      }
+      for (const uf of Object.keys(g.control)) if (sideOf(g, g.control[uf], ph) === "contested" && !ev.battles.some(b => b.uf === uf)) resolveFront(g, uf, ev, R, fought);
+    }
+  } finally { MIL_QUIET = false; }
+  for (const a of g.armies){
+    if (!fought.has(a.id)) a.org = Math.min(maxOrg(g, a.side), a.org + 12 + (a.order && a.order.type === "defender" ? 6 : 0) - (supplied(g, a.side, a.uf) ? 0 : 10));
+    a.org = Math.max(0, Math.round(a.org)); a.order = null;
+  }
+  g.enemyPlans = [];
+  normalizeArmies(g, R);
+  for (const m of ev.moves) if (m.type === "mover" && m.side === "player") R(`${(armyById(g, m.id) || {}).name || "Exército"} deslocou-se para ${MAP_DATA.states[m.to].name}.`);
+  return ev;
+}
+function nearestAllowed(g, side, from, ph){
+  const seen = new Set([from]); let frontier = [from];
+  while (frontier.length){
+    const next = [];
+    for (const f of frontier) for (const n of ADJ[f]) if (!seen.has(n)){ seen.add(n); next.push(n); }
+    const ok = next.filter(n => armyAllowed(g, side, n, ph));
+    if (ok.length) return ok.sort((a, b) => (sideOf(g, g.control[b], ph) === side) - (sideOf(g, g.control[a], ph) === side) || UF_WEIGHT[b] - UF_WEIGHT[a] || (a < b ? -1 : 1))[0];
+    frontier = next;
+  }
+  return null;
+}
+// Mantém exércitos em território possível após mudanças de mapa da história, fim de guerra etc.
+function normalizeArmies(g, R){
+  if (!g.armies) return;
+  const ph = phaseOf(g);
+  if (ph.noArmies && g.armies.some(a => a.side === "player")){ g.armies = g.armies.filter(a => a.side !== "player"); if (R) R("Suas unidades voltaram à cadeia de comando regular: nesta fase você não comanda exércitos.", "info"); }
+  for (const a of [...g.armies]){
+    if (a.str < 3){ removeArmy(g, a); continue; }
+    a.org = Math.min(a.org, maxOrg(g, a.side));
+    if (armyAllowed(g, a.side, a.uf, ph)) continue;
+    const to = nearestAllowed(g, a.side, a.uf, ph);
+    if (to){ a.uf = to; if (a.order && a.order.type !== "reforcar") a.order = null; }
+    else { removeArmy(g, a); if (R && a.side === "player") R(`${a.name} foi desmobilizado: não há território seguro para ele.`, "bad"); }
+  }
+}
+function spawnWarArmies(g){
+  const C = scOf(g).campaign, ph = phaseOf(g), cfg = armyCfg(g);
+  const hot = n => { const s = sideOf(g, g.control[n], ph); return s === "player" || s === "contested"; };
+  const enemyUFs = Object.keys(g.control).filter(uf => sideOf(g, g.control[uf], ph) === "enemy");
+  const cand = enemyUFs.slice().sort((a, b) => (ADJ[b].some(hot) - ADJ[a].some(hot)) || UF_WEIGHT[b] - UF_WEIGHT[a] || (a < b ? -1 : 1));
+  const n = cfg.enemyStart ?? clamp(Math.round(enemyUFs.length * 0.2 + (C.enemyPower ?? 1)), 2, 5);
+  const have = armiesOf(g, "enemy").length;
+  for (let i = 0; i < n - have && i < cand.length; i++) newArmy(g, "enemy", cand[i], (cfg.enemyStr ?? 5 + 5 * (C.enemyBase || 2)) + ri(g, 0, 5), { fac: g.control[cand[i]] });
+}
+// Chamado após qualquer mudança de mapa fora das batalhas (história, revoltas, adesões) e ao entrar num nó
+function syncMilitary(g, before){
+  if (!g.armies || MIL_QUIET) return;
+  const ph = phaseOf(g), C = scOf(g).campaign;
+  if (g.milPhase !== ph.id){ g.milPhase = ph.id; if (ph.war) spawnWarArmies(g); }
+  else if (ph.war && before){
+    let n = 0;
+    for (const uf of Object.keys(g.control)){
+      if (n >= 3 || armiesOf(g, "enemy").length >= ARMY_CAP.enemy) break;
+      if (g.control[uf] !== before[uf] && sideOf(g, g.control[uf], ph) === "enemy" && sideOf(g, before[uf], ph) !== "enemy" && !armiesOf(g, "enemy", uf).length){
+        newArmy(g, "enemy", uf, 10 + 5 * (C.enemyBase || 2), { fac: g.control[uf] }); n++; }
+    }
+  }
+  normalizeArmies(g);
+  if (ph.war) planEnemy(g, true); else g.enemyPlans = [];
+}
+function threatAt(g, uf){ return [uf, ...ADJ[uf]].reduce((s, n) => s + armiesOf(g, "player", n).reduce((t, a) => t + armyPow(a), 0), 0); }
+function enemyOrderValid(g, a, p){
+  const ph = phaseOf(g);
+  if (p.type === "defender") return true;
+  if (!ADJ[a.uf].includes(p.to)) return false;
+  const s = sideOf(g, g.control[p.to], ph);
+  return p.type === "mover" ? s === "enemy" : (s === "player" || s === "contested");
+}
+function stepToward(g, a, goal){
+  const ph = phaseOf(g), prev = { [a.uf]: null }; let frontier = [a.uf];
+  while (frontier.length){
+    const next = [];
+    for (const f of frontier){
+      if (f !== a.uf && ADJ[f].some(goal)){ let s = f; while (prev[s] !== a.uf) s = prev[s]; return s; }
+      for (const n of ADJ[f]) if (!(n in prev) && sideOf(g, g.control[n], ph) === "enemy"){ prev[n] = f; next.push(n); }
+    }
+    frontier = next;
+  }
+  return null;
+}
+// IA inimiga: ataca estados fracos ou em disputa, guarda as capitais, avança para a frente
+function planEnemy(g, keep){
+  const ph = phaseOf(g), C = scOf(g).campaign;
+  if (!g.armies || !ph.war || g.ended){ g.enemyPlans = []; return; }
+  const hot = uf => { const s = sideOf(g, g.control[uf], ph); return s === "player" || s === "contested"; };
+  const plans = keep ? (g.enemyPlans || []).filter(p => { const a = armyById(g, p.id); return a && a.side === "enemy" && enemyOrderValid(g, a, p); }) : [];
+  const planned = new Set(plans.map(p => p.id));
+  const limit = clamp(Math.round((C.enemyPower ?? 1) * 0.8 + foreignFoes(g) * 0.5 + (g.enemyBoost || 0) * 0.3 - malusNow(g)), 1, 4);
+  let attacks = new Set(plans.filter(p => p.type === "atacar").map(p => p.to)).size;
+  const free = () => armiesOf(g, "enemy").filter(a => !planned.has(a.id));
+  const caps = enemyCapitals(g);
+  for (const cap of caps) if (threatAt(g, cap) > 0 && !armiesOf(g, "enemy", cap).length){
+    const d = free().filter(a => ADJ[a.uf].includes(cap) && sideOf(g, g.control[a.uf], ph) === "enemy" && !caps.includes(a.uf)).sort((x, y) => armyPow(y) - armyPow(x))[0];
+    if (d){ plans.push({ id: d.id, type: "mover", to: cap }); planned.add(d.id); }
+  }
+  const targets = {};
+  for (const a of free()){
+    if (a.org < 35 || a.str < 8 || sideOf(g, g.control[a.uf], ph) === "contested") continue;
+    if (caps.includes(a.uf) && threatAt(g, a.uf) > armyPow(a) * 0.6 && armiesOf(g, "enemy", a.uf).length <= 1) continue;
+    for (const t of ADJ[a.uf]) if (hot(t)) (targets[t] ||= []).push(a);
+  }
+  const pcap = capitalOf(g, "player");
+  const scored = Object.entries(targets).map(([t, arr]) => {
+    arr.sort((x, y) => armyPow(y) - armyPow(x));
+    let grp = [], o = null; for (const a of arr){ grp.push(a); o = battleOdds(g, "enemy", grp, t); if (o.ratio >= 1.35) break; }
+    return { t, grp, ratio: o.ratio, score: Math.min(o.ratio, 3) * 6 + UF_WEIGHT[t] * 0.5 + (sideOf(g, g.control[t], ph) === "contested" ? 3 : 0) + (t === pcap ? 2 : 0) + rnd(g) * 2 };
+  }).filter(x => x.ratio >= 1.15).sort((a, b) => b.score - a.score);
+  for (const s of scored){
+    if (attacks >= limit || g.ceasefire > 0) break;
+    const grp = s.grp.filter(a => !planned.has(a.id)); if (!grp.length || battleOdds(g, "enemy", grp, s.t).ratio < 1.15) continue;
+    for (const a of grp){ plans.push({ id: a.id, type: "atacar", to: s.t }); planned.add(a.id); }
+    attacks++;
+  }
+  for (const a of free()){
+    if (sideOf(g, g.control[a.uf], ph) !== "contested" && !ADJ[a.uf].some(hot) && a.org >= 30){
+      const step = stepToward(g, a, hot);
+      if (step){ plans.push({ id: a.id, type: "mover", to: step }); planned.add(a.id); continue; }
+    }
+    plans.push({ id: a.id, type: "defender" }); planned.add(a.id);
+  }
+  g.enemyPlans = plans;
+}
+function enemyReinforce(g, R){
+  const C = scOf(g).campaign, ph = phaseOf(g);
+  const inc = Math.max(0, (C.enemyPower ?? 1) * 5 + foreignFoes(g) * 3 + (g.enemyBoost || 0) * 2 - malusNow(g) * 4);
+  g.enemyPool = Math.min(60, (g.enemyPool || 0) + inc);
+  const hot = uf => { const s = sideOf(g, g.control[uf], ph); return s === "player" || s === "contested"; };
+  for (let guard = 0; g.enemyPool >= STR_UNIT && guard < 8; guard++){
+    const mine = armiesOf(g, "enemy");
+    const weak = mine.filter(a => a.str <= ARMY_MAX - STR_UNIT && supplied(g, "enemy", a.uf)).sort((a, b) => a.str - b.str)[0];
+    if ((!weak || weak.str >= 30) && mine.length < ARMY_CAP.enemy && g.enemyPool >= 20){
+      const sites = Object.keys(g.control).filter(uf => sideOf(g, g.control[uf], ph) === "enemy" && !armiesOf(g, "enemy", uf).length)
+        .sort((a, b) => (ADJ[b].some(hot) - ADJ[a].some(hot)) || UF_WEIGHT[b] - UF_WEIGHT[a] || (a < b ? -1 : 1));
+      if (sites.length){ const a = newArmy(g, "enemy", sites[0], 20, { fac: g.control[sites[0]], org: 50, xp: 5 }); g.enemyPool -= 20;
+        R(`Inteligência: o inimigo formou uma nova força — ${a.name}, em ${MAP_DATA.states[sites[0]].name}.`, "bad"); continue; }
+    }
+    if (!weak) break;
+    weak.str += STR_UNIT; g.enemyPool -= STR_UNIT;
+  }
+}
+/* --- Ordens do jogador (sem PA) --- */
+function commandLimit(g){ const C = scOf(g).campaign, mil = g.stats[C.keys.mil] ?? 50, nat = natLoyalty(g);
+  return clamp(1 + Math.floor(mil / 25) + (nat >= 65 ? 1 : nat < 25 ? -1 : 0), 1, 5); }
+function ordersUsed(g){ return armiesOf(g, "player").filter(a => a.order && MANEUVER.includes(a.order.type)).length; }
+function reinforceCost(g){ return armyCfg(g).reinforceCost ?? 5; }
+function recruitCost(g){ return armyCfg(g).recruitCost ?? 12; }
+function armyTargets(g, a){
+  const ph = phaseOf(g), war = !!ph.war && !(g.ceasefire > 0), here = sideOf(g, g.control[a.uf], ph), out = [];
+  for (const t of ADJ[a.uf]){
+    const s = sideOf(g, g.control[t], ph);
+    if (s === "player") out.push({ uf: t, type: here === "contested" ? "recuar" : "mover" });
+    else if (s === "contested") { if (war) out.push({ uf: t, type: "atacar" }); else if (!ph.war) out.push({ uf: t, type: "mover" }); }
+    else if (s === "enemy" && war) out.push({ uf: t, type: "atacar" });
+  }
+  return out;
+}
+function setOrder(g, id, type, to){
+  const a = armyById(g, id);
+  if (!a || a.side !== "player") return { ok: false, msg: "Exército inválido." };
+  if (g.ended) return { ok: false, msg: "Partida encerrada." };
+  if (g.queue.length) return { ok: false, msg: "Resolva os eventos pendentes antes de dar ordens." };
+  const refund = () => { if (a.order && a.order.type === "reforcar") g.money += a.order.paid || 0; };
+  const here = MAP_DATA.states[a.uf].name;
+  if (!type){ refund(); a.order = null; return { ok: true, msg: `${a.name}: ordem cancelada.` }; }
+  if (type === "defender"){ refund(); a.order = { type }; return { ok: true, msg: `${a.name} vai defender ${here}.` }; }
+  if (type === "reforcar"){
+    const cost = reinforceCost(g);
+    if (a.order && a.order.type === "reforcar") return { ok: true, msg: `${a.name} já será reforçado.` };
+    if (sideOf(g, g.control[a.uf]) !== "player") return { ok: false, msg: "Só é possível reforçar em território seu." };
+    if (a.str > ARMY_MAX - STR_UNIT) return { ok: false, msg: "Este exército já está com efetivo máximo." };
+    if (g.money < cost) return { ok: false, msg: "Recursos insuficientes." };
+    g.money -= cost; a.order = { type, paid: cost };
+    return { ok: true, msg: `${a.name} receberá +${STR_UNIT} de força no fim do mês (−${cost}).` };
+  }
+  const t = armyTargets(g, a).find(x => x.uf === to);
+  if (!t) return { ok: false, msg: isWar(g) ? (g.ceasefire > 0 ? "Trégua em vigor: só movimentos entre seus estados." : "Alvo fora de alcance: escolha um estado vizinho.") : "Sem guerra: só é possível reposicionar tropas entre estados vizinhos seus." };
+  const was = a.order && MANEUVER.includes(a.order.type);
+  if (!was && ordersUsed(g) >= commandLimit(g)) return { ok: false, msg: `Limite de comando atingido (${commandLimit(g)} ordens de manobra por mês).` };
+  refund(); a.order = { type: t.type, to };
+  return { ok: true, msg: `${a.name}: ${ORDER_LABEL[t.type].toLowerCase()} ${MAP_DATA.states[to].name}.` };
+}
+function recruitArmy(g, uf){
+  const ph = phaseOf(g), cost = recruitCost(g);
+  if (g.ended) return { ok: false, msg: "Partida encerrada." };
+  if (g.queue.length) return { ok: false, msg: "Resolva os eventos pendentes." };
+  if (ph.noArmies) return { ok: false, msg: "Nesta fase você não comanda tropas." };
+  uf = uf || capitalOf(g, "player");
+  if (!uf || sideOf(g, g.control[uf], ph) !== "player") return { ok: false, msg: "Escolha um estado sob seu controle." };
+  if (g.used._recruit) return { ok: false, msg: "Só é possível formar um exército por mês." };
+  if (armiesOf(g, "player").length >= ARMY_CAP.player) return { ok: false, msg: `Limite de ${ARMY_CAP.player} exércitos.` };
+  if (g.money < cost) return { ok: false, msg: "Recursos insuficientes." };
+  g.money -= cost; g.used._recruit = true;
+  const a = newArmy(g, "player", uf, 15, { org: 45, xp: 0 });
+  return { ok: true, msg: `Novo exército formado: ${a.name} em ${MAP_DATA.states[uf].name} (15 de força, −${cost}).`, id: a.id };
+}
+function intentKnown(g, p){
+  const a = armyById(g, p.id); if (!a) return false;
+  if ((g.stats[scOf(g).campaign.keys.mil] ?? 50) >= 60) return true;
+  const near = [a.uf, ...ADJ[a.uf]];
+  return armiesOf(g, "player").some(x => near.includes(x.uf)) || (!!p.to && armiesOf(g, "player", p.to).length > 0);
+}
+function knownIntents(g){ return (g.enemyPlans || []).filter(p => p.type !== "defender" && p.to && intentKnown(g, p)); }
+function initArmies(g){
+  Object.assign(g, { armies: [], armySeq: 0, armyN: {}, enemyPlans: [], enemyPool: 0, mil: null, armsAid: null, milPhase: phaseOf(g).id });
+  const cfg = armyCfg(g);
+  for (const s of (cfg.start || [])) newArmy(g, "player", s.uf, s.str, { gen: s.gen, name: s.name });
+  if (phaseOf(g).war) spawnWarArmies(g);
+  normalizeArmies(g);
+}
+// Saves da versão 2 (tropas como contadores por estado + reserva) → exércitos
+function migrateSave(g){
+  if (!g || g.v === SAVE_VERSION) return g;
+  if (g.v !== 2 || !scOf(g)) return null;
+  const units = Object.entries(g.uf).map(([uf, u]) => [uf, u.force || 0]);
+  const reserve = g.reserve || 0;
+  initArmies(g); g.armies = []; g.armyN = {};
+  for (const [uf, f] of units) if (f > 0 && armyAllowed(g, "player", uf)) newArmy(g, "player", uf, Math.min(ARMY_MAX, f * STR_UNIT));
+  for (const uf in g.uf) delete g.uf[uf].force;
+  delete g.reserve;
+  if (reserve > 0) addPlayerStrength(g, reserve * STR_UNIT);
+  if (phaseOf(g).war) spawnWarArmies(g);
+  normalizeArmies(g); planEnemy(g);
+  g.v = SAVE_VERSION; g.milMigrated = true;
+  return g;
+}
 /*CORE_END*/
 
 
@@ -2739,7 +3371,7 @@ function resolveGenericDyn(g, q, idx){
    INTERFACE
    ===================================================================== */
 let SCEN = null, STORY = null, G = null;
-const UI = { tab: "historia", selUF: null, selActor: null, req: [], off: [], dealMsg: null, mapMode: "controle" };
+const UI = { tab: "historia", selUF: null, selArmy: null, selActor: null, req: [], off: [], dealMsg: null, mapMode: "controle" };
 const LAST_SCEN_KEY = "jogo_br_ultimo_cenario", TUTORIAL_KEY = "jogo_br_tutorial_v2";
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -2754,6 +3386,7 @@ function loadInfo(sc){
   let raw = null; try{ raw = localStorage.getItem(sc.saveKey); }catch(e){}
   if (!raw) return { save: null, legacy: false };
   let g = null; try{ g = JSON.parse(raw); }catch(e){}
+  if (g && g.v === 2 && g.scen === sc.id && g.stats && g.uf){ try{ migrateSave(g); localStorage.setItem(sc.saveKey, JSON.stringify(g)); }catch(e){ console.warn("migração v2→v3:", e); g = null; } }
   if (g && g.v === SAVE_VERSION && g.scen === sc.id && g.stats && g.uf){ if (sc.campaign && sc.campaign.focus && !g.focus){ focusInit(g); for (const n of Object.keys(sc.campaign.focus.grants || {})) if (g.visited.includes(n)) focusStoryGrant(g, n, null); g.focusMigrated = true; } return { save: g, legacy: false }; }
   // save antigo (só história) ou corrompido: arquiva sem apagar os finais descobertos
   try{ localStorage.setItem(sc.saveKey + "_legacy", raw); localStorage.removeItem(sc.saveKey); }catch(e){}
@@ -2781,22 +3414,25 @@ function unrestColor(v){ const t = v / 100; const r = Math.round(60 + 170*t), gg
 function mapSVG(control, changed, opts){
   opts = opts || {};
   const ch = new Set((changed||[]).map(c => c.uf));
-  let paths = "", labels = "", marks = "";
+  const mil = opts.military && opts.g && !phaseOf(opts.g).noArmies;
+  const tg = {};
+  if (mil && opts.selArmy && opts.selArmy.side === "player" && !opts.static) for (const t of armyTargets(opts.g, opts.selArmy)) tg[t.uf] = t.type;
+  let paths = "", labels = "";
   for (const uf in MAP_DATA.states){
     const s = MAP_DATA.states[uf], f = STORY.factions[control[uf]] || STORY.factions[STORY.defaultFaction || "federal"];
     const fill = opts.mode === "agitacao" && opts.g ? unrestColor(opts.g.uf[uf].unrest) : f.color;
-    paths += `<path class="uf${ch.has(uf)?" changed":""}${opts.sel===uf?" sel":""}${control[uf]==="disputa"?" contested":""}" data-uf="${uf}" d="${s.d}" fill="${fill}"></path>`;
+    paths += `<path class="uf${ch.has(uf)?" changed":""}${opts.sel===uf?" sel":""}${control[uf]==="disputa"?" contested":""}${tg[uf] ? " tgt tgt-" + tg[uf] : ""}${opts.selArmy && opts.selArmy.uf === uf ? " origin" : ""}" data-uf="${uf}" d="${s.d}" fill="${fill}"></path>`;
     const o = LABEL_POS[uf], x = o ? o[0] : s.lx, y = o ? o[1] : s.ly;
     if (o) labels += `<line x1="${s.lx}" y1="${s.ly}" x2="${o[0]-10}" y2="${o[1]}"/>`;
     labels += `<text x="${x}" y="${y}">${uf}</text>`;
-    if (opts.g){
-      const u = opts.g.uf[uf], bits = [];
-      if (u.force > 0) bits.push(`<tspan class="mf">▲${u.force}</tspan>`);
-      if (u.enemy > 0 && (control[uf] === "disputa" || (opts.g && sideOf(opts.g, control[uf]) === "enemy" && u.force > 0))) bits.push(`<tspan class="me">▼${u.enemy}</tspan>`);
-      if (bits.length) marks += `<text class="mk" x="${x}" y="${y + 13}">${bits.join(" ")}</text>`;
-    }
   }
-  return `<svg viewBox="0 0 620 ${MAP_DATA.size[1]+6}" role="img" aria-label="Mapa do Brasil por facção">${paths}${labels}${marks}</svg>`;
+  let L = { fronts: "", pulses: "", arrows: "", counters: "" }, w = 620;
+  if (mil){
+    L = militaryLayers(opts.g, control, { armies: opts.armies, arrows: opts.arrows !== undefined ? opts.arrows : currentArrows(opts.g), selArmy: opts.selArmy });
+    const xs = [...L.counters.matchAll(/translate\(([\d.]+),/g)].map(m => +m[1]);
+    if (xs.length) w = Math.max(620, Math.ceil(Math.max(...xs) + 22 * (MOBILE_MAP() ? 1.3 : 1)));
+  }
+  return `<svg viewBox="0 0 ${w} ${MAP_DATA.size[1]+6}" class="${mil ? "milmap" : ""}${MOBILE_MAP() ? " small" : ""}" role="img" aria-label="Mapa do Brasil por facção${mil ? ", com exércitos e ordens" : ""}">${mil ? ARROW_DEFS : ""}${paths}<g class="fx">${L.pulses}${L.fronts}</g>${labels}<g class="arrows">${L.arrows}</g><g class="counters">${L.counters}</g></svg>`;
 }
 function legendHTML(control){
   const counts = {};
@@ -2810,17 +3446,308 @@ function renderMap(el, control, changed, withNotes, opts){
   el.innerHTML = mapSVG(control, changed, opts) + `<div class="maptip"></div><div class="legend">${legend}</div>` + notes;
   const tip = el.querySelector(".maptip"), svg = el.querySelector("svg");
   const show = (e) => {
-    const p = e.target.closest("path.uf"); if (!p) { tip.style.display = "none"; return; }
+    const p = e.target.closest("path.uf, g.cnt"); if (!p) { tip.style.display = "none"; return; }
     const uf = p.dataset.uf, f = STORY.factions[control[uf]], r = el.getBoundingClientRect();
     const extra = STORY.stateNotes && STORY.stateNotes[uf] ? `<br><span style="color:#9c9182">${esc(STORY.stateNotesLabel||"")}: ${esc(STORY.stateNotes[uf])}</span>` : "";
-    const gx = opts && opts.g ? `<br>Agitação ${Math.round(opts.g.uf[uf].unrest)}${opts.g.uf[uf].force ? ` · suas tropas ${opts.g.uf[uf].force}` : ""}` : "";
+    const here = opts && opts.g && opts.military ? (opts.armies || opts.g.armies || []).filter(a => a.uf === uf) : [];
+    const gx = opts && opts.g ? `<br>Agitação ${Math.round(opts.g.uf[uf].unrest)}${here.length ? "<br>" + here.map(a => `<span style="color:${a.side === "player" ? "#9cc3ea" : "#f09a86"}">${esc(a.name)} (${Math.round(a.str)})</span>`).join("<br>") : ""}` : "";
     tip.innerHTML = `<strong>${uf}</strong> · ${esc(MAP_DATA.states[uf].name)}<br>${esc(f ? f.label : control[uf])}${gx}${extra}`;
     tip.style.left = (e.clientX - r.left) + "px"; tip.style.top = (e.clientY - r.top) + "px"; tip.style.display = "block";
   };
   svg.addEventListener("mousemove", show);
   svg.addEventListener("mouseleave", () => tip.style.display = "none");
-  if (opts && opts.onPick) svg.addEventListener("click", e => { const p = e.target.closest("path.uf"); if (p) opts.onPick(p.dataset.uf); });
+  if (opts && opts.onPick) svg.addEventListener("click", e => {
+    const c = e.target.closest("g.cnt"); if (c && opts.onArmy){ tip.style.display = "none"; opts.onArmy(c.dataset.uf, c.dataset.side); return; }
+    const p = e.target.closest("path.uf"); if (p) opts.onPick(p.dataset.uf); });
   else svg.addEventListener("click", show);
+}
+
+/* ---------- Camadas militares do mapa: fronteiras de frente, setas de ordens, contadores (OTAN) ---------- */
+const STATE_PTS = {}, BORDER_CACHE = {};
+function statePts(uf){ return STATE_PTS[uf] || (STATE_PTS[uf] = [...MAP_DATA.states[uf].d.matchAll(/(-?\d+\.?\d*),(-?\d+\.?\d*)/g)].map(m => [+m[1], +m[2]])); }
+// Trecho de fronteira compartilhado entre dois estados (vértices de A encostados no polígono de B)
+function sharedBorder(a, b){
+  const k = a < b ? a + b : b + a; if (k in BORDER_CACHE) return BORDER_CACHE[k];
+  const A = statePts(a < b ? a : b), B = statePts(a < b ? b : a);
+  const segd = (p, s, t) => { const dx = t[0]-s[0], dy = t[1]-s[1], L = dx*dx+dy*dy; let u = L ? ((p[0]-s[0])*dx + (p[1]-s[1])*dy) / L : 0; u = Math.max(0, Math.min(1, u)); return Math.hypot(s[0]+u*dx-p[0], s[1]+u*dy-p[1]); };
+  const near = A.map(p => { for (let i = 0; i < B.length - 1; i++) if (segd(p, B[i], B[i+1]) < 0.8) return true; return false; });
+  let d = "", run = [];
+  const flush = () => { if (run.length >= 2) d += "M" + run.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join("L"); run = []; };
+  A.forEach((p, i) => { if (near[i]) run.push(p); else flush(); }); flush();
+  return (BORDER_CACHE[k] = d);
+}
+const MOBILE_MAP = () => window.innerWidth < 600;
+function ufAnchor(uf){ const s = MAP_DATA.states[uf], o = LABEL_POS[uf]; return o ? { x: o[0], y: o[1], side: true } : { x: s.lx, y: s.ly }; }
+function counterPos(uf, side, both){
+  const a = ufAnchor(uf), k = MOBILE_MAP() ? 1.3 : 1;
+  if (a.side) return { x: a.x + 26 * k + (both && side === "enemy" ? 30 * k : 0), y: a.y };
+  return { x: a.x + (both ? (side === "player" ? -16 : 16) * k : 0), y: a.y + 16 * k };
+}
+function counterSVG(side, uf, list, opts){
+  const both = opts.both, p = counterPos(uf, side, both), k = MOBILE_MAP() ? 1.3 : 1;
+  const str = Math.round(list.reduce((s, a) => s + a.str, 0)), sel = opts.selArmy && list.some(a => a.id === opts.selArmy.id);
+  const ordered = side === "player" && list.some(a => a.order), n = list.length;
+  return `<g class="cnt ${side === "player" ? "p" : "e"}${sel ? " sel" : ""}${ordered ? " ord" : ""}" data-uf="${uf}" data-side="${side}" data-id="${list[0].id}" transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)}) scale(${k})">
+    <rect class="bg" x="-15" y="-7.5" width="30" height="15" rx="2"/><rect class="sym" x="-13" y="-5.5" width="10" height="11"/><path class="sym" d="M-13,-5.5L-3,5.5M-13,5.5L-3,-5.5"/>
+    <text class="cn" x="6.5" y="0.5">${str}</text>${n > 1 ? `<circle class="badge" cx="14" cy="-7" r="4.6"/><text class="cb" x="14" y="-6.6">${n}</text>` : ""}</g>`;
+}
+function arrowSVG(from, to, cls){
+  const a = MAP_DATA.states[from], b = MAP_DATA.states[to];
+  const x1 = a.lx, y1 = a.ly, x2 = b.lx, y2 = b.ly, dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1;
+  const sx = x1 + dx / L * 6, sy = y1 + dy / L * 6, ex = x2 - dx / L * 9, ey = y2 - dy / L * 9;
+  const cx = (sx + ex) / 2 - dy / L * L * 0.18, cy = (sy + ey) / 2 + dx / L * L * 0.18;
+  return `<path class="arw ${cls}" d="M${sx.toFixed(1)},${sy.toFixed(1)} Q${cx.toFixed(1)},${cy.toFixed(1)} ${ex.toFixed(1)},${ey.toFixed(1)}" marker-end="url(#ah-${cls.split(" ")[0]})"/>`;
+}
+const ARROW_DEFS = `<defs>${[["pl", "#f3c969"], ["mv", "#cfe3f5"], ["en", "#ff6a52"], ["rt", "#b0a898"]].map(([id, c]) => `<marker id="ah-${id}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="${c}"/></marker>`).join("")}
+  <radialGradient id="smk"><stop offset="0" stop-color="#d8d2c6" stop-opacity=".75"/><stop offset="1" stop-color="#6d665c" stop-opacity="0"/></radialGradient>
+  <radialGradient id="fls"><stop offset="0" stop-color="#fff6d0"/><stop offset=".45" stop-color="#ffb347" stop-opacity=".85"/><stop offset="1" stop-color="#ff5a2a" stop-opacity="0"/></radialGradient></defs>`;
+function orderArrowClass(type, side){ return side === "enemy" ? "en" : type === "atacar" ? "pl" : type === "recuar" ? "rt" : "mv"; }
+// Monta as camadas militares (frentes, pulsos, setas, contadores) para um estado de jogo
+function militaryLayers(g, control, opts){
+  const ph = phaseOf(g), war = !!ph.war;
+  let fronts = "", pulses = "", arrows = "", counters = "";
+  const side = uf => sideOf(g, control[uf], ph);
+  if (war) for (const a in ADJ) for (const b of ADJ[a]){
+    if (a > b) continue;
+    const sa = side(a), sb = side(b);
+    const hostile = (sa === "player" && (sb === "enemy" || sb === "contested")) || (sb === "player" && (sa === "enemy" || sa === "contested")) || (sa === "contested" && sb === "enemy") || (sb === "contested" && sa === "enemy");
+    if (hostile){ const d = sharedBorder(a, b); if (d) fronts += `<path class="front${sa === "contested" || sb === "contested" ? " hot" : ""}" d="${d}"/>`; }
+  }
+  for (const uf in control) if (war && side(uf) === "contested") pulses += `<path class="battlefx" d="${MAP_DATA.states[uf].d}"/>`;
+  const armies = opts.armies || g.armies || [];
+  if (opts.arrows) for (const o of opts.arrows) arrows += arrowSVG(o.from, o.to, orderArrowClass(o.type, o.side) + (o.side === "enemy" ? " intent" : ""));
+  const groups = {};
+  for (const a of armies) (groups[a.uf + "|" + a.side] ||= []).push(a);
+  for (const key in groups){
+    const [uf, s] = key.split("|"), both = !!groups[uf + "|" + (s === "player" ? "enemy" : "player")];
+    counters += counterSVG(s, uf, groups[key], { both, selArmy: opts.selArmy });
+  }
+  return { fronts, pulses, arrows, counters };
+}
+function currentArrows(g){
+  const out = [];
+  for (const a of armiesOf(g, "player")) if (a.order && a.order.to) out.push({ side: "player", from: a.uf, to: a.order.to, type: a.order.type });
+  for (const p of knownIntents(g)){ const a = armyById(g, p.id); if (a) out.push({ side: "enemy", from: a.uf, to: p.to, type: p.type }); }
+  return out;
+}
+
+/* ---------- Tela de batalha ---------- */
+const BATTLE_KIND = { ataque: "Ataque", frente: "Combate na frente" };
+function oddsLabel(r){ return r >= 1.5 ? "muito favorável" : r >= 1.15 ? "favorável" : r >= 0.87 ? "equilibrada" : r >= 0.6 ? "arriscada" : "muito arriscada"; }
+function closeOverlay(id){ const o = document.getElementById(id); if (o){ if (o._timer) clearTimeout(o._timer); o.remove(); } document.body.classList.remove("noscroll"); }
+function battleSideHTML(s, idx, maxStr, label){
+  const units = s.units.map((u, i) => `<div class="bunit${u.militia ? " mil" : ""}" data-i="${i}">
+      <div class="bname"><i class="nato ${s.side === "player" ? "p" : "e"}${u.militia ? " m" : ""}"></i><b>${esc(u.name)}</b></div>${u.gen ? `<div class="bgen">${esc(u.gen)}</div>` : ""}
+      <div class="bbar str"><i style="width:${Math.max(2, u.str0 / maxStr * 100)}%"></i><em>${u.str0}</em></div>
+      <div class="bbar org"><i style="width:${u.org0}%"></i><em>moral ${u.org0}</em></div></div>`).join("");
+  const mods = (s.mods || []).map(m => `<li class="${m.v > 0 ? "up" : "down"}"><span>${esc(m.label)}</span><b>${m.v > 0 ? "+" : ""}${Math.round(m.v * 100)}%</b></li>`).join("");
+  return `<div class="bside ${s.side === "player" ? "p" : "e"}" data-side="${idx}"><div class="bhead">${esc(label)}<small>${s.role === "def" ? "defendendo" : s.role === "att" ? "atacando" : ""}</small></div>${units}
+    <ul class="bmods">${mods || `<li><span>Sem modificadores</span></li>`}</ul><div class="bfx"></div></div>`;
+}
+function openBattle(rec, opts){
+  opts = opts || {};
+  closeOverlay("battle");
+  const pl = rec.sides.findIndex(s => s.side === "player"), L = pl < 0 ? 0 : pl, R = 1 - L, name = MAP_DATA.states[rec.uf].name;
+  const maxStr = Math.max(10, ...rec.sides.flatMap(s => s.units.map(u => u.str0)));
+  const sideLabel = s => s.side === "player" ? "Suas forças" : "Inimigo";
+  const T = TERRAIN_TYPES[TERRAIN[rec.uf]];
+  const o = document.createElement("div"); o.id = "battle"; o.className = "overlay";
+  o.innerHTML = `<div class="bmodal" role="dialog" aria-label="Batalha">
+    <div class="btop"><div><div class="chap">${esc(opts.forecast ? "Previsão" : (BATTLE_KIND[rec.kind] || "Batalha"))} · ${esc(monthLabel(rec.month))}</div><h2>Batalha de ${esc(name)}</h2>
+      <small class="muted">Terreno: ${esc(T ? T.label : "—")}${T && T.def ? ` (defesa +${Math.round(T.def * 100)}%)` : ""}</small></div>
+      <button class="xbtn" data-close aria-label="Fechar">✕</button></div>
+    <div class="bfield">${battleSideHTML(rec.sides[L], L, maxStr, sideLabel(rec.sides[L]))}
+      <div class="bmid"><div class="vs">VS</div><div class="bround">${opts.forecast ? `Razão de forças<br><b>${opts.ratio.toFixed(2)}×</b><br><small>${esc(oddsLabel(opts.ratio))}</small>` : `Rodada <b>0</b>/${rec.rounds.length}`}</div></div>
+      ${battleSideHTML(rec.sides[R], R, maxStr, sideLabel(rec.sides[R]))}</div>
+    <div class="bresult${opts.forecast ? " show" : ""}">${opts.forecast ? esc(opts.note || "") : ""}</div>
+    <div class="bbtns">${opts.forecast ? "" : `<button class="secondary" data-skip>Pular animação</button><button class="secondary" data-replay>Rever</button>`}<button class="primary" data-close>Fechar</button></div></div>`;
+  document.body.appendChild(o); document.body.classList.add("noscroll");
+  o.addEventListener("click", e => { if (e.target === o || e.target.closest("[data-close]")) { closeOverlay("battle"); if (opts.onClose) opts.onClose(); } });
+  if (opts.forecast) return;
+  const sides = [o.querySelector(`.bside[data-side="${L}"]`), o.querySelector(`.bside[data-side="${R}"]`)], map = [L, R];
+  const setRound = (i) => {
+    const rd = rec.rounds[i]; if (!rd) return;
+    o.querySelector(".bround b").textContent = i + 1;
+    map.forEach((si, col) => {
+      const el = sides[col];
+      rd.u[si].forEach(([st, org], ui) => { const u = el.querySelector(`.bunit[data-i="${ui}"]`); if (!u) return;
+        u.querySelector(".str i").style.width = Math.max(0, st / maxStr * 100) + "%"; u.querySelector(".str em").textContent = Math.round(st);
+        u.querySelector(".org i").style.width = Math.max(0, org) + "%"; u.querySelector(".org em").textContent = "moral " + org; });
+      if (rd.hit[si] > 0.3){ el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit");
+        const fx = el.querySelector(".bfx"); for (let k = 0; k < 3; k++){ const p = document.createElement("i"); p.className = "puff"; p.style.left = (15 + Math.random() * 70) + "%"; p.style.top = (20 + Math.random() * 50) + "%"; p.style.animationDelay = (k * 0.12) + "s"; fx.appendChild(p); setTimeout(() => p.remove(), 1600); }
+        const fl = document.createElement("i"); fl.className = "flash"; fl.style.left = (25 + Math.random() * 50) + "%"; fl.style.top = (25 + Math.random() * 40) + "%"; fx.appendChild(fl); setTimeout(() => fl.remove(), 700); }
+    });
+  };
+  const showResult = () => {
+    const last = rec.rounds[rec.rounds.length - 1]; if (last) setRound(rec.rounds.length - 1);
+    const w = rec.sides[rec.win], pw = w.side === "player";
+    const lossP = pl < 0 ? 0 : rec.loss[pl], lossE = pl < 0 ? rec.loss[0] : rec.loss[1 - pl];
+    const res = o.querySelector(".bresult");
+    res.className = "bresult show " + (pw ? "good" : "bad");
+    res.innerHTML = `<b>${pw ? "Vitória" : "Derrota"}${rec.margin >= 0.5 ? " esmagadora" : rec.margin < 0.12 ? " apertada" : ""}</b> — ${esc(rec.result || "")}<br><small>Baixas: suas ${lossP} · inimigas ${lossE} de força${rec.rounds.length ? ` · ${rec.rounds.length} rodada${rec.rounds.length > 1 ? "s" : ""}` : ""}</small>`;
+    sides.forEach((el, col) => el.classList.toggle("won", rec.sides[map[col]] === w));
+  };
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const run = () => {
+    let i = 0; o.querySelector(".bresult").className = "bresult";
+    sides.forEach(el => el.classList.remove("won"));
+    rec.sides.forEach((s, si) => { const col = map.indexOf(si); s.units.forEach((u, ui) => { const el = sides[col].querySelector(`.bunit[data-i="${ui}"]`); el.querySelector(".str i").style.width = Math.max(2, u.str0 / maxStr * 100) + "%"; el.querySelector(".str em").textContent = u.str0; el.querySelector(".org i").style.width = u.org0 + "%"; el.querySelector(".org em").textContent = "moral " + u.org0; }); });
+    o.querySelector(".bround b").textContent = 0;
+    const step = () => { if (i >= rec.rounds.length){ showResult(); return; } setRound(i++); o._timer = setTimeout(step, reduce ? 250 : 850); };
+    if (o._timer) clearTimeout(o._timer);
+    o._timer = setTimeout(step, reduce ? 100 : 500);
+  };
+  o.querySelector("[data-skip]").onclick = () => { if (o._timer) clearTimeout(o._timer); showResult(); };
+  o.querySelector("[data-replay]").onclick = run;
+  run();
+}
+// Estado em disputa sem batalha registrada neste mês: mostra as forças e a previsão
+function openForecast(uf){
+  const pU = defendersAt(G, "player", uf), eU = defendersAt(G, "enemy", uf);
+  const s = sideOf(G, G.control[uf]), pRole = s === "player" ? "def" : "att", eRole = s === "enemy" ? "def" : "att";
+  const toU = u => ({ name: u.name, gen: u.gen || null, militia: !!u.militia, str0: Math.round(u.str), org0: Math.round(u.org) });
+  const pm = milMods(G, "player", uf, pRole, pU), em = milMods(G, "enemy", uf, eRole, eU);
+  const pp = pU.reduce((t, u) => t + armyPow(u), 0) * modsMult(pm), ep = eU.reduce((t, u) => t + armyPow(u), 0) * modsMult(em);
+  const rec = { uf, kind: "frente", month: G.month, rounds: [], sides: [{ side: "player", role: pRole, mods: pm, units: pU.map(toU) }, { side: "enemy", role: eRole, mods: em, units: eU.map(toU) }] };
+  if (!pU.length) rec.sides[0].units = [{ name: "Nenhuma força sua aqui", militia: true, str0: 0, org0: 0 }];
+  if (!eU.length) rec.sides[1].units = [{ name: "Nenhuma força inimiga conhecida", militia: true, str0: 0, org0: 0 }];
+  const ratio = ep > 0 ? pp / ep : (pp > 0 ? 9.99 : 1);
+  openBattle(rec, { forecast: true, ratio, note: s === "contested" ? `A frente está em ${G.uf[uf].progress > 0 ? "+" : ""}${Math.round(G.uf[uf].progress)} (+100 conquista · −100 perda). Ela é disputada a cada Encerrar mês; mande exércitos para pesar a balança.` : "Estimativa sem sorte: a batalha real tem até 5 rodadas e quem perder a moral recua." });
+}
+function battleAt(uf){ const ev = G.mil; return ev && ev.month === G.month ? [...ev.battles].reverse().find(b => b.uf === uf) : null; }
+
+/* ---------- Resolução animada do mês (pulável) ---------- */
+function playResolution(ev, done){
+  const finish = () => { closeOverlay("resol"); done && done(); };
+  if (!ev || (!ev.battles.length && !ev.flips.length && !ev.moves.length)) return finish();
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches, sp = reduce ? 0.35 : 1;
+  closeOverlay("resol");
+  const o = document.createElement("div"); o.id = "resol"; o.className = "overlay";
+  o.innerHTML = `<div class="rmodal"><div class="btop"><div><div class="chap">Resolução militar</div><h2>${esc(monthLabel(ev.month))}</h2></div><button class="secondary" data-skip>Pular ▸▸</button></div>
+    <div class="mapbox" id="resolMap"></div><div class="rcap">Ordens do mês</div><div class="rlist"></div><div class="bbtns"><button class="primary" data-done style="display:none">Continuar</button></div></div>`;
+  document.body.appendChild(o); document.body.classList.add("noscroll");
+  const box = o.querySelector("#resolMap"), cap = o.querySelector(".rcap"), list = o.querySelector(".rlist");
+  const control = Object.assign({}, ev.control0);
+  const startArmies = ev.start.map(a => Object.assign({}, a));
+  box.innerHTML = mapSVG(control, [], { g: G, military: true, armies: startArmies, arrows: ev.orders, static: true });
+  const svg = box.querySelector("svg"), fxLayer = document.createElementNS("http://www.w3.org/2000/svg", "g"); svg.appendChild(fxLayer);
+  const timers = []; const later = (fn, ms) => timers.push(setTimeout(fn, ms * sp));
+  const flipFill = (uf, fac) => { const p = svg.querySelector(`path.uf[data-uf="${uf}"]`); const f = STORY.factions[fac]; if (p && f){ p.setAttribute("fill", f.color); p.classList.remove("flipfx"); void p.getBoundingClientRect(); p.classList.add("flipfx"); } control[uf] = fac; };
+  const boom = uf => { const s = MAP_DATA.states[uf]; fxLayer.insertAdjacentHTML("beforeend", `<g class="boom" transform="translate(${s.lx},${s.ly})"><circle class="fl" r="16" fill="url(#fls)"/><circle class="sm s1" r="12" fill="url(#smk)"/><circle class="sm s2" r="10" cx="8" cy="-4" fill="url(#smk)"/><circle class="sm s3" r="9" cx="-7" cy="-6" fill="url(#smk)"/></g>`); };
+  const usedFlips = new Set();
+  let t = 1300;
+  ev.battles.forEach((b, i) => {
+    later(() => {
+      boom(b.uf);
+      const pw = b.sides[b.win].side === "player";
+      cap.textContent = `${MAP_DATA.states[b.uf].name}: ${pw ? "vitória sua" : "vitória inimiga"}${b.result ? " — " + b.result : ""}`;
+      cap.className = "rcap " + (pw ? "good" : "bad");
+      const btn = document.createElement("button"); btn.className = "rbat " + (pw ? "good" : "bad"); btn.innerHTML = `⚔ ${esc(b.uf)} · ${pw ? "vitória" : "derrota"}`; btn.onclick = () => openBattle(b); list.appendChild(btn);
+      ev.flips.forEach((f, k) => { if (f.uf === b.uf && !usedFlips.has(k)){ usedFlips.add(k); later(() => flipFill(f.uf, f.to), 450); } });
+    }, t);
+    t += Math.max(700, 1300 - ev.battles.length * 60);
+  });
+  later(() => { ev.flips.forEach((f, k) => { if (!usedFlips.has(k)) flipFill(f.uf, f.to); }); }, t);
+  // deslocamentos: contadores fantasmas deslizam do estado de origem para o destino
+  later(() => {
+    svg.querySelectorAll("path.arw").forEach(p => p.classList.add("fade"));
+    if (!ev.moves.length) return;
+    svg.querySelectorAll("g.cnt").forEach(c => c.classList.add("fade"));
+    cap.textContent = "Movimentos e recuos"; cap.className = "rcap";
+    for (const m of ev.moves){
+      const a = ev.start.find(x => x.id === m.id) || { str: 0 }, from = counterPos(m.from, m.side, false), to = counterPos(m.to, m.side, false);
+      const k = MOBILE_MAP() ? 1.3 : 1;
+      fxLayer.insertAdjacentHTML("beforeend", `<g class="cnt ghost ${m.side === "player" ? "p" : "e"}" style="transform:translate(${from.x}px,${from.y}px) scale(${k})"><rect class="bg" x="-15" y="-7.5" width="30" height="15" rx="2"/><rect class="sym" x="-13" y="-5.5" width="10" height="11"/><path class="sym" d="M-13,-5.5L-3,5.5M-13,5.5L-3,-5.5"/><text class="cn" x="6.5" y="0.5">${Math.round(a.str)}</text></g>`);
+      const gh = fxLayer.lastElementChild; requestAnimationFrame(() => requestAnimationFrame(() => { gh.style.transform = `translate(${to.x}px,${to.y}px) scale(${k})`; }));
+    }
+  }, t + 200);
+  t += ev.moves.length ? 1400 : 400;
+  later(() => {
+    const L = mapSVG(G.control, [], { g: G, military: true, arrows: [], static: true });
+    box.innerHTML = L; cap.textContent = ev.battles.length ? "Toque numa batalha para ver o combate." : "Fim da resolução."; cap.className = "rcap";
+    o.querySelector("[data-done]").style.display = ""; o.querySelector("[data-skip]").style.display = "none";
+  }, t);
+  const skip = () => { timers.forEach(clearTimeout); box.innerHTML = mapSVG(G.control, [], { g: G, military: true, arrows: [], static: true });
+    if (!list.children.length) ev.battles.forEach(b => { const pw = b.sides[b.win].side === "player"; const btn = document.createElement("button"); btn.className = "rbat " + (pw ? "good" : "bad"); btn.innerHTML = `⚔ ${esc(b.uf)} · ${pw ? "vitória" : "derrota"}`; btn.onclick = () => openBattle(b); list.appendChild(btn); });
+    cap.textContent = ev.battles.length ? "Toque numa batalha para ver o combate." : "Fim da resolução."; cap.className = "rcap";
+    o.querySelector("[data-done]").style.display = ""; o.querySelector("[data-skip]").style.display = "none"; };
+  o.querySelector("[data-skip]").onclick = skip;
+  o.querySelector("[data-done]").onclick = finish;
+}
+
+/* ---------- Painéis de exército e ordens ---------- */
+function armyLine(a){ return `${esc(a.uf)} · força ${Math.round(a.str)} · moral ${Math.round(a.org)}`; }
+function orderText(a){
+  if (!a.order) return "sem ordem";
+  const o = a.order; return ORDER_LABEL[o.type] + (o.to ? " " + o.to : "") + (o.type === "reforcar" ? ` (+${STR_UNIT})` : "");
+}
+function armyPanel(a){
+  const C = SCEN.campaign, ph = phaseOf(G), mine = a.side === "player", mo = maxOrg(G, a.side);
+  const plan = !mine ? (G.enemyPlans || []).find(p => p.id === a.id && p.to && intentKnown(G, p)) : null;
+  let html = `<h3 class="armyh"><i class="nato ${mine ? "p" : "e"}"></i>${esc(a.name)}</h3>
+    <div class="ufinfo">
+      <div><span>General</span><b>${esc(a.gen || "—")}</b></div>
+      <div><span>Local</span><b>${esc(a.uf)} · ${esc(MAP_DATA.states[a.uf].name)}</b></div>
+      ${!mine && a.fac && STORY.factions[a.fac] ? `<div><span>Lado</span><b>${esc(STORY.factions[a.fac].label)}</b></div>` : ""}
+      <div><span>Força</span><div class="bar"><i style="width:${a.str / ARMY_MAX * 100}%;background:${mine ? "#5d8fc4" : "#c2563f"}"></i></div><b>${Math.round(a.str)}</b></div>
+      <div><span>Organização</span><div class="bar"><i style="width:${a.org}%;background:#c9a45c"></i></div><b title="máximo atual ${mo}">${Math.round(Math.min(a.org, Math.max(mo, a.org)))}<small class="muted" style="font-weight:400"> /${mo}</small></b></div>
+      <div><span>Experiência</span><div class="bar"><i style="width:${a.xp}%;background:#8fc488"></i></div><b>${Math.round(a.xp)}</b></div>
+      ${mine ? `<div><span>Ordem</span><b>${esc(orderText(a))}</b></div>` : `<div><span>Intenção</span><b>${plan ? esc(ORDER_LABEL[plan.type] + " " + plan.to) : "desconhecida"}</b></div>`}
+    </div>`;
+  if (!mine){ html += `<p class="muted">${plan ? "Seu serviço de informações detectou a intenção deste exército (seta vermelha)." : "Aproxime seus exércitos ou eleve o atributo militar (≥ 60) para conhecer as intenções inimigas."}</p><button class="secondary" data-desel>Fechar</button>`; return html; }
+  const lim = commandLimit(G), used = ordersUsed(G), tg = armyTargets(G, a);
+  const attackers = uf => armiesOf(G, "player").filter(x => x.id === a.id || (x.order && x.order.type === "atacar" && x.order.to === uf));
+  html += `<div class="ordbox"><div class="ordhead"><b>Ordens de manobra</b><span class="${used >= lim ? "neg" : ""}">${used}/${lim} este mês</span></div>
+    <p class="muted">${MOBILE_MAP() ? "Toque" : "Clique"} num estado destacado no mapa ou escolha abaixo. Ordens não gastam PA e são executadas no Encerrar mês.</p>
+    <div class="tglist">${tg.length ? tg.map(t => { const o = t.type === "atacar" ? battleOdds(G, "player", attackers(t.uf), t.uf) : null;
+      return `<button class="tgt ${t.type}${a.order && a.order.to === t.uf ? " on" : ""}" data-to="${t.uf}" data-type="${t.type}"><span>${t.type === "atacar" ? "⚔" : t.type === "recuar" ? "↩" : "➜"} ${esc(ORDER_LABEL[t.type])} ${esc(t.uf)}</span><small>${esc(MAP_DATA.states[t.uf].name)}${o ? ` · chance ${esc(oddsLabel(o.ratio))} (${o.ratio.toFixed(1)}×)` : ""}</small></button>`; }).join("") : `<p class="muted">${ph.war ? (G.ceasefire > 0 ? "Trégua: só deslocamentos entre seus estados." : "Nenhum estado vizinho alcançável.") : "Sem guerra: só reposicionamento entre estados vizinhos seus."}</p>`}</div>
+    <div class="ordbtns">
+      <button class="act" data-ord="defender"><span>🛡 Defender</span><em>grátis</em><small>Posições preparadas (+10% na defesa) e +6 de moral.</small></button>
+      <button class="act" data-ord="reforcar" ${a.str > ARMY_MAX - STR_UNIT || sideOf(G, G.control[a.uf]) !== "player" ? "disabled" : ""}><span>＋ Reforçar</span><em>${reinforceCost(G)} ${esc(C.money.short)}</em><small>+${STR_UNIT} de força no fim do mês (só em território seu).</small></button>
+      ${a.order ? `<button class="secondary" data-ord="">Cancelar ordem</button>` : ""}<button class="secondary" data-desel>Fechar</button></div></div>`;
+  return html;
+}
+function overviewPanel(){
+  const C = SCEN.campaign, ph = phaseOf(G), sides = sideCounts(G), mine = armiesOf(G, "player");
+  const fronts = Object.keys(G.control).filter(k => sideOf(G, G.control[k]) === "contested");
+  const hot = playerUFs(G).sort((a, b) => G.uf[b].unrest - G.uf[a].unrest).slice(0, 3);
+  const intents = knownIntents(G), lim = commandLimit(G);
+  let html = `<h3>Situação</h3><div class="ufinfo">
+      <div><span>Seus estados</span><b>${sides.player}</b></div><div><span>Inimigos</span><b>${sides.enemy}</b></div><div><span>Em disputa</span><b>${sides.contested}</b></div>
+      ${hot.length ? `<div><span>Mais agitados</span><b>${hot.map(h => `${h} (${Math.round(G.uf[h].unrest)})`).join(", ")}</b></div>` : ""}</div>`;
+  if (ph.noArmies) return html + `<p class="muted">Nesta fase você não comanda tropas: o mapa mostra a disputa política. Use propaganda, investimentos e negociação.</p>`;
+  html += `<div class="ordhead"><b>Seus exércitos</b><span>${ph.war ? `ordens ${ordersUsed(G)}/${lim}` : "tempo de paz"}</span></div>
+    <div class="armylist">${mine.length ? mine.map(a => `<button class="armyrow${a.order ? " has" : ""}" data-army="${a.id}"><i class="nato p"></i><span><b>${esc(a.name)}</b><small>${armyLine(a)}${a.gen ? " · " + esc(a.gen) : ""}</small></span><em>${esc(orderText(a))}</em></button>`).join("") : `<p class="muted">Nenhum exército em campo.</p>`}</div>
+    <button class="act" id="btnRecruit" ${armiesOf(G, "player").length >= ARMY_CAP.player || G.used._recruit || G.money < recruitCost(G) || G.queue.length ? "disabled" : ""}><span>Formar novo exército</span><em>${recruitCost(G)} ${esc(C.money.short)}</em><small>15 de força em ${esc(capitalOf(G, "player") || "—")}${UI.selUF && sideOf(G, G.control[UI.selUF]) === "player" ? "" : " (ou no estado selecionado)"}. Sem PA; 1 por mês.</small></button>`;
+  if (ph.war){
+    html += intents.length ? `<div class="ordhead"><b>Intenções inimigas conhecidas</b></div><ul class="intents">${intents.map(p => { const a = armyById(G, p.id); return `<li>${esc(a.name)}: ${esc(ORDER_LABEL[p.type].toLowerCase())} <b>${esc(p.to)}</b></li>`; }).join("")}</ul>` : `<p class="muted">Intenções inimigas desconhecidas (aproxime exércitos ou eleve o atributo militar ≥ 60).</p>`;
+    if (fronts.length) html += `<div class="ordhead"><b>Frentes</b></div><div class="frontlist">${fronts.map(f => `<button class="secondary small" data-battle="${f}">⚔ ${f} ${G.uf[f].progress > 0 ? "+" : ""}${Math.round(G.uf[f].progress)}</button>`).join("")}</div>`;
+  }
+  html += `<p class="muted">${ph.war ? `Selecione um exército (contador azul) e depois o estado-alvo. Cada exército recebe uma ordem por mês; até <b>${lim}</b> manobras (atacar/mover/recuar) conforme o atributo militar e a lealdade militar. Defender e reforçar não contam.` : "Tempo de paz: exércitos só se reposicionam entre estados seus (guarnições reduzem a agitação)."}</p>`;
+  return html;
+}
+function ufPanel(uf){
+  const C = SCEN.campaign, ph = phaseOf(G), u = G.uf[uf], fac = STORY.factions[G.control[uf]], side = sideOf(G, G.control[uf]);
+  const sideLbl = { player: "Seu lado", enemy: "Inimigo", contested: "Em disputa", neutral: "Outros" }[side];
+  const acts = mapActions(G, uf), T = TERRAIN_TYPES[TERRAIN[uf]];
+  const here = (G.armies || []).filter(a => a.uf === uf), pm = militia(G, "player", uf), em = ph.war ? militia(G, "enemy", uf) : null;
+  return `<h3>${uf} · ${esc(MAP_DATA.states[uf].name)}</h3>
+    <div class="ufinfo"><div><span>Controle</span><b><i class="sw" style="background:${fac ? fac.color : "#555"}"></i>${esc(fac ? fac.label : G.control[uf])}</b><em class="side ${side}">${sideLbl}</em></div>
+    <div><span>Agitação</span><div class="bar"><i style="width:${u.unrest}%;background:${unrestColor(u.unrest)}"></i></div><b>${Math.round(u.unrest)}</b></div>
+    ${side === "contested" ? `<div><span>Frente</span><div class="bar two"><i style="width:${(u.progress+100)/2}%;background:#c9a45c"></i></div><b>${u.progress > 0 ? "+" : ""}${Math.round(u.progress)}</b></div><small class="muted">+100 = estado conquistado · −100 = perdido</small>` : ""}
+    ${(side !== "player" && ph.flipTo && ph.flipTo[G.control[uf]]) ? `<div><span>Simpatia</span><div class="bar"><i style="width:${Math.max(0,u.sway)}%;background:#8fc488"></i></div><b>${Math.round(u.sway)}/100</b></div>` : ""}
+    <div><span>Terreno</span><b>${esc(T ? T.label : "—")}${T && T.def ? ` · defesa +${Math.round(T.def * 100)}%` : ""}</b></div>
+    <div><span>Peso econômico</span><b>${UF_WEIGHT[uf]}</b></div>
+    <div><span>Vizinhos</span><b>${ADJ[uf].join(", ")}</b></div>
+    ${STORY.stateNotes && STORY.stateNotes[uf] ? `<small class="muted">${esc(STORY.stateNotesLabel||"")}: ${esc(STORY.stateNotes[uf])}</small>` : ""}</div>
+    <div class="ordhead"><b>Forças no estado</b></div>
+    <div class="armylist">${here.map(a => `<button class="armyrow" data-army="${a.id}"><i class="nato ${a.side === "player" ? "p" : "e"}"></i><span><b>${esc(a.name)}</b><small>${armyLine(a)}${a.gen ? " · " + esc(a.gen) : ""}</small></span><em>${a.side === "player" ? esc(orderText(a)) : "inimigo"}</em></button>`).join("")}
+      ${pm ? `<div class="armyrow mil"><i class="nato p m"></i><span><b>${esc(pm.name)}</b><small>força ${pm.str} (local, não se move)</small></span></div>` : ""}
+      ${em ? `<div class="armyrow mil"><i class="nato e m"></i><span><b>${esc(em.name)}</b><small>força ${em.str} (local)</small></span></div>` : ""}
+      ${!here.length && !pm && !em ? `<p class="muted">Nenhuma força.</p>` : ""}</div>
+    ${ph.war && (side === "contested" || here.some(a => a.side === "enemy")) ? `<button class="secondary" data-battle="${uf}">⚔ ${battleAt(uf) ? "Ver a batalha deste mês" : "Ver forças e previsão"}</button>` : ""}
+    <div class="mapacts">${acts.length ? acts.map(a => `<button class="act" data-k="${a.kind}" ${a.ok?"":"disabled"}><span>${esc(a.label)}</span><em>${a.ap ? a.ap + " AP" : "grátis"}${a.cost ? ` · ${a.cost} ${esc(C.money.short)}` : ""}</em><small>${esc(a.ok ? a.desc + (a.kind === "negociar" ? ` Chance: ${negotiateChance(G, uf)}%.` : "") : a.why)}</small></button>`).join("") : `<p class="muted">Nenhuma ação política disponível aqui nesta fase.</p>`}</div>
+    <button class="secondary" data-desel>Voltar à visão geral</button>`;
 }
 
 /* ---------- Navegação ---------- */
@@ -2871,6 +3798,7 @@ function renderTitle(){
       <div class="disclaimer">${esc(it.disclaimer)}</div>
       ${info.legacy ? `<div class="notice">Encontramos uma partida salva da versão anterior (só história). Ela não é compatível com o novo modo campanha e foi arquivada; seus finais descobertos foram mantidos.</div>` : ""}
       ${sv && sv.focusMigrated ? `<div class="notice">Sua campanha salva é anterior à árvore de decisões nacionais. Ela continua de onde parou; a árvore começa vazia (focos impostos pela história já vividos foram marcados).</div>` : ""}
+      ${sv && sv.milMigrated ? `<div class="notice">Sua campanha salva foi atualizada para o novo sistema de exércitos: suas tropas antigas viraram exércitos no mapa (as forças inimigas de cada frente foram mantidas). Dê ordens selecionando os exércitos na aba Mapa — elas não gastam mais PA.</div>` : ""}
       ${sv ? `<button class="primary" id="btnCont">Continuar — ${esc(monthLabel(sv.month))}</button>` : ""}
       <button class="${sv ? "secondary" : "primary"}" id="btnNew">Nova campanha</button>
       <button class="secondary" id="btnBack">← Outros cenários</button>
@@ -2878,15 +3806,15 @@ function renderTitle(){
     </div>
     <aside class="panel"><h3>Mapa inicial</h3><div class="mapbox" id="mapTitle"></div></aside></div>`;
   const g0 = newCampaign(SCEN, 1);
-  renderMap($("#mapTitle"), g0.control, [], false, {});
-  if ($("#btnCont")) $("#btnCont").onclick = () => { G = info.save; delete G.focusMigrated; UI.tab = "historia"; UI.selFocus = null; UI.fscroll = null; renderGame(); };
+  renderMap($("#mapTitle"), g0.control, [], false, { g: g0, military: true, arrows: [], static: true });
+  if ($("#btnCont")) $("#btnCont").onclick = () => { G = info.save; delete G.focusMigrated; delete G.milMigrated; UI.selArmy = null; UI.selUF = null; UI.tab = "historia"; UI.selFocus = null; UI.fscroll = null; renderGame(); };
   $("#btnNew").onclick = startNew;
   $("#btnBack").onclick = renderMenu;
 }
 function startNew(){
   UI.selFocus = null; UI.fscroll = null;
   G = newCampaign(SCEN);
-  Object.assign(UI, { tab: "historia", selUF: null, selActor: null, req: [], off: [], dealMsg: null });
+  Object.assign(UI, { tab: "historia", selUF: null, selArmy: null, selActor: null, req: [], off: [], dealMsg: null });
   save(); renderGame(); cloud("campaignStarted", SCEN.id); cloud("syncSave", SCEN.id);
   let seen = null; try{ seen = localStorage.getItem(TUTORIAL_KEY); }catch(e){}
   if (!seen){ openHelp(); try{ localStorage.setItem(TUTORIAL_KEY, "1"); }catch(e){} }
@@ -2903,7 +3831,7 @@ function afterAct(res){ save(); renderGame(); if (res && res.msg) toast(res.msg,
 function renderGame(){
   headerButtons(true);
   if (G.ended){ renderEnding(); return; }
-  const C = SCEN.campaign, ph = phaseOf(G), inc = incomeFor(G), deployed = Object.values(G.uf).reduce((s, u) => s + u.force, 0);
+  const C = SCEN.campaign, ph = phaseOf(G), inc = incomeFor(G), myA = armiesOf(G, "player"), totStr = Math.round(sideStr(G, "player"));
   const pend = G.queue.length;
   const apDots = Array.from({ length: Math.max(C.ap, G.ap) }, (_, i) => `<i class="${i < G.ap ? "on" : ""}"></i>`).join("");
   const stats = Object.keys(STORY.stats).map(k => {
@@ -2920,7 +3848,7 @@ function renderGame(){
       <div class="hud-res">
         <div title="Pontos de ação deste turno"><span class="k">Ações</span><span class="ap">${apDots}</span><b>${G.ap}</b></div>
         <div title="${esc(C.money.label)}"><span class="k">${esc(C.money.label)}</span><b class="${G.money < 0 ? "neg" : ""}">${Math.round(G.money)}</b><small>${sgn(inc.total)}/mês</small></div>
-        <div title="${esc(C.forces.label)}"><span class="k">${esc(C.forces.short)}</span><b>${G.reserve}</b><small>reserva · ${deployed} em campo</small></div>
+        <div title="${esc(C.forces.label)}" class="hudarmy" data-tab="mapa"><span class="k">${esc(C.forces.short)}</span><b>${totStr}</b><small>${ph.noArmies ? "sem comando" : `${myA.length} exérc. · ordens ${ordersUsed(G)}/${commandLimit(G)}`}</small></div>
       </div>
       <button class="primary endbtn" id="btnEnd" ${pend ? "disabled" : ""} title="${pend ? "Resolva os eventos pendentes na aba História" : "Avança o tempo e resolve economia, combates, facções e diplomacia"}">Encerrar ${paceFor(G) > 1 && !(G.story.pending && G.story.due - G.month < paceFor(G)) ? `${paceFor(G)} meses` : "mês"} ▸</button>
     </div>
@@ -2932,7 +3860,9 @@ function renderGame(){
   document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { UI.tab = b.dataset.tab; renderGame(); });
   $("#btnEnd").onclick = () => {
     if (!endTurn(G)) return;
-    UI.tab = "historia"; UI.dealMsg = null; save(); cloud("syncSave", SCEN.id); renderGame(); window.scrollTo({ top: 0 });
+    UI.tab = "historia"; UI.dealMsg = null; UI.selArmy = null; save(); cloud("syncSave", SCEN.id); renderGame(); window.scrollTo({ top: 0 });
+    const ev = G.mil;
+    if (ev && !G.ended && ev.month === G.month && (ev.battles.length || ev.flips.length || ev.moves.length)) playResolution(ev);
   };
   ({ historia: tabHistoria, decisoes: tabDecisoes, mapa: tabMapa, diplomacia: tabDiplomacia, faccoes: tabFaccoes, acoes: tabAcoes })[UI.tab]($("#tabBody"), nextStory);
 }
@@ -2985,36 +3915,52 @@ function describeReq(req){
   return "Requer: " + parts.join(", ");
 }
 function tabMapa(el){
-  const C = SCEN.campaign, ph = phaseOf(G), sides = sideCounts(G);
-  const uf = UI.selUF;
-  let panel = "";
-  if (uf){
-    const u = G.uf[uf], fac = STORY.factions[G.control[uf]], side = sideOf(G, G.control[uf]);
-    const sideLbl = { player: "Seu lado", enemy: "Inimigo", contested: "Em disputa", neutral: "Outros" }[side];
-    const acts = mapActions(G, uf);
-    panel = `<h3>${uf} · ${esc(MAP_DATA.states[uf].name)}</h3>
-      <div class="ufinfo"><div><span>Controle</span><b><i class="sw" style="background:${fac ? fac.color : "#555"}"></i>${esc(fac ? fac.label : G.control[uf])}</b><em class="side ${side}">${sideLbl}</em></div>
-      <div><span>Agitação</span><div class="bar"><i style="width:${u.unrest}%;background:${unrestColor(u.unrest)}"></i></div><b>${Math.round(u.unrest)}</b></div>
-      <div><span>Suas tropas</span><b>${u.force}</b></div>
-      ${(side === "contested" || side === "enemy") ? `<div><span>Força inimiga</span><b>${u.enemy}</b></div>` : ""}
-      ${side === "contested" ? `<div><span>Frente</span><div class="bar two"><i style="width:${(u.progress+100)/2}%;background:#c9a45c"></i></div><b>${u.progress > 0 ? "+" : ""}${Math.round(u.progress)}</b></div><small class="muted">+100 = estado conquistado · −100 = perdido</small>` : ""}
-      ${(side !== "player" && ph.flipTo && ph.flipTo[G.control[uf]]) ? `<div><span>Simpatia</span><div class="bar"><i style="width:${Math.max(0,u.sway)}%;background:#8fc488"></i></div><b>${Math.round(u.sway)}/100</b></div>` : ""}
-      <div><span>Peso econômico</span><b>${UF_WEIGHT[uf]}</b></div>
-      ${STORY.stateNotes && STORY.stateNotes[uf] ? `<small class="muted">${esc(STORY.stateNotesLabel||"")}: ${esc(STORY.stateNotes[uf])}</small>` : ""}</div>
-      <div class="mapacts">${acts.length ? acts.map(a => `<button class="act" data-k="${a.kind}" ${a.ok?"":"disabled"}><span>${esc(a.label)}</span><em>${a.ap ? a.ap + " AP" : "grátis"}${a.cost ? ` · ${a.cost} ${esc(C.money.short)}` : ""}</em><small>${esc(a.ok ? a.desc + (a.kind === "negociar" ? ` Chance: ${negotiateChance(G, uf)}%.` : "") : a.why)}</small></button>`).join("") : `<p class="muted">Nenhuma ação disponível aqui nesta fase.</p>`}</div>`;
-  } else {
-    const fronts = Object.keys(G.control).filter(k => sideOf(G, G.control[k]) === "contested");
-    const hot = playerUFs(G).sort((a, b) => G.uf[b].unrest - G.uf[a].unrest).slice(0, 4);
-    panel = `<h3>Situação</h3><div class="ufinfo">
-      <div><span>Seus estados</span><b>${sides.player}</b></div><div><span>Inimigos</span><b>${sides.enemy}</b></div><div><span>Em disputa</span><b>${sides.contested}</b></div>
-      ${fronts.length ? `<div><span>Frentes</span><b>${fronts.join(", ")}</b></div>` : ""}
-      ${hot.length ? `<div><span>Mais agitados</span><b>${hot.map(h => `${h} (${Math.round(G.uf[h].unrest)})`).join(", ")}</b></div>` : ""}</div>
-      <p class="muted">Clique num estado para ver controle, agitação e tropas e agir nele. ${ph.war ? "Estados em disputa se resolvem a cada mês pela força comprometida (▲ suas tropas, ▼ inimigo)." : "Nesta fase não há combate: use propaganda, investimentos e negociação."}</p>`;
-  }
-  el.innerHTML = `<div class="maplayout"><div class="panel"><div class="maphead"><h3>Mapa</h3><div class="seg"><button data-mode="controle" class="${UI.mapMode==="controle"?"on":""}">Controle</button><button data-mode="agitacao" class="${UI.mapMode==="agitacao"?"on":""}">Agitação</button></div></div><div class="mapbox" id="mapMain"></div></div><aside class="panel sidepanel">${panel}</aside></div>`;
-  renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, mode: UI.mapMode, onPick: p => { UI.selUF = p; renderGame(); if (window.innerWidth < 900) setTimeout(() => $(".sidepanel") && $(".sidepanel").scrollIntoView({ behavior: "smooth" }), 30); } });
+  const ph = phaseOf(G);
+  if (UI.selArmy && !armyById(G, UI.selArmy)) UI.selArmy = null;
+  const sel = UI.selArmy ? armyById(G, UI.selArmy) : null, uf = UI.selUF;
+  const panel = sel ? armyPanel(sel) : uf ? ufPanel(uf) : overviewPanel();
+  const hint = ph.noArmies ? "" : sel && sel.side === "player" ? `<div class="maphint">${esc(sel.name)} selecionado — ${MOBILE_MAP() ? "toque" : "clique"} num estado destacado (<b class="hl-a">vermelho</b> = atacar, <b class="hl-m">azul</b> = mover). Toque de novo no exército para soltar.</div>`
+    : `<div class="maphint">${MOBILE_MAP() ? "Toque" : "Clique"} num <b>contador azul</b> (seu exército) e depois no estado-alvo. Setas douradas: suas ordens · vermelhas: intenções inimigas conhecidas · linhas pulsantes: frentes.</div>`;
+  const lim = commandLimit(G), used = ordersUsed(G), nA = armiesOf(G, "player").length;
+  const chip = ph.noArmies ? "" : `<button class="ordchip${used >= lim ? " full" : ""}" id="btnOrders" title="Lista de ordens">⚑ Ordens ${used}/${lim}${nA ? ` · ${armiesOf(G, "player").filter(a => a.order).length}/${nA} exérc.` : ""}</button>`;
+  el.innerHTML = `<div class="maplayout"><div class="panel"><div class="maphead"><h3>Mapa</h3>${chip}<div class="seg"><button data-mode="controle" class="${UI.mapMode==="controle"?"on":""}">Controle</button><button data-mode="agitacao" class="${UI.mapMode==="agitacao"?"on":""}">Agitação</button></div></div>${hint}<div class="mapbox" id="mapMain"></div></div><aside class="panel sidepanel">${panel}</aside></div>`;
+  const toPanel = () => { if (window.innerWidth < 900) setTimeout(() => $(".sidepanel") && $(".sidepanel").scrollIntoView({ behavior: "smooth", block: "start" }), 30); };
+  const order = (a, type, to) => { const r = setOrder(G, a.id, type, to); if (r.ok && type !== "reforcar" && type !== "defender" && type) UI.selArmy = null; afterAct(r); };
+  const pickArmy = (ufc, side) => {
+    const list = (G.armies || []).filter(a => a.uf === ufc && a.side === side);
+    if (!list.length) return;
+    if (side === "player"){
+      const i = list.findIndex(a => a.id === UI.selArmy);
+      if (i >= 0 && list.length === 1){ UI.selArmy = null; UI.selUF = ufc; renderGame(); return; }
+      const next = i >= 0 ? list[(i + 1) % list.length] : (list.find(a => !a.order) || list[0]);
+      UI.selArmy = next.id; UI.selUF = ufc; renderGame(); toPanel();
+    } else {
+      if (sel && sel.side === "player" && armyTargets(G, sel).some(t => t.uf === ufc)){ const t = armyTargets(G, sel).find(t => t.uf === ufc); order(sel, t.type, ufc); return; }
+      UI.selArmy = list[0].id; UI.selUF = ufc; renderGame(); toPanel();
+    }
+  };
+  const onPick = p => {
+    if (sel && sel.side === "player"){
+      const t = armyTargets(G, sel).find(x => x.uf === p);
+      if (t){ order(sel, t.type, p); return; }
+      if (p === sel.uf){ UI.selArmy = null; UI.selUF = p; renderGame(); return; }
+    }
+    UI.selArmy = null; UI.selUF = p; renderGame();
+    if (ph.war && sideOf(G, G.control[p], ph) === "contested"){ const b = battleAt(p); b ? openBattle(b) : openForecast(p); return; }
+    toPanel();
+  };
+  renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, selArmy: sel, mode: UI.mapMode, military: UI.mapMode !== "agitacao", onPick, onArmy: pickArmy });
   el.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { UI.mapMode = b.dataset.mode; renderGame(); });
   el.querySelectorAll(".mapacts .act").forEach(b => b.onclick = () => afterAct(doMapAction(G, uf, b.dataset.k)));
+  el.querySelectorAll("[data-army]").forEach(b => b.onclick = () => { const a = armyById(G, b.dataset.army); UI.selArmy = a.id; UI.selUF = a.uf; renderGame(); window.scrollTo({ top: Math.max(0, ($("#mapMain").getBoundingClientRect().top + window.scrollY) - 70), behavior: "smooth" }); });
+  el.querySelectorAll("[data-desel]").forEach(b => b.onclick = () => { UI.selArmy = null; UI.selUF = null; renderGame(); });
+  el.querySelectorAll("[data-battle]").forEach(b => b.onclick = () => { const f = b.dataset.battle, r = battleAt(f); r ? openBattle(r) : openForecast(f); });
+  if (sel){
+    el.querySelectorAll(".tglist .tgt").forEach(b => b.onclick = () => order(sel, b.dataset.type, b.dataset.to));
+    el.querySelectorAll("[data-ord]").forEach(b => b.onclick = () => order(sel, b.dataset.ord || null));
+  }
+  if ($("#btnRecruit")) $("#btnRecruit").onclick = () => { const r = recruitArmy(G, uf && sideOf(G, G.control[uf], ph) === "player" ? uf : null); if (r.ok) UI.selArmy = r.id; afterAct(r); };
+  if ($("#btnOrders")) $("#btnOrders").onclick = () => { UI.selArmy = null; UI.selUF = null; renderGame(); toPanel(); };
 }
 function opinionBar(v){ const w = Math.abs(v) / 2, col = v >= 0 ? "#6fae6a" : "#c2563f"; return `<div class="opbar"><i style="${v >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%;background:${col}"></i><b></b></div>`; }
 function tabDiplomacia(el){
@@ -3228,7 +4174,9 @@ function openHelp(){
     <li><b>Turnos.</b> Cada turno é um mês (ou mais, em fases calmas). Você recebe <b>pontos de ação (AP)</b> para gastar e depois clica em <b>Encerrar mês</b>.</li>
     <li><b>História.</b> Os acontecimentos da trama viram <b>eventos-chave</b> em datas certas, com escolhas que mudam atributos, mapa e facções. Também surgem eventos aleatórios e crises. Resolva-os para seguir.</li>
     <li><b>Ações.</b> Economia, Militar, Política interna e Diplomacia: cada ação custa AP e às vezes recursos.</li>
-    <li><b>Mapa.</b> Clique num estado: veja controle, agitação e tropas; envie tropas, invista, faça propaganda ou negocie com o governador. Estados <b>em disputa</b> se resolvem com o tempo, conforme as forças.</li>
+    <li><b>Mapa.</b> Clique num estado para ver controle, agitação e forças, investir, fazer propaganda ou negociar com o governador.</li>
+    <li><b>Exércitos e ordens (sem PA).</b> Os contadores azuis são seus exércitos (o número é a força); os vermelhos, os do inimigo. Toque num exército e depois num estado vizinho: <b>atacar</b>, <b>mover</b> ou <b>recuar</b>. Também dá para <b>defender</b> (posições preparadas) ou <b>reforçar</b> (custa recursos). Uma ordem por exército por mês; o número de manobras é limitado pelo seu atributo militar e pela lealdade dos militares. Formar exércitos custa recursos, não PA. Em tempo de paz só há reposicionamento.</li>
+    <li><b>Combate.</b> No <b>Encerrar mês</b> as ordens são executadas numa animação (pode pular): setas, batalhas e estados que trocam de mãos. Toque numa batalha (ou num estado em disputa) para ver a tela de combate: força, moral, general e modificadores — terreno, apoio local, suprimentos e armas estrangeiras.</li>
     <li><b>Diplomacia.</b> Peça dinheiro, armas, reconhecimento, sanções ou mediação; ofereça commodities, bases, votos, concessões ou alinhamento. A previsão mostra a chance. Acordos têm consequências: dívidas, dependência e reação de rivais e facções.</li>
     ${SCEN && SCEN.campaign && SCEN.campaign.focus ? `<li><b>Decisões (árvore de focos).</b> Escolha um foco nacional por vez (1 AP); ele leva alguns meses e avança a cada <b>Encerrar mês</b>. Focos têm pré-requisitos (linhas), caminhos exclusivos (⊘ vermelho) e podem ser abertos ou fechados pela história. Ao concluir, aplicam efeitos e liberam ações, eventos e opções de diplomacia.</li>` : ""}
     <li><b>Facções.</b> Mantenha a lealdade acima de 15: grupos influentes em crise provocam greves, defecções e até golpes.</li>
@@ -3255,6 +4203,7 @@ window.GWGame = {
   scenarios: () => SCENARIOS.filter(sc => !sc.soon).map(sc => ({ id: sc.id, year: sc.year, title: sc.title, saveKey: sc.saveKey, endingsKey: sc.endingsKey,
     endings: Object.entries(sc.story.nodes).filter(([, n]) => n.ending).map(([id, n]) => ({ id, name: n.endingName })) })),
   saveVersion: SAVE_VERSION,
+  minSaveVersion: 2, // saves v2 da nuvem são aceitos e migrados ao abrir
   monthLabel: m => monthLabel(m),
   current: () => ({ scenario: SCEN ? SCEN.id : null, inGame: !!G }),
   refresh(changed){ // atualiza a tela depois de baixar dados da nuvem

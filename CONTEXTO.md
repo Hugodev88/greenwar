@@ -1,6 +1,6 @@
 # CONTEXTO — guia de design e arquitetura (para assistentes de IA e devs)
 
-Este arquivo existe para que um assistente de código (Cursor, etc.) entenda o projeto antes de mexer nele. **Leia até o fim antes de alterar história, árvore ou saves.**
+Documentação de design e arquitetura do projeto. **Leia até o fim antes de alterar história, árvore ou saves.**
 
 ## 1. O que é
 "Greenwar / Crônicas da Separação": jogo de estratégia narrativa sobre o Brasil, em **português**, inspirado em Hearts of Iron (HoI4). O jogador escolhe um ano no menu (como no HoI4), toma decisões na história e administra uma campanha mês a mês, com um mapa dos 27 estados mostrando quem controla cada um.
@@ -30,9 +30,23 @@ Detalhes de 2022:
   - Você monta um acordo (pedidos × ofertas) e `dealScore` calcula a aceitação.
   - Cada fase pode ter as próprias ofertas e pedidos (`phase.diplo`).
 - **Eventos aleatórios:** os da campanha (`C.events`) e os genéricos (`GENERIC_EVENTS`), com condições (`if`), peso e escolhas.
-- **Mapa interativo:** controle por UF e agitação (`unrest`). Na guerra há tropas, ações por estado e estados disputados. Os modos de visualização são controle e agitação.
+- **Mapa interativo:** controle por UF e agitação (`unrest`), ações por estado e estados disputados. Os modos de visualização são controle e agitação. Camadas militares: frentes, setas, contadores de exército e pulsos de batalha.
+- **Exércitos (sistema militar, desde a v3 do save):** veja a seção 3.1. A guerra **não usa PA**.
 - **Árvore de decisões nacionais** (só 2022, estilo foco nacional do HoI4): veja a seção 5.
 - **Finais:** por nós `ending` da história ou por `C.checks`, que são condições do estado da campanha.
+
+### 3.1 Sistema militar (exércitos, ordens, batalhas)
+Fica no fim do CORE (procure `const ADJ`). Compartilhado pelos três cenários; os dados de cada um ficam em `CAMPAIGN_X.army` (nomes e generais fictícios por lado, exércitos iniciais, `recruitCost`, `reinforceCost`, `enemyStart`). Uma fase com `noArmies: true` (2022 `oposicao`) não dá comando de tropas.
+- **Dados:** `g.armies = [{ id, side: "player"|"enemy", fac, uf, name, gen, str, org, xp, order }]`; `g.enemyPlans` (intenções do mês, planejadas por `planEnemy` antes do jogador agir); `g.mil` (registro do último mês: `control0`, `start`, `orders`, `moves`, `battles`, `flips` — usado pela animação); `g.armsAid` (bônus temporário de armas estrangeiras).
+- **Geografia:** `ADJ` (adjacência das 27 UFs, simétrica, validada contra a geometria do mapa em `check.js`) e `TERRAIN`/`TERRAIN_TYPES` (selva, metrópole, serras, sertão… dão bônus de defesa).
+- **Escala:** `STR_UNIT = 10` (1 "unidade" antiga = 10 de força), `ARMY_MAX = 60`, `ARMY_CAP` 8 por lado. A antiga `reserve`/`u.force` não existe mais; o efeito `reserve: n` em `applyFx` vira `addPlayerStrength(g, n*10)` (reforça exércitos ou cria um novo).
+- **Ordens do jogador:** `setOrder(g, id, type, to)`, `armyTargets(g, a)`, `recruitArmy(g, uf)`, `commandLimit(g)` (1–5, pelo atributo militar e lealdade da facção militar), `ordersUsed(g)`. Atacar/mover/recuar contam no limite; defender e reforçar não.
+- **Milícias:** cada estado tem uma força local implícita (`militia`): polícia/milícias leais nos seus estados, voluntários nos disputados (dependem do apoio popular e da simpatia), guarnição inimiga (`u.enemy * 5`).
+- **Combate:** `fight()` faz até 5 rodadas; o poder é força × moral × experiência × modificadores (`milMods`: terreno, posições preparadas, apoio local, reduto, comando/lealdade, suprimentos, armas estrangeiras, qualidade/mobilização inimiga, sanções). Quem perde a moral (< 20) recua. O registro (`rec`) guarda as rodadas para a tela de batalha.
+- **Mês militar (`militaryMonth`):** movimentos → ataques (alternando lados, por peso econômico) → frentes dos estados em disputa (`resolveFront`) → recuperação de moral e limpeza. Ataques do jogador contra estado inimigo podem conquistá-lo com vitória ampla; senão o estado entra em disputa. **O inimigo só abre frentes** (não toma estados seus direto); a frente vai de −100 a +100.
+- **IA inimiga (`planEnemy`):** ataca estados fracos ou em disputa (razão de forças ≥ 1,15–1,35), defende capitais ameaçadas e se reforça (`enemyReinforce`); trégua impede ataques.
+- **Integrações:** acordos de armas dão +20 de força e `armsAid`; lealdade militar afeta moral máxima e limite de comando; focos com `reserve` dão força; viradas de mapa da história passam por `syncMilitary` (exércitos em território que deixou de ser permitido são realocados).
+- **UI (fora do CORE):** `militaryLayers`/`mapSVG` (frentes via `sharedBorder`, setas `arrowSVG`, contadores `counterSVG`), `tabMapa` (fluxo selecionar exército → alvo, painéis `armyPanel`/`overviewPanel`/`ufPanel`), `openBattle`/`openForecast` (tela de batalha), `playResolution` (animação pulável do Encerrar mês). Tudo em CSS/SVG, com `prefers-reduced-motion`.
 
 ## 4. Arquitetura do `index.html`
 As linhas são aproximadas; procure pelos marcadores.
@@ -42,8 +56,8 @@ As linhas são aproximadas; procure pelos marcadores.
 | `<style>` | início | Todo o CSS, incluindo mobile (`@media max-width:700/860px`) e o da árvore (`.focuslayout`, `.fnode`, `.ftree*`) |
 | `/*SCENARIOS_START*/ … /*SCENARIOS_END*/` | ~346–2016 | Todos os dados: `STORY_ITAVERA`, `STORY_1964`, `STORY_2022`; `CAMPAIGN_ITAVERA`, `CAMPAIGN_1964`, `CAMPAIGN_2022`; `CAMPAIGN_2022.focus` (a árvore); e a lista **`const SCENARIOS = [...]`** |
 | `/*MAP_START*/ … /*MAP_END*/` | ~2017 | `MAP_DATA`: SVG paths dos 27 estados, gerado por `tools/build-map.js` |
-| `/*CORE_START*/ … /*CORE_END*/` | ~2022–2734 | Lógica pura, sem DOM: `SAVE_VERSION`, `cond()`, `applyFx()`, `newCampaign()`, ações, diplomacia (`dealScore`), eventos, focos (`focusStatus`, `startFocus`, `focusTick`, `completeFocus`, `focusStoryGrant`), `endTurn()` |
-| depois do CORE | ~2735–fim | UI: ponte `cloud()` e `window.GWGame` (no fim), além de `UI` (estado da interface), `loadInfo` (carregar e migrar save), `renderTitle` (menu de cenários), `renderGame` (abas), `tabDecisoes` (árvore), `openHelp` etc. |
+| `/*CORE_START*/ … /*CORE_END*/` | ~2155–3367 | Lógica pura, sem DOM: `SAVE_VERSION`, `cond()`, `applyFx()`, `newCampaign()`, ações, diplomacia (`dealScore`), eventos, focos (`focusStatus`, `startFocus`, `focusTick`, `completeFocus`, `focusStoryGrant`), `endTurn()`; no fim, o sistema militar (`ADJ`, `TERRAIN`, `fight`, `militaryMonth`, `planEnemy`, `setOrder`, `migrateSave`…) |
+| depois do CORE | ~3368–fim | UI: ponte `cloud()` e `window.GWGame` (no fim), além de `UI` (estado da interface), `loadInfo` (carregar e migrar save), `renderTitle` (menu de cenários), `renderGame` (abas), `tabMapa` (exércitos e ordens), `openBattle`/`playResolution` (combate visual), `tabDecisoes` (árvore), `openHelp` etc. |
 
 **Os marcadores são usados por `check.js` e `sim.js`,** que extraem esses trechos e executam em Node. Não os remova. Mantenha o CORE livre de DOM.
 
@@ -58,10 +72,10 @@ As linhas são aproximadas; procure pelos marcadores.
   - `phases` (com `player`/`enemy`/`war`/`diplo`), `checks`, `actors`, `factions`, `actions`, `events`, `enterFx`, `choiceFx`, `offerFac`;
   - em 2022 também `focus`.
 - **Condições (`cond`):** `min`, `max`, `flags`, `noFlags`, `visited`, `visitedAny`, `notVisited`, `from`, `until`, `money`, `fac`, `actor`, `control`, `anyControl`, `recognized`, `phase`, `notPhase`, `war`, `sideCount`.
-- **Efeitos (`applyFx`):** `s` (atributos), `money`, `reserve`, `fac`, `infl`, `unrest`, `unrestAll`, `unrestUF`, `act`, `actAll`, `enemy`, `flag`, `map`, `ap`, `ceasefire`, `malus {v, months}`.
+- **Efeitos (`applyFx`):** `s` (atributos), `money`, `reserve` (+10 de força militar por ponto), `fac`, `infl`, `unrest`, `unrestAll`, `unrestUF`, `act`, `actAll`, `enemy`, `flag`, `map`, `ap`, `ceasefire`, `malus {v, months}`.
 
 ### Saves e localStorage
-- `SAVE_VERSION = 2`. Um save com outra versão ou de formato antigo é arquivado em `<saveKey>_legacy`, e o jogador vê um aviso.
+- `SAVE_VERSION = 3` (exércitos). Saves **v2** são migrados em `loadInfo` por `migrateSave` (CORE): `reserve` e `u.force` viram exércitos (10 de força por unidade), as forças inimigas ficam como guarnições/milícias, e aparece um aviso no menu (`milMigrated`). Saves de versão desconhecida ou formato antigo são arquivados em `<saveKey>_legacy`, e o jogador vê um aviso.
 - Saves de 2022 sem `g.focus` (anteriores à árvore) são **migrados** em `loadInfo`: `focusInit` aplica as concessões da história já vividas e marca `focusMigrated`, e aparece um aviso no menu.
 - **Se mudar o formato do save, aumente a versão ou escreva uma migração em `loadInfo`.**
 - Chaves do localStorage:
@@ -96,7 +110,7 @@ As linhas são aproximadas; procure pelos marcadores.
   - save só local: é enviado;
   - os dois diferentes: aparece um modal por cenário, com mês, turno, data e o selo "mais recente";
   - finais: união nos dois sentidos.
-  - Saves da nuvem com outra `save_version` são ignorados. Se `SAVE_VERSION` mudar, pense também nos saves da nuvem.
+  - Saves da nuvem com `save_version` entre `GWGame.minSaveVersion` (2) e `SAVE_VERSION` (3) são aceitos; um v2 baixado é migrado pelo jogo ao abrir e reenviado como v3 no próximo save. Versões fora dessa faixa são ignoradas. Se `SAVE_VERSION` mudar, pense também nos saves da nuvem.
 - **Sem tabelas:** se o SQL ainda não foi rodado, a API devolve `PGRST205`. Nesse caso `cloud.js` mantém o login, avisa no perfil que o servidor não foi configurado e não tenta sincronizar.
 
 ## 5. Árvore de decisões nacionais (2022)
@@ -125,13 +139,16 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 
   - ids únicos e referências existentes;
   - `excl` simétrico, sem ciclos, raiz única;
   - todo foco alcançável por algum caminho;
-  - chaves de efeito válidas e flags `fo_*` válidas.
+  - chaves de efeito válidas e flags `fo_*` válidas;
+  - sistema militar: `ADJ` simétrico, 27 UFs, conexo e conferido com a geometria do mapa; terreno completo; `C.army` de cada cenário; ações de recrutamento com `ap: 0`; migração de 75 saves v2 sintéticos e um teste de `fight()`.
   - Depois roda o `sim.js`.
-- **`node sim.js [N] [cenário]`:** partidas automáticas com as IAs aleatória, gulosa e radical, e a "golpista" (roteiro só de cobertura, em 2022). Mostra a distribuição de finais, os focos concluídos por partida e quais focos nunca são concluídos. Falha se algum final ou foco ficar inalcançável.
+- **`node sim.js [N] [cenário]`:** partidas automáticas com as IAs aleatória, gulosa e radical, e a "golpista" (roteiro só de cobertura, em 2022). As IAs também dão ordens aos exércitos (`giveOrders`: aleatória ao acaso; gulosa recruta, reforça e ataca em grupo com razão de forças ≥ 1,2) e o sim confere invariantes do exército (ordens limpas, território permitido, limites). Mostra a distribuição de finais, os focos concluídos por partida e quais focos nunca são concluídos. Falha se algum final ou foco ficar inalcançável.
 - **Referência atual (300 partidas por IA, 2022):**
-  - aleatória: ostracismo 29%, oposição 23%, retorno 15%, golpe fracassado 11%…;
+  - aleatória: ostracismo 31%, oposição 21%, retorno 19%, golpe fracassado 8%…;
   - gulosa: retorno 81%;
-  - radical: golpe fracassado 53%.
+  - radical: golpe fracassado 53%;
+  - golpista: divisão 82%, restauração 13%, regime 5% (~34 batalhas por partida).
+- **Referência 1924 (300 partidas):** aleatória derrota 38%, falência 32%; gulosa independência 39%, federação 30%, falência 23%; radical derrota 37%, falência 30%.
 
 ## 7. Regras de design (obrigatórias)
 1. **UI e textos em português do Brasil.**
@@ -148,6 +165,11 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 
 - Depois de 2023-03 os turnos valem 3 meses, então os focos terminam em saltos.
 - O ramo do regime é curto (cerca de 9 meses até o nó `guerra`). Não dá para fazer todos os focos numa partida.
 - As IAs da simulação são heurísticas.
+- **Militar:**
+  - a IA inimiga é simples (ataques locais, sem cercos nem planos de vários meses) e só abre frentes, nunca toma um estado seu direto;
+  - não há linhas de suprimento detalhadas (só "estado próprio ou vizinho");
+  - em 2022, nos turnos de 3 meses, os exércitos agem uma vez por turno;
+  - as frentes são calculadas pelos vértices compartilhados do mapa simplificado; em litorais recortados podem ficar trechos curtos.
 - No desktop o tooltip dos nós é o `title` nativo do navegador.
 - Tudo num arquivo só fica difícil de manter conforme cresce.
 - **Nuvem:**

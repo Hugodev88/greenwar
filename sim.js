@@ -9,7 +9,9 @@ const code = part("/*SCENARIOS_START*/", "/*SCENARIOS_END*/") + part("/*MAP_STAR
 const API = new Function(code + `; return { SCENARIOS, MAP_DATA, newCampaign, queueChoices, choose, endTurn, visibleActions, actionState, doAction,
   mapActions, doMapAction, factionAction, allowedReqs, allowedOffs, dealScore, dealCheck, proposeDeal, acceptCounter, diploMission,
   phaseOf, sideOf, sideCounts, playerUFs, findEvent, fxSummary, incomeFor, monthLabel, OFF_TYPES,
-  focusTree, focusStatus, focusCheck, startFocus, focusDef };`)();
+  focusTree, focusStatus, focusCheck, startFocus, focusDef,
+  ADJ, ARMY_MAX, SAVE_VERSION, armiesOf, armyById, armyTargets, setOrder, recruitArmy, battleOdds, commandLimit, ordersUsed,
+  reinforceCost, recruitCost, armyAllowed, sideStr, migrateSave, knownIntents };`)();
 const N = +process.argv[2] || 300;
 let fails = 0;
 const fail = (m) => { fails++; if (fails < 25) console.log("  ✗ " + m); };
@@ -21,11 +23,26 @@ function invariants(g, sc){
   const facs = Object.keys(sc.story.factions);
   for (const k in g.stats) if (!(g.stats[k] >= 0 && g.stats[k] <= 100)) return `stat ${k}=${g.stats[k]}`;
   if (!Number.isFinite(g.money)) return "money NaN";
-  if (!(g.reserve >= 0) || !Number.isFinite(g.ap)) return "reserve/ap inválido";
+  if (!Number.isFinite(g.ap) || g.ap < 0) return "ap inválido";
+  if ("reserve" in g) return "campo antigo g.reserve ainda presente";
+  if (!Array.isArray(g.armies)) return "sem lista de exércitos";
+  const ids = new Set();
+  for (const a of g.armies){
+    if (ids.has(a.id)) return "id de exército duplicado " + a.id; ids.add(a.id);
+    if (a.side !== "player" && a.side !== "enemy") return "lado inválido " + a.id;
+    if (!API.ADJ[a.uf]) return `exército ${a.id} em UF inválida ${a.uf}`;
+    if (!(a.str >= 3 && a.str <= API.ARMY_MAX)) return `força inválida ${a.name}=${a.str}`;
+    if (!(a.org >= 0 && a.org <= 100) || !Number.isFinite(a.xp)) return `organização/xp inválido ${a.name}`;
+    if (a.order) return `ordem não limpa após o turno: ${a.name}`;
+    if (!g.ended && !API.armyAllowed(g, a.side, a.uf)) return `exército ${a.side} ${a.name} em território impossível ${a.uf} (${g.control[a.uf]})`;
+  }
+  if (API.armiesOf(g, "player").length > 8 || API.armiesOf(g, "enemy").length > 8) return "exércitos acima do limite";
+  for (const p of (g.enemyPlans || [])) if (!API.armyById(g, p.id)) return "plano inimigo para exército inexistente";
   for (const uf in g.uf){ const u = g.uf[uf];
     if (!facs.includes(g.control[uf])) return `controle inválido ${uf}=${g.control[uf]}`;
-    for (const k of ["unrest","force","enemy","progress","sway"]) if (!Number.isFinite(u[k])) return `uf ${uf}.${k} NaN`;
-    if (u.force < 0 || u.enemy < 0) return `forças negativas em ${uf}`; }
+    for (const k of ["unrest","enemy","progress","sway"]) if (!Number.isFinite(u[k])) return `uf ${uf}.${k} NaN`;
+    if ("force" in u) return `campo antigo force em ${uf}`;
+    if (u.enemy < 0) return `forças negativas em ${uf}`; }
   for (const id in g.fac) if (!Number.isFinite(g.fac[id].loyalty) || !Number.isFinite(g.fac[id].influence)) return "facção NaN " + id;
   for (const id in g.actors) if (!Number.isFinite(g.actors[id].opinion) || Math.abs(g.actors[id].opinion) > 100) return "ator inválido " + id;
   for (const q of g.queue){ if (q.type === "story" && !sc.story.nodes[q.node]) return "fila: nó inexistente " + q.node; if (q.type === "event" && !API.findEvent(g, q.id)) return "fila: evento inexistente " + q.id; }
@@ -86,12 +103,6 @@ function spendAP(g, sc, r, greedy){
       // 1) crise de facção iminente
       const weak = C.factions.filter(f => g.fac[f.id].loyalty < 25 && g.fac[f.id].influence >= 25 && !g.used["fac_agradar_" + f.id]).sort((a, b) => g.fac[a.id].loyalty - g.fac[b.id].loyalty)[0];
       if (weak && g.money >= 4 && roll < 0.8){ if (API.factionAction(g, weak.id, "agradar").ok) continue; }
-      // 2) guerra: tropas nas frentes
-      if (ph.war && g.reserve > 0){
-        const fronts = Object.keys(g.control).filter(u => API.sideOf(g, g.control[u]) === "contested").sort((a, b) => g.uf[a].progress - g.uf[b].progress);
-        const tgt = fronts[0] || API.playerUFs(g).filter(u => g.uf[u].unrest > 60)[0];
-        if (tgt && API.doMapAction(g, tgt, "tropas").ok) continue;
-      }
       // 3) diplomacia com acordo provável
       if (roll < 0.45){
         let best = null;
@@ -122,14 +133,53 @@ function spendAP(g, sc, r, greedy){
     }
   }
 }
+// Ordens militares (não gastam PA). Gulosa: ataques com boa chance, reforços, marcha para a frente.
+function giveOrders(g, sc, r, greedy){
+  if (g.ended || g.queue.length) return;
+  const ph = API.phaseOf(g), mine = API.armiesOf(g, "player");
+  if (!greedy){
+    for (const a of mine){ const roll = r();
+      if (roll < 0.5){ const t = API.armyTargets(g, a); if (t.length){ const x = pick(r, t); if (API.setOrder(g, a.id, x.type, x.uf).ok) g.stat.orders++; } }
+      else if (roll < 0.62) API.setOrder(g, a.id, "reforcar"); else if (roll < 0.8) API.setOrder(g, a.id, "defender"); }
+    if (ph.war && r() < 0.15) API.recruitArmy(g);
+    return;
+  }
+  const war = ph.war && !(g.ceasefire > 0);
+  if (war && g.money >= API.recruitCost(g) + 15 && mine.length < 4) API.recruitArmy(g);
+  const used = new Set();
+  if (war){
+    // alvos: estados inimigos/em disputa vizinhos; reúne exércitos até a razão ser boa
+    const tg = {};
+    for (const a of API.armiesOf(g, "player")) if (a.org >= 35 && a.str >= 10) for (const t of API.armyTargets(g, a)) if (t.type === "atacar") (tg[t.uf] ||= []).push(a);
+    const opts = Object.entries(tg).map(([uf, arr]) => { arr.sort((x, y) => y.str - x.str); let grp = [], o; for (const a of arr){ grp.push(a); o = API.battleOdds(g, "player", grp, uf); if (o.ratio >= 1.4) break; }
+      return { uf, grp, o, v: Math.min(o.ratio, 3) * 5 + (API.sideOf(g, g.control[uf]) === "contested" ? 3 : 0) + r() }; }).filter(x => x.o.ratio >= (greedy === "radical" || greedy === "golpista" ? 1.0 : 1.2)).sort((a, b) => b.v - a.v);
+    for (const x of opts){
+      if (API.ordersUsed(g) >= API.commandLimit(g)) break;
+      const grp = x.grp.filter(a => !used.has(a.id)); if (!grp.length) continue;
+      for (const a of grp){ if (API.ordersUsed(g) >= API.commandLimit(g)) break; if (API.setOrder(g, a.id, "atacar", x.uf).ok){ used.add(a.id); g.stat.orders++; } }
+    }
+  }
+  const front = uf => API.ADJ[uf].some(n => API.sideOf(g, g.control[n]) !== "player") || API.sideOf(g, g.control[uf]) === "contested";
+  for (const a of API.armiesOf(g, "player")){
+    if (used.has(a.id)) continue;
+    if (war && a.str <= 40 && g.money >= API.reinforceCost(g) + 12 && API.setOrder(g, a.id, "reforcar").ok) continue;
+    if (war && !front(a.uf) && API.ordersUsed(g) < API.commandLimit(g)){
+      const t = API.armyTargets(g, a).filter(t => t.type === "mover" && front(t.uf))[0];
+      if (t && API.setOrder(g, a.id, "mover", t.uf).ok){ g.stat.orders++; continue; }
+    }
+    API.setOrder(g, a.id, "defender");
+  }
+}
 function play(sc, seed, greedy){
   const r = rng(seed * 7919 + (greedy === "golpista" ? 3 : greedy === "radical" ? 2 : greedy ? 1 : 0));
   const g = API.newCampaign(sc, seed);
+  g.stat.orders = 0;
   let turns = 0;
   while (!g.ended){
     const e1 = resolveQueue(g, sc, r, greedy); if (e1) return { err: e1, g };
     if (g.ended) break;
     spendAP(g, sc, r, greedy);
+    giveOrders(g, sc, r, greedy);
     const e2 = resolveQueue(g, sc, r, greedy); if (e2) return { err: e2, g };
     if (g.ended) break;
     if (!API.endTurn(g)) return { err: "endTurn recusou com fila vazia", g };
@@ -151,7 +201,7 @@ for (const sc of API.SCENARIOS){
   const R = report[sc.id] = {}; FC[sc.id] = {};
   for (const mode of ["aleatoria", "gulosa", "radical", ...(COUP[sc.id] ? ["golpista"] : [])]){
     if (mode === "golpista") sc.campaign.coupScript = COUP[sc.id];
-    const dist = {}, turnsArr = [], monthsArr = [], via = { historia: 0, campanha: 0 }; let crashes = 0, deals = 0, battles = 0, focusDone = 0;
+    const dist = {}, turnsArr = [], monthsArr = [], via = { historia: 0, campanha: 0 }; let crashes = 0, deals = 0, battles = 0, focusDone = 0, orders = 0;
     for (let i = 1; i <= N; i++){
       let res;
       try { res = play(sc, i, mode === "aleatoria" ? false : mode === "gulosa" ? true : mode); } catch (e) { crashes++; fail(`${sc.id}/${mode}#${i}: exceção ${e.stack.split("\n").slice(0,2).join(" ")}`); continue; }
@@ -159,15 +209,15 @@ for (const sc of API.SCENARIOS){
       const g = res.g;
       dist[g.ended.node] = (dist[g.ended.node] || 0) + 1;
       turnsArr.push(g.turn); monthsArr.push(g.month - g.startMonth);
-      via[g.ended.why ? "campanha" : "historia"]++; deals += g.stat.deals; battles += g.stat.battles;
+      via[g.ended.why ? "campanha" : "historia"]++; deals += g.stat.deals; battles += g.stat.battles; orders += g.stat.orders || 0;
       if (g.focus){ focusDone += g.focus.done.length; for (const id of g.focus.done) FC[sc.id][id] = (FC[sc.id][id] || 0) + 1; }
     }
     const avg = a => a.length ? (a.reduce((s, x) => s + x, 0) / a.length).toFixed(1) : "-";
     const sorted = Object.entries(dist).sort((a, b) => b[1] - a[1]);
-    console.log(`  IA ${mode}: ${N} partidas · falhas ${crashes} · turnos médios ${avg(turnsArr)} (min ${Math.min(...turnsArr)}, máx ${Math.max(...turnsArr)}) · meses médios ${avg(monthsArr)} · acordos/partida ${(deals/N).toFixed(1)} · fim por estado da campanha ${via.campanha}`);
+    console.log(`  IA ${mode}: ${N} partidas · falhas ${crashes} · turnos médios ${avg(turnsArr)} (min ${Math.min(...turnsArr)}, máx ${Math.max(...turnsArr)}) · meses médios ${avg(monthsArr)} · acordos/partida ${(deals/N).toFixed(1)} · ordens/partida ${(orders/N).toFixed(1)} · batalhas/partida ${(battles/N).toFixed(1)} · fim por estado da campanha ${via.campanha}`);
     if (sc.campaign.focus) console.log(`    focos concluídos/partida: ${(focusDone / N).toFixed(1)}`);
     console.log("    " + sorted.map(([k, v]) => `${k} ${(100*v/N).toFixed(0)}%`).join(" · "));
-    R[mode] = { focusPerGame: +(focusDone / N).toFixed(2), dist, crashes, turns: avg(turnsArr), months: avg(monthsArr), viaCampanha: via.campanha };
+    R[mode] = { orders: +(orders / N).toFixed(1), battles: +(battles / N).toFixed(1), focusPerGame: +(focusDone / N).toFixed(2), dist, crashes, turns: avg(turnsArr), months: avg(monthsArr), viaCampanha: via.campanha };
   }
   const reached = new Set([...Object.keys(R.aleatoria.dist), ...Object.keys(R.gulosa.dist), ...Object.keys(R.radical.dist), ...Object.keys((R.golpista || {}).dist || {})]);
   const missing = endings.filter(e => !reached.has(e));

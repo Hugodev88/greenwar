@@ -387,7 +387,7 @@ async function mergeOnLogin({ interactive = false } = {}) {
       const row = (rows || []).find(r => r.scenario_id === sc.id);
       const local = readJSON(sc.saveKey);
       const hasLocal = local && local.scen === sc.id;
-      const cloudOk = row && row.data && row.save_version === Game.saveVersion && row.data.scen === sc.id;
+      const cloudOk = row && row.data && row.save_version >= (Game.minSaveVersion || Game.saveVersion) && row.save_version <= Game.saveVersion && row.data.scen === sc.id; // v2 é migrado pelo jogo ao abrir
       if (row && !cloudOk) skipped++;
       if (!hasLocal && !cloudOk) continue;
       if (hasLocal && !cloudOk) { uploads.push(sc.id); continue; }

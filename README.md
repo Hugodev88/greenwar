@@ -17,6 +17,7 @@ Jogo de estratégia e história interativa sobre o Brasil, inspirado em Hearts o
 - **Facções internas:** cada uma tem lealdade.
 - **Eventos aleatórios.**
 - **Mapa interativo** dos 27 estados.
+- **Exércitos e combate visual:** exércitos com nome, força, moral (organização), experiência e general fictício aparecem no mapa como contadores no estilo OTAN. Você dá **uma ordem por exército por mês** (atacar, defender, mover, recuar, reforçar) **sem gastar PA**: toque no exército e depois no estado vizinho. O mapa mostra setas animadas (suas ordens e as intenções inimigas conhecidas), linhas de frente e estados em batalha pulsando. No **Encerrar mês** há uma resolução animada (pode pular) e uma **tela de batalha** com rodadas, moral, general e modificadores (terreno, apoio local, suprimentos, armas estrangeiras).
 - **Árvore de decisões nacionais** (focos no estilo HoI4), só no cenário de 2022.
 - **Finais múltiplos.**
 
@@ -29,6 +30,13 @@ Se preferir um servidor local:
 ```bash
 npx serve .        # ou: python3 -m http.server 8000
 ```
+
+### Exércitos e ordens
+- **Selecionar:** toque num contador azul (seu exército; o número é a força total no estado e o selo "×n" indica vários exércitos — toque de novo para alternar). Os estados alcançáveis ficam destacados: vermelho = atacar, azul = mover/recuar.
+- **Ordens:** uma por exército por mês. Atacar, mover e recuar são **manobras**, limitadas pelo atributo militar e pela lealdade militar (o chip "Ordens x/y" no mapa). Defender é grátis; reforçar custa recursos. Formar um exército novo também custa recursos (1 por mês). Nada disso gasta PA.
+- **Paz:** em tempo de paz os exércitos só se reposicionam entre estados seus.
+- **Batalhas:** toque num estado em disputa (ou em "Ver batalha") para abrir a tela de combate; sem batalha no mês, ela mostra as forças e uma previsão.
+- **Saves antigos** (versão 2) são migrados automaticamente: as tropas viram exércitos.
 
 ## Contas e saves na nuvem (Supabase)
 O login é **opcional**. Sem conta, offline ou se o Supabase estiver fora do ar, o jogo continua igual, com os saves no `localStorage`.
