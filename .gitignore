@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.*
+.DS_Store
+Thumbs.db
+*.log
+sim-resultados.json
+tools/brazil-states.geojson.json
+screenshots-versao-anterior/
+.vscode/

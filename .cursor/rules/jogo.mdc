@@ -1,0 +1,14 @@
+---
+description: Regras do projeto Greenwar (jogo de estratégia narrativa sobre o Brasil, 1924/1964/2022)
+alwaysApply: true
+---
+- Leia `CONTEXTO.md` antes de mudanças grandes: ele tem a arquitetura, os sistemas, a árvore de decisões de 2022 e o roadmap.
+- O jogo é um único `index.html` (HTML, CSS e JS puro). Não remova os marcadores `/*SCENARIOS_START*/`, `/*MAP_START*/`, `/*CORE_START*/` nem os `_END` correspondentes: `check.js` e `sim.js` dependem deles.
+- O trecho CORE é lógica pura: nada de `document` ou `window`.
+- Toda a UI e os textos ficam em português do Brasil.
+- Mantenha o aviso de ficção. Trate pessoas reais de forma neutra e nunca invente citações atribuídas a elas.
+- Caminhos autoritários e golpes têm consequências sóbrias e pesadas, sem glorificação.
+- Ao mudar o formato do save, migre em `loadInfo()` ou aumente `SAVE_VERSION`. Não quebre saves existentes.
+- Depois de mexer em história, eventos, ações ou na árvore de focos, rode `node check.js` (que também roda `sim.js`) e confira a distribuição de finais.
+- O foco atual é o cenário de 2022. Próximos passos: modernizar o visual, hospedar, login e perfis (Supabase ou Firebase, saves na nuvem) e, junto com a autenticação, migrar para Vite.
+- Nunca faça commit de segredos (`.env`, service keys).
