@@ -94,6 +94,7 @@ As linhas são aproximadas; procure pelos marcadores.
   - `aurora_do_sul_save_v1` e `aurora_do_sul_endings_v1` (1924 removido: chaves antigas ignoradas, não são apagadas);
   - `jogo_br_save_brasil2022` e `jogo_br_endings_brasil2022`;
   - `jogo_br_ultimo_cenario`;
+  - `gw_settings_v1`: configurações (idioma, acessibilidade, som);
   - `gw_tut_v3`: progresso do tutorial contextual `{ off, seen: { hud, historia, mapa, exercitos, decisoes, faccoes, diplomacia, acoes } }` (a antiga `jogo_br_tutorial_v2` não é mais lida).
 - Cada `save()` grava `G.savedAt = Date.now()`, usado para dizer qual save é mais recente na mesclagem com a nuvem.
 
@@ -187,7 +188,16 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 
 - **UI:** `apSrcLine`, células `.ecocell` no topo, `ecoStrip` na aba Ações, `openEco(focus)` (modal `#ecoModal`). Facções mostram o custo em Recursos (`facCostTxt`).
 - **Mapa de guerra:** `counterInner(side, str, n)` desenha a ficha (também nos fantasmas da resolução e na legenda `.milleg`); `CNT_K()` é a escala (1,2 no celular). Frentes = `path.frontcase` + `path.front`. Fluxo de ordem: `UI.pend = { army, to, type }` (validado a cada render), `orderForecast(a, to, type)` calcula a previsão com `battleOdds`/`milMods`, `forecastCardHTML` vira painel lateral (desktop) ou bloco sob o mapa (≤ 900px), `openAttackForecast` abre a tela de batalha em modo previsão com os atacantes. `UI.mapBig` = mapa ampliado. Esc cancela a prévia/seleção.
 
+## 7d. Fase 3 (out/2026): configurações, acessibilidade, idioma e som (tudo na UI, sem mudar o CORE nem os saves)
+- **Configurações:** `SET` no localStorage `gw_settings_v1` `{ lang:"pt"|"en", cb, hc, fs:100|115|130, motion, music:0–1, sfx:0–1, muted }`; `applySet()` aplica as classes `body.cb`/`body.hc`/`body.rm` e o tamanho da letra; `openSettings()` abre `#setModal` (botões `#btnSet`, `#btnSnd`).
+- **Daltônico:** `CB_PATS` (padrões SVG) e `facFill(f)` devolvem `url(#pat-…)` quando `SET.cb` está ligado.
+- **Acessibilidade:** `#srlive` (aria-live) + `announce(msg)`; `<main id="app">` com link de salto `.skip`; estados e fichas do mapa com `tabindex`/`role=button`/`aria-label`; Enter/Espaço viram clique (`UI.kbFocus` + `restoreKbFocus()` devolvem o foco depois do render); setas nas abas; `mapDescriptionHTML(G, modo)` (`UI.mapDesc`).
+- **Áudio:** IIFE `AUDIO` (Web Audio procedural): `AUDIO.theme("calm"|"tense"|"war")`, `AUDIO.sfx("click"|"order"|"turn"|"boom"|"win"|"lose"|"sting"|"alert")`, `AUDIO.unlock()` no primeiro gesto.
+- **Idioma (EN):** camada de tradução no DOM. O jogo continua escrito em PT. `I18N_EN = { exact, tpl }` (dicionário embutido), `trCore` (busca exata → modelo com números `{0}` → meses → divide em " · ", "; ", " — ", ". ", ": ", ", " → regras `I18N_RULES`), `trText` (só traduz se `SET.lang==="en"`), `i18nNode` (textos + `title`/`aria-label`/`placeholder`/`alt`, original guardado em `__pt`/`__pta`), um `MutationObserver` em `body` e `i18nSwitch()`. **Texto novo na UI precisa de entrada no `I18N_EN`**, senão aparece em português no modo English.
+
 ## 8. Limitações conhecidas
+- Modo English: cobre interface, tutorial, os grandes eventos e o evento de abertura; os demais textos de eventos, os epílogos e o cenário 1964 seguem em português.
+- A trilha sonora é sintetizada (Web Audio), não há música gravada.
 - Quem conclui `c_ruptura` e depois recua para a transição fica só com os ramos temáticos, porque democ e jurid ficam excluídos.
 - Depois de 2023-03 os turnos valem 3 meses, então os focos terminam em saltos.
 - O ramo do regime é curto (cerca de 9 meses até o nó `guerra`). Não dá para fazer todos os focos numa partida.
