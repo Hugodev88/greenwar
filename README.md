@@ -32,7 +32,7 @@ O foco atual é o cenário de **2022**. (O antigo cenário fictício de 1924, "A
 - **Recursos políticos rebalanceados (2022):** teto de **80** (o que passar disso se perde no Encerrar turno, com aviso antes); **Facções** passam a custar só Recursos (Agradar 8, Enfraquecer 6, sem gastar ações); **Converter 12 Recursos → +1 ação** uma vez por turno (aba Ações). A tela "Como funcionam ações e Recursos?" mostra renda por fonte, teto e onde gastar.
 - **Mapa de guerra refeito:** mapa maior (e botão **⊕ Ampliar mapa**), fichas de exército maiores com a **força em número e barra**, símbolo OTAN (retângulo = seu, losango = inimigo) e marca dourada quando já tem ordem; frentes de batalha com contorno escuro (visíveis sobre qualquer cor) e legenda militar embaixo do mapa. Fluxo em 3 passos: **1. selecionar** o exército → **2. destino** (seta de prévia tracejada) → **3. previsão** (chance, barra de poder, principais modificadores, o que acontece se vencer/perder, manobras restantes) com **Confirmar**, **Comparação completa** e **Cancelar** (Esc). Tocar de novo no mesmo estado confirma.
 - **⚙ Configurações** (botão no topo; ficam salvas no navegador): **idioma** Português (Brasil) / English; **modo daltônico** (cada facção ganha uma textura além da cor, no mapa e na legenda); **alto contraste**; **tamanho da letra** (100%, 115% ou 130%); **reduzir animações**; **música** e **efeitos** com volume separado, além do botão 🔊 (tecla **M**) para silenciar.
-- **Acessibilidade:** link "Pular para o conteúdo", navegação por teclado (Tab; **Enter/Espaço** num estado ou num exército do mapa equivale ao clique; **←/→** troca de aba; **Esc** fecha a prévia), avisos para leitores de tela (região `aria-live`) e o botão **📝 Descrição do mapa**, que descreve em texto quem controla cada estado, a agitação e os exércitos.
+- **Acessibilidade:** link "Pular para o conteúdo", navegação por teclado (Tab; **Enter/Espaço** num estado ou num exército do mapa equivale ao clique; **←/→** troca de aba; **Esc** fecha a prévia), avisos para leitores de tela (região `aria-live`) e o botão **📝 Descrição do mapa**, que descreve em texto quem controla cada estado, a agitação, os exércitos e, no 2022, cada frente (sua força × a do inimigo, para onde a linha andou no último mês, sua capital e os redutos inimigos). No mapa de guerra, o placar de cada frente também é focável com Tab e abre com Enter/Espaço.
 - **Trilha sonora e efeitos:** música gerada no navegador com Web Audio (sem arquivos), com três climas: calmo, tenso e guerra, conforme a fase. Há efeitos para clique, ordem, fim de turno, batalha, vitória e derrota, e um alerta nos grandes eventos. O som começa no primeiro clique, como os navegadores exigem.
 
 ## Como jogar
@@ -172,7 +172,8 @@ Site estático, **sem etapa de build**: o GitHub Pages publica os arquivos como 
 ```
 index.html              marcação + lista de <link>/<script> (a ordem importa)
 css/                    estilos por área: base, menu, mapa, campanha, mapa-guerra, batalha, paineis,
-                        decisoes, tutorial, ajuda, grandes-eventos, faccoes, acessibilidade, sul, exercitos…
+                        decisoes, tutorial, ajuda, grandes-eventos, faccoes, acessibilidade, sul, exercitos,
+                        frentes, mapa-frentes (visual do mapa de guerra, fase 9)…
 js/
   data/                 DADOS PUROS (o que mais se edita)
     ajudantes.js          act() e ev(), atalhos para escrever ações e eventos

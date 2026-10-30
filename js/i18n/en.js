@@ -1622,7 +1622,25 @@ const I18N_EN = {
   "Ponto de ação e Recursos devolvidos.": "Action point and Resources refunded.",
   "Ponto de ação e Recursos devolvidos": "Action point and Resources refunded",
   "O progresso foi perdido (começou num turno anterior, nada foi devolvido).": "Progress lost (it started in an earlier turn, nothing was refunded).",
-  "O progresso foi perdido (começou num turno anterior, nada foi devolvido)": "Progress lost (it started in an earlier turn, nothing was refunded)"
+  "O progresso foi perdido (começou num turno anterior, nada foi devolvido)": "Progress lost (it started in an earlier turn, nothing was refunded)",
+  "Mapa de guerra do Brasil por facção, com as frentes e o placar de força de cada uma. Use Tab para percorrer os estados; a descrição em texto está no botão Descrição do mapa.": "War map of Brazil by faction, with the fronts and each front's strength scoreboard. Use Tab to move between states; the text description is under the Map description button.",
+  "sem combate ainda": "no fighting yet",
+  "no último mês a linha quase não mexeu": "last month the line barely moved",
+  "no último mês a linha avançou": "last month the line advanced",
+  "no último mês a linha recuou": "last month the line fell back",
+  "sua capital": "your capital",
+  "Sua capital": "Your capital",
+  "se cair, o regime cai": "if it falls, the regime falls",
+  "reduto inimigo": "enemy stronghold",
+  "redutos inimigos": "enemy strongholds",
+  "seu lado / lado inimigo": "your side / enemy side",
+  "força: você ■ / inimigo ◆ (toque para abrir)": "strength: you ■ / enemy ◆ (tap to open)",
+  "para onde a linha andou": "where the line moved",
+  "reduto inimigo (vitória)": "enemy stronghold (victory)",
+  "força no placar do mapa: você": "strength on the map scoreboard: you",
+  "× inimigo": "× enemy",
+  "No mapa: a linha de frente é a borda grossa laranja; faixas listradas mostram o seu lado e o lado inimigo; cada frente tem um placar com a sua força e a do inimigo.": "On the map: the front line is the thick orange border; striped bands show your side and the enemy side; each front has a scoreboard with your strength and the enemy's.",
+  "O placar na linha mostra a sua força contra a do inimigo; toque nele para abrir a frente.": "The scoreboard on the line shows your strength against the enemy's; tap it to open the front."
 
  },
  "tpl": {
@@ -2037,7 +2055,16 @@ const I18N_EN = {
   "Trégua de {0} meses": "{0}-month truce",
   "Agitação geral +{0}": "General unrest +{0}",
   "{0} mês ·": "{0} month ·",
-  "{0} meses ·": "{0} months ·"
+  "{0} meses ·": "{0} months ·",
+  "sua força {0} contra {1} do inimigo": "your strength {0} vs the enemy's {1}",
+  "linha {0} de 100": "line {0} of 100",
+  "linha -{0} de 100": "line -{0} of 100",
+  "linha +{0} de 100": "line +{0} of 100",
+  "no último mês a linha avançou {0}": "last month the line advanced {0}",
+  "no último mês a linha recuou {0}": "last month the line fell back {0}",
+  "linha {0} de {1}": "line {0} of {1}",
+  "linha -{0} de {1}": "line -{0} of {1}",
+  "linha +{0} de {1}": "line +{0} of {1}"
 
  }
 };

@@ -1,0 +1,48 @@
+/* css/mapa-frentes.css — Mapa de guerra por frentes (2022, estilo Victoria 3): placar de força na linha, lados sombreados, disputa listrada, setas do mês, capital e redutos. */
+  /* papel envelhecido + grade de meridianos discreta (só CSS, sem filtros) */
+  .mapbox svg.fmap{background:radial-gradient(ellipse at 55% 45%,#2c2419 0%,#1b1610 60%,#120e0a 100%),repeating-linear-gradient(0deg,transparent 0 39px,#e8d9b40a 39px 40px),repeating-linear-gradient(90deg,transparent 0 39px,#e8d9b40a 39px 40px);background-blend-mode:normal;border-radius:8px;box-shadow:inset 0 0 40px #000a}
+  .mapbox svg.fmap path.uf{stroke:#15100b;stroke-width:1.1;stroke-linejoin:round}
+  .mapbox svg.fmap path.uf:hover{stroke:#fff3c4;stroke-width:1.8}
+  /* faixas dos lados perto da linha */
+  .mapbox .funder{pointer-events:none}
+  .mapbox path.fband{fill:none;stroke-width:34;stroke-linecap:round;stroke-linejoin:round;opacity:.7}
+  .mapbox svg.small path.fband{stroke-width:36}
+  .mapbox path.foccup{stroke:none;opacity:.75}
+  /* linha mais grossa e com brilho */
+  .mapbox svg.fmap path.frontcase{stroke-width:8.5}
+  .mapbox svg.fmap path.front{stroke-width:4.2}
+  .mapbox svg.fmap.small path.frontcase{stroke-width:10}.mapbox svg.fmap.small path.front{stroke-width:5}
+  /* placar */
+  .mapbox g.fbadge{cursor:pointer;outline:none}
+  .mapbox g.fbadge .fpill{fill:none;stroke:#f3e2b8;stroke-width:1.5;filter:drop-shadow(0 1px 2px #000)}
+  .mapbox g.fbadge.fav-p .fpill{stroke:#bfe0ff}.mapbox g.fbadge.fav-e .fpill{stroke:#ffc2b5}
+  .mapbox g.fbadge:hover .fpill,.mapbox g.fbadge:focus .fpill{stroke:#fff;stroke-width:2.4}
+  .mapbox g.fbadge:focus-visible .fpill{stroke:#ffd166;stroke-width:3}
+  .mapbox g.fbadge .fhalf{stroke:none}
+  .mapbox g.fbadge text.fnum{font-size:11px;font-weight:800;fill:#fff;stroke:#000a;stroke-width:2px}
+  .mapbox g.fbadge .fsym{fill:none;stroke:#fff;stroke-width:1.1}
+  .mapbox g.fbadge .fvs{stroke:#f3e2b8;stroke-width:1.6;stroke-linecap:round}
+  .mapbox g.fbadge .ftug{fill:#000c;stroke:#f3e2b866;stroke-width:.6}
+  .mapbox g.fbadge .ftugf.up{fill:#9cc3ea}.mapbox g.fbadge .ftugf.down{fill:#f0a493}
+  body.cb .mapbox g.fbadge .ftugf.up{fill:#9fd3ff}body.cb .mapbox g.fbadge .ftugf.down{fill:#ffc499}
+  .mapbox g.fbadge .ftick{stroke:#fff;stroke-width:.8}
+  .mapbox g.fbadge .fmk{fill:#fff;stroke:#000;stroke-width:.7}
+  .mapbox g.fbadge text.fprog{font-size:7.5px;font-weight:800;fill:#f3e2b8;stroke-width:2.4px}
+  .mapbox g.fbadge .fpost circle,.mapbox g.fbadge .fgen2 circle{fill:#1a140e;stroke:#f3e2b8;stroke-width:1.2}
+  .mapbox g.fbadge .fpost.sp circle{stroke:#ffd166;stroke-width:1.8}
+  .mapbox g.fbadge .fpost text,.mapbox g.fbadge .fgen2 text{font-size:9px;stroke:none;fill:#f3e2b8}
+  /* setas do último mês (chevrons em sequência) */
+  .mapbox g.fpush{pointer-events:none}
+  .mapbox g.fpush path.ch{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 1px #000);animation:fchev 1.5s ease-in-out infinite}
+  .mapbox g.fpush.up path.ch{stroke:#f3c969}.mapbox g.fpush.down path.ch{stroke:#ff6a52}
+  .mapbox g.fpush path.c1{animation-delay:.25s}.mapbox g.fpush path.c2{animation-delay:.5s}
+  @keyframes fchev{0%,100%{opacity:.25}40%{opacity:1}}
+  /* capital e redutos */
+  .mapbox g.fgoal{pointer-events:none}
+  .mapbox g.fgoal.cap path{fill:#f3c969;stroke:#1a1408;stroke-width:1}
+  .mapbox g.fgoal.goal circle{fill:#fff;stroke:#1a1408;stroke-width:.8}.mapbox g.fgoal.goal circle+circle{fill:#c0392b}.mapbox g.fgoal.goal circle.dot{fill:#fff}
+  .fleg span{white-space:nowrap}
+  .fcard2.flash{animation:fcflash 1.5s ease}
+  @keyframes fcflash{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 3px #f3c969,0 0 18px #f3c96988}}
+  @media (prefers-reduced-motion:reduce){.mapbox g.fpush path.ch{animation:none;opacity:.9}}
+  body.rm .mapbox g.fpush path.ch{animation:none;opacity:.9}

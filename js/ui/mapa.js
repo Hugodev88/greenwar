@@ -43,7 +43,9 @@ function mapSVG(control, changed, opts){
     const xs = [...L.counters.matchAll(/translate\(([\d.]+),/g)].map(m => +m[1]);
     if (xs.length) w = Math.max(620, Math.ceil(Math.max(...xs) + 24 * CNT_K()));
   }
-  return `<svg viewBox="0 0 ${w} ${MAP_DATA.size[1]+6}" class="${mil ? "milmap" : ""}${MOBILE_MAP() ? " small" : ""}" role="group" aria-label="Mapa do Brasil por facção${mil ? ", com exércitos e ordens" : ""}. Use Tab para percorrer os estados; a descrição em texto está no botão Descrição do mapa.">${mil ? ARROW_DEFS : ""}${SET.cb ? `<defs>${cbDefs()}</defs>` : ""}${paths}<g class="fx">${L.pulses}${L.fronts}</g>${labels}<g class="arrows">${L.arrows}</g><g class="counters">${L.counters}</g></svg>`;
+  const FL = mil && opts.fronts && frontMode(opts.g) ? frontMapLayers(opts.g, control, w) : null;
+  const aria = FL ? "Mapa de guerra do Brasil por facção, com as frentes e o placar de força de cada uma" : `Mapa do Brasil por facção${mil ? ", com exércitos e ordens" : ""}`;
+  return `<svg viewBox="0 0 ${w} ${MAP_DATA.size[1]+6}" class="${mil ? "milmap" : ""}${FL ? " fmap" : ""}${MOBILE_MAP() ? " small" : ""}" role="group" aria-label="${aria}. Use Tab para percorrer os estados; a descrição em texto está no botão Descrição do mapa.">${mil ? ARROW_DEFS : ""}${SET.cb || FL ? `<defs>${cbDefs()}${FL ? FL.defs : ""}</defs>` : ""}${paths}${FL ? `<g class="funder">${FL.under}</g>` : ""}<g class="fx">${L.pulses}${L.fronts}</g>${labels}<g class="arrows">${L.arrows}${FL ? FL.over : ""}</g><g class="counters">${L.counters}${FL ? FL.badges : ""}</g></svg>`;
 }
 function legendHTML(control){
   const counts = {};
@@ -54,7 +56,7 @@ function legendHTML(control){
 function renderMap(el, control, changed, withNotes, opts){
   const notes = withNotes && changed && changed.length ? `<div class="mapnotes">${changeNotes(changed).map(t => `<div>${esc(t)}</div>`).join("")}</div>` : "";
   const agit = opts && opts.mode === "agitacao";
-  const milLeg = opts && opts.military && opts.g && frontMode(opts.g) ? (phaseOf(opts.g).war ? `<div class="milleg" aria-hidden="true">
+  const milLeg = opts && opts.military && opts.g && frontMode(opts.g) ? (phaseOf(opts.g).war && opts.fronts && opts.g.war.fronts.length ? frontLegendHTML() : phaseOf(opts.g).war ? `<div class="milleg" aria-hidden="true">
     <span><svg viewBox="0 0 30 10" width="30" height="10"><path d="M2,5H28" stroke="#1a0b06" stroke-width="6"/><path d="M2,5H28" stroke="#ff6a3d" stroke-width="3" stroke-dasharray="5 3"/></svg>linha de frente</span>
     <span><svg viewBox="0 0 30 10" width="30" height="10"><path d="M2,5H24" stroke="#f3c969" stroke-width="3"/><path d="M22,1L29,5L22,9z" fill="#f3c969"/></svg>você avança</span>
     <span><svg viewBox="0 0 30 10" width="30" height="10"><path d="M2,5H24" stroke="#b0a898" stroke-width="2.4"/><path d="M22,1L29,5L22,9z" fill="#b0a898"/></svg>você recua</span>
@@ -70,7 +72,7 @@ function renderMap(el, control, changed, withNotes, opts){
   el.innerHTML = mapSVG(control, changed, opts) + `<div class="maptip"></div>${opts && opts.overlay ? opts.overlay : ""}${legend}${milLeg}` + notes;
   const tip = el.querySelector(".maptip"), svg = el.querySelector("svg");
   const show = (e) => {
-    const p = e.target.closest("path.uf, g.cnt"); if (!p) { tip.style.display = "none"; return; }
+    const p = e.target.closest("path.uf, g.cnt"); if (!p || e.target.closest("g.fbadge")) { tip.style.display = "none"; return; }
     const uf = p.dataset.uf, f = STORY.factions[control[uf]], r = el.getBoundingClientRect();
     const extra = STORY.stateNotes && STORY.stateNotes[uf] ? `<br><span style="color:#9c9182">${esc(STORY.stateNotesLabel||"")}: ${esc(STORY.stateNotes[uf])}</span>` : "";
     const here = opts && opts.g && opts.military ? (opts.armies || opts.g.armies || []).filter(a => a.uf === uf) : [];
@@ -81,6 +83,7 @@ function renderMap(el, control, changed, withNotes, opts){
   svg.addEventListener("mousemove", show);
   svg.addEventListener("mouseleave", () => tip.style.display = "none");
   if (opts && opts.onPick) svg.addEventListener("click", e => {
+    const fb = e.target.closest("g.fbadge"); if (fb && opts.onFront){ tip.style.display = "none"; opts.onFront(fb.dataset.front); return; }
     const c = e.target.closest("g.cnt"); if (c && opts.onArmy){ tip.style.display = "none"; opts.onArmy(c.dataset.uf, c.dataset.side); return; }
     const p = e.target.closest("path.uf"); if (p) opts.onPick(p.dataset.uf); });
   else svg.addEventListener("click", show);

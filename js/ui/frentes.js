@@ -109,7 +109,7 @@ function frontUfPanel(uf){
 }
 function frontHintHTML(){
   const ph = phaseOf(G); if (ph.noArmies || !ph.war || !G.war.fronts.length) return "";
-  return `<div class="maphint">${G.simple && !UI.manual ? "Modo simples: seus generais comandam as frentes sozinhos." : "Escolha a postura de cada frente no painel ao lado e encerre o mês."} <span>Setas amarelas: onde você avança · vermelhas: onde o inimigo vai atacar.</span></div>`;
+  return `<div class="maphint">${G.simple && !UI.manual ? "Modo simples: seus generais comandam as frentes sozinhos." : "Escolha a postura de cada frente no painel ao lado e encerre o mês."} <span>Setas amarelas: onde você avança · vermelhas: onde o inimigo vai atacar.</span> <span>O placar na linha mostra a sua força contra a do inimigo; toque nele para abrir a frente.</span></div>`;
 }
 function frontChipHTML(){
   const ph = phaseOf(G); if (ph.noArmies) return "";

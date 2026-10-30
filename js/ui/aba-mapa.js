@@ -53,8 +53,11 @@ function tabMapa(el){
     if (ph.war && sideOf(G, G.control[p], ph) === "contested"){ const b = battleAt(p); b ? openBattle(b) : openForecast(p); return; }
     toPanel();
   };
+  // placar na linha de frente: abre o cartão daquela frente no painel (no modo simples, passa para o comando manual)
+  const onFront = id => { UI.selUF = null; if (G.simple && !UI.manual) UI.manual = true; renderGame();
+    setTimeout(() => { const c = document.querySelector(`[data-fcard="${id}"]`); if (!c) return; c.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: window.innerWidth < 900 ? "start" : "nearest" }); c.classList.add("flash"); setTimeout(() => c.classList.remove("flash"), 1600); }, 40); };
   const milOn = UI.mapMode !== "agitacao", wideFc = window.innerWidth > 900 && !big;
-  if (FM) renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, mode: UI.mapMode, military: milOn, fronts: true, arrows: milOn ? frontArrows(G) : [], onPick });
+  if (FM) renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, mode: UI.mapMode, military: milOn, fronts: true, arrows: milOn ? frontArrows(G) : [], onPick, onFront });
   else renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, selArmy: sel, tgtMode: UI.ordMode || null, pend: milOn && sel ? pend : null, mode: UI.mapMode, military: milOn, onPick, onArmy: pickArmy, overlay: milOn && sel && pend && !wideFc ? forecastCardHTML(sel, pend) : "" });
   if (milOn && sel && pend && wideFc) $(".sidepanel").insertAdjacentHTML("afterbegin", forecastCardHTML(sel, pend));
   if (!tabMapa._esc){ tabMapa._esc = e => { if (e.key !== "Escape" || UI.tab !== "mapa" || document.querySelector(".overlay, .modal, #ecoModal") || (typeof coachBusy === "function" && coachBusy())) return;
