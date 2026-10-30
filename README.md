@@ -53,6 +53,18 @@ npx serve .        # ou: python3 -m http.server 8000
 - **Batalhas:** toque num estado em disputa (ou em "Ver batalha") para abrir a tela de combate; sem batalha no mês, ela mostra as forças e uma previsão.
 - **Saves antigos** (versão 2) são migrados automaticamente: as tropas viram exércitos.
 
+### Meus exércitos (novo, fase 4)
+- Na aba **Mapa**, o painel **Meus exércitos** lista todos os seus exércitos, cada um com o status da ordem ("sem ordem", "⚔ atacar MG", "🛡 defender"…) e quatro botões grandes: **⚔ Atacar** (já escolhe o melhor alvo e mostra a previsão; clique de novo para confirmar), **➜ Mover** (destaca os destinos em azul; se só há um, já fica pronto), **🛡 Defender** (grátis) e **＋ Reforçar** (3 Recursos).
+- **↶ Desfazer ordem** em cada exército, **Desfazer todas**, o contador de **manobras restantes** e quantos exércitos estão sem ordem.
+- **Ordens automáticas:** "Defender fronteiras" (todo mundo defende) ou "Ordens automáticas" (ataca onde a chance é boa, defende o resto), e a opção de repetir isso sozinho todo mês.
+- No painel de um estado inimigo aparece **"Atacar com…"** com a chance de cada exército.
+
+### Tensão no Sul (novo, fase 4)
+- No regime de exceção aparece a barra **🌾 Tensão no Sul** (0–100). Ela mostra o ritmo por mês e em quantos meses a Liga do Sul se rebela. Clique nela para ver os motivos e as ações.
+- **Baixa a tensão:** ações da categoria **Sul** (aba Ações), investir/negociar com o governador em RS/SC/PR, deixar exércitos no Sul, agradar o agronegócio. **Sobe:** o golpe, o racha nas Forças, agitação alta no Sul, Apoio Militar baixo.
+- Em 60+ os governadores pedem uma **Cúpula**; com a tensão em 25 ou menos dá para assinar o **Pacto Federativo**: o Sul vira **aliado** e manda uma divisão.
+- Se chegar a 100, a revolta começa **pequena** (só RS, exército de 15). Santa Catarina só adere se a tensão ficar acima de 85 por 2 meses. Baixar para 45 ou menos traz um **armistício**.
+
 ## Contas e saves na nuvem (Supabase)
 O login é **opcional**. Sem conta, offline ou se o Supabase estiver fora do ar, o jogo continua igual, com os saves no `localStorage`.
 

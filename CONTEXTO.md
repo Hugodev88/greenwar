@@ -195,6 +195,14 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 
 - **Áudio:** IIFE `AUDIO` (Web Audio procedural): `AUDIO.theme("calm"|"tense"|"war")`, `AUDIO.sfx("click"|"order"|"turn"|"boom"|"win"|"lose"|"sting"|"alert")`, `AUDIO.unlock()` no primeiro gesto.
 - **Idioma (EN):** camada de tradução no DOM. O jogo continua escrito em PT. `I18N_EN = { exact, tpl }` (dicionário embutido), `trCore` (busca exata → modelo com números `{0}` → meses → divide em " · ", "; ", " — ", ". ", ": ", ", " → regras `I18N_RULES`), `trText` (só traduz se `SET.lang==="en"`), `i18nNode` (textos + `title`/`aria-label`/`placeholder`/`alt`, original guardado em `__pt`/`__pta`), um `MutationObserver` em `body` e `i18nSwitch()`. **Texto novo na UI precisa de entrada no `I18N_EN`**, senão aparece em português no modo English.
 
+## 7e. Fase 4 (out/2026): Tensão no Sul e exércitos mais simples (save v6)
+- **CORE:** `CAMPAIGN_2022.south` (`ufs` RS/SC/PR, `rebel`, `start`, `base`, limiares de cúpula/alerta/revolta) e `g.south = { t, state: "calmo"|"revolta"|"armisticio"|"aliado"|"esmagada", stage, since, warned, summit, trend }`. Funções `southCfg/southOn/southInit/southAdd/southFactors/southRate/southEta/southLevel/southOnStory/southRaise/southTick`. Ações com categoria `sul` e `req.south` (min/max/state); evento `e_sul_cupula` (encadeado por `C.south.summit`); focos `c_liga_pacto` (aliado) e `c_liga_esmagar`; chaves de efeito `south`/`southAlly` em `FOCUS_FX_KEYS`.
+- **Revolta escalonada:** em 100 só RS vira separatista (exército 15). SC adere se `t > 85` por 2 meses. `t ≤ 45` em revolta → armistício. Flags `sul_revolta`, `sul_armisticio`, `sul_aliado`, `sul_esmagado` aparecem no overlay `MAJOR_FLAGS`.
+- **Ordens automáticas:** `autoOrders(g, mode, silent)` (`defender`/`auto`) e `g.autoOrders` (repetir todo mês).
+- **UI:** `southBarHTML()`/`openSouth()` (modal genérico `openModal`/`closeModal`), `armyCardHTML`, `armyBtnsHTML` (`data-q` = atk/mov/def/ref), `ordSumHTML`, `autoBoxHTML`, `atkWithHTML(uf)`, `attackChoices(a)`, `UI.ordMode` (filtra os destinos destacados). Tutorial: contextos `exercitos2` e `sul`.
+- **Save v6:** migração v5→v6 cria `g.south` (em revolta se a Liga já controla estados).
+- **sim.js:** IA `pacificador` (evita a rebelião). 300 partidas: golpista (ignora o Sul) rebelião 98%, vitória 26%; pacificador rebelião 0%, Sul aliado 94%, vitória 68%, tensão máx. média 19. IA aleatória: rebelião nas partidas com guerra caiu de 100% para ~50%.
+
 ## 8. Limitações conhecidas
 - Modo English: cobre interface, tutorial, os grandes eventos e o evento de abertura; os demais textos de eventos, os epílogos e o cenário 1964 seguem em português.
 - A trilha sonora é sintetizada (Web Audio), não há música gravada.

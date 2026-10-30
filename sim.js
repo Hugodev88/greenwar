@@ -1,7 +1,9 @@
 // Simulação headless das campanhas: joga partidas completas com IA aleatória, gulosa e "radical"
 // (radical = joga como a gulosa, mas na história prefere a última opção, em geral a mais dura)
 // em cada cenário e verifica falhas, invariantes, finais alcançáveis e equilíbrio.
-// Uso: node sim.js [partidas_por_IA=300]
+// "golpista" segue o roteiro do golpe sem se preocupar com o Sul; "pacificador" segue o mesmo roteiro, mas usa as
+// ações e escolhas que baixam a Tensão no Sul (mede se dá para evitar a rebelião da Liga do Sul).
+// Uso: node sim.js [partidas_por_IA=300] [cenário]
 const fs = require("fs");
 const html = fs.readFileSync(__dirname + "/index.html", "utf8");
 const part = (a, b) => html.split(a)[1].split(b)[0];
@@ -11,7 +13,8 @@ const API = new Function(code + `; return { SCENARIOS, MAP_DATA, convertMoney, a
   phaseOf, sideOf, sideCounts, playerUFs, findEvent, fxSummary, incomeFor, monthLabel, OFF_TYPES,
   focusTree, focusStatus, focusCheck, startFocus, focusDef,
   ADJ, ARMY_MAX, SAVE_VERSION, armiesOf, armyById, armyTargets, setOrder, recruitArmy, battleOdds, commandLimit, ordersUsed,
-  reinforceCost, recruitCost, armyAllowed, sideStr, migrateSave, knownIntents, battleReport };`)();
+  reinforceCost, recruitCost, armyAllowed, sideStr, migrateSave, knownIntents, battleReport,
+  ...(typeof southFactors === "function" ? { southFactors, southRate, southEta, autoOrders, clearOrders, setAutoOrders, nodeView } : {}) };`)();
 const N = +process.argv[2] || 300;
 let fails = 0;
 const fail = (m) => { fails++; if (fails < 25) console.log("  ✗ " + m); };
@@ -71,7 +74,12 @@ function resolveQueue(g, sc, r, greedy){
     const ch = API.queueChoices(g), ok = ch.map((c, i) => c.ok ? i : -1).filter(i => i >= 0);
     if (!ok.length) return "fila sem escolha válida: " + JSON.stringify(g.queue[0]);
     let idx;
-    const GP = greedy === "golpista" && g.queue[0].type === "story" && sc.campaign.coupScript && sc.campaign.coupScript[g.queue[0].node];
+    const q0 = g.queue[0];
+    if (greedy === "pacificador"){ // evita a rebelião: escolhas conciliadoras com o Sul
+      const want = q0.type === "story" ? PAC[q0.node] : q0.id === "e_sul_cupula" || q0.id === "n_liga_proposta" || q0.id === "f_liga_exige" ? 0 : undefined;
+      if (want !== undefined && ok.includes(want)){ if (!API.choose(g, want)) return "choose falhou"; continue; }
+    }
+    const GP = COUPISH(greedy) && g.queue[0].type === "story" && sc.campaign.coupScript && sc.campaign.coupScript[g.queue[0].node];
     if (GP !== undefined && GP !== false && ok.includes(GP)) idx = GP;
     else if (greedy === "radical" && g.queue[0].type === "story" && r() < 0.75) idx = ok[ok.length - 1];
     else if (greedy && r() > 0.15){
@@ -90,8 +98,9 @@ function pickFocus(g, sc, r, greedy){
   let F;
   if (!greedy){ if (r() < 0.75) F = pick(r, av); }
   else {
-    const pref = greedy === "golpista" ? { ruptura: 20 } : greedy === "radical" ? { ruptura: 12, jurid: 4, democ: -2 } : { ruptura: -15, democ: 5, jurid: 2 };
-    F = av.map(F => ({ F, v: scoreFx(g, sc, F.fx) + (pref[F.branch] || 0) - (F.cost || 0) * 0.3 - F.months * 0.4 + (F.reqAny || F.req ? 0 : 1) + (greedy === "golpista" ? -Math.min(30, ((FC[sc.id] || {})[F.id] || 0) / 4) : 0) /* roteiro de cobertura: prefere focos pouco vistos */ + r() * (greedy === "golpista" ? 30 : 4) })).sort((a, b) => b.v - a.v)[0].F;
+    const liga = g.focus.done.length % 2 ? "c_liga_esmagar" : "c_liga_pacto";
+    const pref = COUPISH(greedy) ? { ruptura: 20 } : greedy === "radical" ? { ruptura: 12, jurid: 4, democ: -2 } : { ruptura: -15, democ: 5, jurid: 2 };
+    F = av.map(F => ({ F, v: scoreFx(g, sc, F.fx) + (pref[F.branch] || 0) - (F.cost || 0) * 0.3 - F.months * 0.4 + (F.reqAny || F.req ? 0 : 1) + (greedy === "golpista" && F.id === liga ? 40 : 0) /* golpista decide a Liga do Sul: esmagar ou pactuar (metade cada) */ + (COUPISH(greedy) ? -Math.min(30, ((FC[sc.id] || {})[F.id] || 0) / 4) : 0) /* roteiro de cobertura: prefere focos pouco vistos */ + r() * (COUPISH(greedy) ? 30 : 4) })).sort((a, b) => b.v - a.v)[0].F;
   }
   if (F) API.startFocus(g, F.id);
 }
@@ -101,7 +110,7 @@ function spendAP(g, sc, r, greedy){
   if (C.facMoney && !g.queue.length && !g.ended){
     const E = g.simEco || {};
     if (greedy){
-      const war = API.phaseOf(g).war || greedy === "golpista", reserve = war ? 35 : 6;
+      const war = API.phaseOf(g).war || COUPISH(greedy), reserve = war ? 35 : 6;
       for (const f of C.factions.filter(f => g.fac[f.id].loyalty < (war ? 22 : 45) && g.fac[f.id].influence >= (war ? 25 : 20)).sort((a, b) => g.fac[a.id].loyalty - g.fac[b.id].loyalty))
         if (g.money >= C.facMoney.agradar + reserve && API.factionAction(g, f.id, "agradar").ok) E.facPaid = (E.facPaid || 0) + 1;
       if (C.convert && g.money >= C.convert.cost + reserve + 10 && API.convertMoney(g).ok) E.conv = (E.conv || 0) + 1;
@@ -111,6 +120,7 @@ function spendAP(g, sc, r, greedy){
     }
   }
   pickFocus(g, sc, r, greedy);
+  if (greedy === "pacificador") calmSouth(g);
   for (let tries = 0; tries < 25 && g.ap > 0 && !g.ended && !g.queue.length; tries++){
     const ph = API.phaseOf(g), roll = r();
     if (greedy){
@@ -166,7 +176,7 @@ function giveOrders(g, sc, r, greedy){
     const tg = {};
     for (const a of API.armiesOf(g, "player")) if (a.org >= 35 && a.str >= 10) for (const t of API.armyTargets(g, a)) if (t.type === "atacar") (tg[t.uf] ||= []).push(a);
     const opts = Object.entries(tg).map(([uf, arr]) => { arr.sort((x, y) => y.str - x.str); let grp = [], o; for (const a of arr){ grp.push(a); o = API.battleOdds(g, "player", grp, uf); if (o.ratio >= 1.4) break; }
-      return { uf, grp, o, v: Math.min(o.ratio, 3) * 5 + (API.sideOf(g, g.control[uf]) === "contested" ? 3 : 0) + r() }; }).filter(x => x.o.ratio >= (greedy === "radical" || greedy === "golpista" ? 1.0 : 1.2)).sort((a, b) => b.v - a.v);
+      return { uf, grp, o, v: Math.min(o.ratio, 3) * 5 + (API.sideOf(g, g.control[uf]) === "contested" ? 3 : 0) + r() }; }).filter(x => x.o.ratio >= (greedy === "radical" || COUPISH(greedy) ? 1.0 : 1.2)).sort((a, b) => b.v - a.v);
     for (const x of opts){
       if (API.ordersUsed(g) >= API.commandLimit(g)) break;
       const grp = x.grp.filter(a => !used.has(a.id)); if (!grp.length) continue;
@@ -184,11 +194,23 @@ function giveOrders(g, sc, r, greedy){
     API.setOrder(g, a.id, "defender");
   }
 }
+// Pacificador: gasta AP/Recursos para manter a Tensão no Sul baixa e, se der, fecha o Pacto Federativo
+function calmSouth(g){
+  const st = g.south; if (!st || g.ended || g.queue.length || !["calmo", "revolta"].includes(st.state)) return;
+  const tryAct = id => { const a = API.visibleActions(g).find(x => x.id === id); return a && API.actionState(g, a).ok && API.doAction(g, id).ok; };
+  if (tryAct("s_pacto")) return;
+  const rate = API.southRate ? API.southRate(g) * 3 : 12;
+  if (st.t + rate > 30 || !g.flags.includes("sul_cupula")) tryAct("s_cupula");
+  if (st.t + rate > 45) tryAct("s_fiscal");
+  if (st.t + rate > 70 || st.state === "revolta") tryAct("s_autonomia");
+  if (st.t + rate > 60) tryAct("s_investir");
+}
 function play(sc, seed, greedy){
-  const r = rng(seed * 7919 + (greedy === "golpista" ? 3 : greedy === "radical" ? 2 : greedy ? 1 : 0));
+  const r = rng(seed * 7919 + (greedy === "pacificador" ? 4 : greedy === "golpista" ? 3 : greedy === "radical" ? 2 : greedy ? 1 : 0));
   const g = API.newCampaign(sc, seed);
   g.stat.orders = 0;
   const E = g.simEco = { turns: 0, apSum: 0, moneySum: 0, moneyMax: g.money, rich: 0, facPaid: 0, conv: 0 };
+  const SS = g.simSouth = { rebel: false, peak: 0 };
   const W = g.simWar = { months: 0, bat: 0, won: 0, att: 0, attWon: 0, peak: 0, recruits: 0, statesStart: null, statesEnd: null };
   let turns = 0;
   while (!g.ended){
@@ -201,6 +223,8 @@ function play(sc, seed, greedy){
     if (g.ended) break;
     const nArm0 = g.armySeq || 0, mine0 = new Set(API.armiesOf(g, "player").map(a => a.id));
     if (!API.endTurn(g)) return { err: "endTurn recusou com fila vazia", g };
+    if (Object.values(g.control).includes("separatista")) SS.rebel = true;
+    if (g.south) SS.peak = Math.max(SS.peak, g.south.t);
     E.moneySum += g.money; E.moneyMax = Math.max(E.moneyMax, g.money); if (g.money >= 60) E.rich++;
     if (g.mil && g.mil.war){
       W.months++; if (W.statesStart === null) W.statesStart = API.sideCounts(g).player;
@@ -220,7 +244,9 @@ function play(sc, seed, greedy){
 
 const report = {}, FC = {};
 // Roteiro de cobertura (não entra na comparação de balanceamento): segue o caminho do golpe na história
-const COUP = { brasil2022: { apuracao: 3, sondagem: 1, expurgo: 0, decreto: 0, racha_militar: 0 } };
+const COUP = { brasil2022: { apuracao: 3, sondagem: 1, expurgo: 0, decreto: 0, racha_militar: 0, guerra: 0, golpe_inicial: 1 } }; // guerra 0 = ofensiva final (mede a vitória); golpe_inicial 1 = intervenção federal (linha dura)
+const PAC = { golpe_inicial: 0, reacao_internacional: 0 };
+function COUPISH(m){ return m === "golpista" || m === "pacificador"; }
 for (const sc of API.SCENARIOS){
   if (sc.soon || !sc.campaign) continue;
   if (process.argv[3] && sc.id !== process.argv[3]) continue;
@@ -228,10 +254,11 @@ for (const sc of API.SCENARIOS){
   const endings = Object.entries(sc.story.nodes).filter(([, n]) => n.ending).map(([id]) => id);
   console.log(`\n[${sc.year}] ${sc.title}${sc.locked ? " (bloqueado — teste de integridade)" : ""}`);
   const R = report[sc.id] = {}; FC[sc.id] = {}; const EVC = {};
-  for (const mode of ["aleatoria", "gulosa", "radical", ...(COUP[sc.id] ? ["golpista"] : [])]){
-    if (mode === "golpista") sc.campaign.coupScript = COUP[sc.id];
+  for (const mode of ["aleatoria", "gulosa", "radical", ...(COUP[sc.id] ? ["golpista", ...(sc.campaign.south ? ["pacificador"] : [])] : [])]){
+    if (COUPISH(mode)) sc.campaign.coupScript = COUP[sc.id];
     const dist = {}, turnsArr = [], monthsArr = [], via = { historia: 0, campanha: 0 }; let crashes = 0, deals = 0, battles = 0, focusDone = 0, orders = 0, evN = 0, evMonths = 0, evMaxGap = 0;
     const ES = { turns: 0, ap: 0, money: 0, max: 0, maxAll: 0, rich: 0, endMoney: 0, fac: 0, conv: 0 };
+    const SU = { war: 0, rebel: 0, peak: 0, ally: 0, truce: 0, crushed: 0 };
     const WS = { n: 0, months: 0, bat: 0, won: 0, att: 0, attWon: 0, peak: 0, s0: 0, s1: 0, gained: 0, end: {} };
     for (let i = 1; i <= N; i++){
       let res;
@@ -242,6 +269,7 @@ for (const sc of API.SCENARIOS){
       turnsArr.push(g.turn); monthsArr.push(g.month - g.startMonth);
       via[g.ended.why ? "campanha" : "historia"]++; deals += g.stat.deals; battles += g.stat.battles; orders += g.stat.orders || 0;
       { const E = g.simEco; ES.turns += E.turns; ES.ap += E.apSum; ES.money += E.moneySum; ES.max += E.moneyMax; ES.maxAll = Math.max(ES.maxAll, E.moneyMax); ES.rich += E.rich; ES.endMoney += g.money; ES.fac += E.facPaid || 0; ES.conv += E.conv || 0; }
+      if (g.simWar.months){ SU.war++; if (g.simSouth.rebel) SU.rebel++; SU.peak += g.simSouth.peak; if (g.flags.includes("sul_aliado")) SU.ally++; if (g.flags.includes("sul_armisticio")) SU.truce++; if (g.flags.includes("sul_esmagado")) SU.crushed++; }
       if (g.simWar.months){ WS.n++; WS.months += g.simWar.months; WS.bat += g.simWar.bat; WS.won += g.simWar.won; WS.att += g.simWar.att; WS.attWon += g.simWar.attWon; WS.peak += g.simWar.peak; WS.s0 += g.simWar.statesStart; WS.s1 += g.simWar.statesEnd; if (g.simWar.statesEnd > g.simWar.statesStart) WS.gained++; WS.end[g.ended.node] = (WS.end[g.ended.node] || 0) + 1; }
       { const evs = g.history.filter(h => h.ev); evN += evs.length; evMonths += g.month - g.startMonth;
         for (const id in g.eventSeen) EVC[id] = (EVC[id] || 0) + 1;
@@ -250,7 +278,7 @@ for (const sc of API.SCENARIOS){
     }
     const avg = a => a.length ? (a.reduce((s, x) => s + x, 0) / a.length).toFixed(1) : "-";
     const sorted = Object.entries(dist).sort((a, b) => b[1] - a[1]);
-    console.log(`  IA ${mode}: ${N} partidas · falhas ${crashes} · turnos médios ${avg(turnsArr)} (min ${Math.min(...turnsArr)}, máx ${Math.max(...turnsArr)}) · meses médios ${avg(monthsArr)} · acordos/partida ${(deals/N).toFixed(1)} · ordens/partida ${(orders/N).toFixed(1)} · batalhas/partida ${(battles/N).toFixed(1)} · fim por estado da campanha ${via.campanha}`);
+    console.log(`  IA ${mode}${mode === "golpista" ? " (roteiro do golpe, ignora o Sul)" : mode === "pacificador" ? " (roteiro do golpe + evita a rebelião do Sul)" : ""}: ${N} partidas · falhas ${crashes} · turnos médios ${avg(turnsArr)} (min ${Math.min(...turnsArr)}, máx ${Math.max(...turnsArr)}) · meses médios ${avg(monthsArr)} · acordos/partida ${(deals/N).toFixed(1)} · ordens/partida ${(orders/N).toFixed(1)} · batalhas/partida ${(battles/N).toFixed(1)} · fim por estado da campanha ${via.campanha}`);
     console.log(`    economia: AP médio/turno ${(ES.ap / Math.max(1, ES.turns)).toFixed(2)} · ${sc.campaign.money.short} médio ${(ES.money / Math.max(1, ES.turns)).toFixed(0)} · pico médio ${(ES.max / N).toFixed(0)} (máx. ${ES.maxAll}) · turnos com 60+ ${Math.round(100 * ES.rich / Math.max(1, ES.turns))}% · saldo final médio ${(ES.endMoney / N).toFixed(0)} · ações de facção/partida ${(ES.fac / N).toFixed(1)} · conversões/partida ${(ES.conv / N).toFixed(1)}`);
     if (sc.campaign.focus) console.log(`    focos concluídos/partida: ${(focusDone / N).toFixed(1)}`);
     console.log(`    eventos/partida: ${(evN / N).toFixed(1)} (1 a cada ${(evMonths / Math.max(1, evN)).toFixed(1)} meses; maior intervalo ${evMaxGap} meses)`);
@@ -259,9 +287,11 @@ for (const sc of API.SCENARIOS){
       const pc = (a, b) => b ? Math.round(100 * a / b) + "%" : "-";
       console.log(`    guerra: ${WS.n} partidas com guerra · ${(WS.months / WS.n).toFixed(1)} meses · batalhas vencidas ${pc(WS.won, WS.bat)} (seus ataques ${pc(WS.attWon, WS.att)}) · força máx. média ${(WS.peak / WS.n).toFixed(0)} · estados ${(WS.s0 / WS.n).toFixed(1)} → ${(WS.s1 / WS.n).toFixed(1)} (ganhou território em ${pc(WS.gained, WS.n)}) · finais: ${Object.entries(WS.end).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + " " + pc(v, WS.n)).join(", ")}`);
     }
-    R[mode] = { eco: { ap: +(ES.ap / Math.max(1, ES.turns)).toFixed(2), moneyAvg: +(ES.money / Math.max(1, ES.turns)).toFixed(1), peakAvg: +(ES.max / N).toFixed(1), peakMax: ES.maxAll, rich60: +(ES.rich / Math.max(1, ES.turns)).toFixed(3), endMoney: +(ES.endMoney / N).toFixed(1), facPerGame: +(ES.fac / N).toFixed(1), convPerGame: +(ES.conv / N).toFixed(1) }, events: +(evN / N).toFixed(1), orders: +(orders / N).toFixed(1), battles: +(battles / N).toFixed(1), focusPerGame: +(focusDone / N).toFixed(2), dist, crashes, turns: avg(turnsArr), months: avg(monthsArr), viaCampanha: via.campanha, war: WS };
+    if (SU.war){ const pc = (a, b) => b ? Math.round(100 * a / b) + "%" : "-";
+      console.log(`    Sul: rebelião da Liga do Sul em ${pc(SU.rebel, SU.war)} das partidas com guerra · tensão máx. média ${(SU.peak / SU.war).toFixed(0)} · Sul aliado ${pc(SU.ally, SU.war)} · armistício ${pc(SU.truce, SU.war)} · revolta esmagada ${pc(SU.crushed, SU.war)} · vitória (fim_regime) ${pc((dist.fim_regime || 0), N)}`); }
+    R[mode] = { south: SU, eco: { ap: +(ES.ap / Math.max(1, ES.turns)).toFixed(2), moneyAvg: +(ES.money / Math.max(1, ES.turns)).toFixed(1), peakAvg: +(ES.max / N).toFixed(1), peakMax: ES.maxAll, rich60: +(ES.rich / Math.max(1, ES.turns)).toFixed(3), endMoney: +(ES.endMoney / N).toFixed(1), facPerGame: +(ES.fac / N).toFixed(1), convPerGame: +(ES.conv / N).toFixed(1) }, events: +(evN / N).toFixed(1), orders: +(orders / N).toFixed(1), battles: +(battles / N).toFixed(1), focusPerGame: +(focusDone / N).toFixed(2), dist, crashes, turns: avg(turnsArr), months: avg(monthsArr), viaCampanha: via.campanha, war: WS };
   }
-  const reached = new Set([...Object.keys(R.aleatoria.dist), ...Object.keys(R.gulosa.dist), ...Object.keys(R.radical.dist), ...Object.keys((R.golpista || {}).dist || {})]);
+  const reached = new Set([...Object.keys(R.aleatoria.dist), ...Object.keys(R.gulosa.dist), ...Object.keys(R.radical.dist), ...Object.keys((R.golpista || {}).dist || {}), ...Object.keys((R.pacificador || {}).dist || {})]);
   const missing = endings.filter(e => !reached.has(e));
   console.log(`  Finais alcançados: ${reached.size}/${endings.length}${missing.length ? " — não alcançados: " + missing.join(", ") : ""}`);
   R.missing = missing;

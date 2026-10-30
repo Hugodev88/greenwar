@@ -117,7 +117,7 @@ for (const sc of SCENARIOS) {
     for (const ck of C.checks||[]){ if (!nodes[ck.to] || !nodes[ck.to].ending) err(`check -> ${ck.to} não é final`); checkC("check " + ck.to, ck.if); }
     const aids = new Set();
     for (const a of C.actions){ if (aids.has(a.id)) err("ação duplicada " + a.id); aids.add(a.id);
-      if (!["eco","mil","pol","dip"].includes(a.cat)) err(`ação ${a.id}: categoria ${a.cat}`); checkFx("ação " + a.id, a.fx); checkC("ação " + a.id, a.show); checkC("ação " + a.id, a.req); if (a.risk) checkFx("risco " + a.id, a.risk.fx); }
+      if (!["eco","mil","pol","dip","sul"].includes(a.cat)) err(`ação ${a.id}: categoria ${a.cat}`); checkFx("ação " + a.id, a.fx); checkC("ação " + a.id, a.show); checkC("ação " + a.id, a.req); if (a.risk) checkFx("risco " + a.id, a.risk.fx); }
     const eids = new Set();
     for (const e of C.events){ if (eids.has(e.id)) err("evento duplicado " + e.id); eids.add(e.id); checkC("evento " + e.id, e.if);
       if (e.crisisOf && !FCS.includes(e.crisisOf)) err(`evento ${e.id}: crisisOf ${e.crisisOf}`);
@@ -151,6 +151,8 @@ for (const sc of SCENARIOS) {
           }
         });
       }
+      if (C.south && C.south.summit) (chainedBy[C.south.summit] ||= []).push("Tensão no Sul ≥ " + C.south.summitAt);
+      if (C.south && C.south.summit && !E(C.south.summit)) err(`south.summit: evento ${C.south.summit} inexistente`);
       for (const e of C.events.filter(e => e.chained)) if (!chainedBy[e.id]) err(`evento ${e.id}: chained sem nenhum evento que o dispare`);
       const nCh = C.events.filter(e => e.chained).length, nCr = C.events.filter(e => e.crisisOf).length;
       console.log(`  Eventos: ${C.events.length} (${C.events.length - nCh - nCr} sorteáveis, ${nCh} desdobramentos, ${nCr} crises de facção) — textos, efeitos, flags e encadeamentos válidos`);
