@@ -1,13 +1,11 @@
 // js/core/regioes.js — Núcleo: guerra por REGIÕES (2022). Na guerra o mapa se divide nas 133 regiões intermediárias do IBGE
 // (js/data/mapa-regioes.js); fora dela tudo continua por estado. Sem DOM.
-/* Estado salvo (save v10; v11 acrescenta f.axis e f.rompe nas frentes): g.reg = { idDaRegião: facção }. Regras:
-   - Na guerra, cada frente toma ou perde 0..N regiões por mês ao longo da linha (js/core/frentes.js → frontClash).
+/* Estado salvo (save v10+): g.reg = { idDaRegião: facção }. Regras:
+   - Na guerra, os exércitos (js/core/tropas.js) tomam regiões vizinhas em batalhas; nada de pular regiões.
    - O dono de um ESTADO é quem tem a maioria das regiões dele; empate: quem tem a região da capital. Não existe "em disputa".
    - Fora da guerra (ou quando a história/um evento muda um estado inteiro) as regiões copiam o estado: regSync pinta todas.
    - Vitória/derrota em regiões: a região de Recife (reduto da resistência), a de Porto Alegre (Liga do Sul) e o Distrito Federal (sua capital).
-   - Fase 12 (avanço contíguo): regPick só toma região vizinha do que o atacante tinha no INÍCIO do mês (exceto no rompimento,
-     que segue o caminho mais curto, região por região); perto do eixo da última captura; faixa coesa, sem "dedos".
-     regPath/regFaltam: caminho mais curto (BFS por regiões do defensor) até a capital inimiga — o "Faltam N regiões até Recife". */
+   - regPath/regFaltam: caminho mais curto (BFS por regiões do defensor) até a capital inimiga — o "Faltam N regiões até Recife". */
 const REG_IDS = Object.keys(REG_DATA.regs);
 const REG_UF = {}; for (const id of REG_IDS) (REG_UF[REG_DATA.regs[id].uf] ||= []).push(id);
 function regOn(g){ return !!(g && frontCfg(g)); }
@@ -50,18 +48,8 @@ function regDist(from){ // distância (em regiões) de cada região até "from"
 }
 function regCount(g, fac){ let n = 0; for (const id of REG_IDS) if (g.reg[id] === fac) n++; return n; }
 function regSideCount(g, side){ const ph = phaseOf(g); let n = 0; for (const id of REG_IDS) if (sideOf(g, g.reg[id], ph) === side) n++; return n; }
-// Alvo de uma frente: dir +1 (você toma uma região do inimigo desta frente) ou −1 (o inimigo toma uma sua).
-// Preferência: perto do objetivo (reduto inimigo / sua capital) e regiões já meio cercadas (a linha anda larga, sem "dedos").
-// Alvo final de cada lado: reduto inimigo (dir +1) ou a sua capital (dir −1). Só entra na escolha com o cerco cheio.
-function regGoal(g, f, dir){ const K = frontCfg(g); return REG_DATA.cap[dir > 0 ? K.frentes[f.id].reduto : K.capital]; }
-function regSiegeKey(f, dir){ return (f.id || f) + (dir > 0 ? "+" : "-"); }
-function regSiegeMax(g){ return 100 * Math.max(0, (frontCfg(g).regioes.custoAlvo || 1) - 1); }
-function regSiege(g, f, dir){ const S = g.war && g.war.siege, SG = regSiegeMax(g); return SG ? Math.min(1, ((S && S[regSiegeKey(f, dir)]) || 0) / SG) : 1; }
-// o alvo está "encostado": ainda é do defensor e o atacante tem uma região vizinha a ele
-function regGoalOpen(g, f, dir){
-  const id = regGoal(g, f, dir), ph = phaseOf(g), pl = x => sideOf(g, g.reg[x], ph) === "player"; if (!id || !g.reg) return false;
-  return dir > 0 ? g.reg[id] === f.id && REG_DATA.regs[id].adj.some(pl) : pl(id) && REG_DATA.regs[id].adj.some(x => g.reg[x] === f.id);
-}
+// Alvo final de cada lado: reduto inimigo (dir +1) ou a sua capital (dir −1)
+function regGoal(g, f, dir){ const K = frontCfg(g); return REG_DATA.cap[dir > 0 ? K.frentes[f.id || f].reduto : K.capital]; }
 // Lados de uma frente numa direção: dir +1 = você ataca (defensor = o inimigo desta frente); dir −1 = o inimigo ataca você
 function regSides(g, f, dir, reg){
   const ph = phaseOf(g), fid = f.id || f, M = reg || g.reg, pl = id => sideOf(g, M[id], ph) === "player", en = id => M[id] === fid;
@@ -84,34 +72,6 @@ function regPath(g, f, dir){
 function regFaltam(g, f, dir){ const P = regPath(g, f, dir); return P ? P.length : null; }
 // Nome do alvo de uma direção: Recife / Porto Alegre (dir +1) ou a sua capital, "Brasília" (dir −1)
 function regGoalName(g, f, dir){ const K = frontCfg(g); return dir < 0 && K.capitalNome ? K.capitalNome : regName(regGoal(g, f, dir)); }
-// Eixo do combate de uma frente numa direção: a última região tomada nessa direção (a batalha continua ali perto);
-// sem eixo (ou eixo que já não encosta na linha), o começo do caminho mais curto até o alvo.
-function regAxis(g, f, dir){
-  const A = f.axis && f.axis[dir > 0 ? "p" : "e"], { atk } = regSides(g, f, dir);
-  if (A && REG_DATA.regs[A] && atk(A)) return A;
-  const P = regPath(g, f, dir); return P ? P[0] : null;
-}
-// Próxima região que muda de lado numa frente (dir +1: você toma uma do inimigo; −1: o inimigo toma uma sua).
-// Como no Victoria: só regiões encostadas na linha, perto do eixo da batalha (nada de "pular" para outro trecho da frente),
-// rumo ao alvo final e preferindo as já cercadas por várias regiões do atacante — a linha anda como uma faixa, sem "dedos".
-// mode "rota": rompimento — segue o caminho mais curto até o alvo (contínuo, uma região depois da outra).
-// pre (mapa de regiões do começo do mês): fora do rompimento, só vale região encostada no que o atacante já tinha no começo do mês.
-function regPick(g, f, dir, luck, mode, pre){
-  const K = frontCfg(g), RC = K.regioes, { atk, def } = regSides(g, f, dir), atk0 = pre ? regSides(g, f, dir, pre).atk : null;
-  const goal = regGoal(g, f, dir), locked = regSiege(g, f, dir) < 1;
-  if (mode === "rota"){ const P = regPath(g, f, dir); if (P && P.length && !(P[0] === goal && locked)) return P[0]; }
-  const D = regDist(goal), ax = regAxis(g, f, dir), DA = ax ? regDist(ax) : null;
-  let best = null, bs = Infinity;
-  for (const id of REG_IDS){
-    if (!def(id) || (id === goal && locked)) continue;
-    const adj = REG_DATA.regs[id].adj, near = adj.filter(atk).length; if (!near) continue;
-    if (atk0 && !adj.some(atk0)) continue;
-    const s = (D[id] ?? 40) * RC.foco - RC.coesao * near - RC.coesaoFr * near / adj.length + (near === 1 ? RC.dedo : 0)
-      + (DA ? Math.max(0, (DA[id] ?? 20) - 1) * RC.local : 0) + (luck ? rnd(g) * RC.sorte : 0) - (id === goal ? 0.5 : 0);
-    if (s < bs || (s === bs && id < best)){ bs = s; best = id; }
-  }
-  return best;
-}
 // Regiões nos dois lados da linha de uma frente (para o desenho e a força por estado)
 function regBorder(g, f){
   const ph = phaseOf(g), mine = [], theirs = [];
@@ -197,6 +157,5 @@ function migrateRegions(g){
 function migrateV11(g){
   if (!regOn(g) || !g.war) return;
   for (const f of g.war.fronts){ f.axis = {}; delete f.rompe; }
-  const S = g.war.siege, SG = regSiegeMax(g); if (S) for (const k in S) S[k] = Math.min(S[k], SG);
   for (const f of g.war.fronts){ const fl = frontCfg(g).frentes[f.id].capitalFlag; if (fl && !g.flags.includes(fl)) g.flags.push(fl); }
 }

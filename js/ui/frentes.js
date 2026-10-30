@@ -1,92 +1,72 @@
-// js/ui/frentes.js — Interface: guerra por frentes (2022): painel das frentes, posturas, divisão das tropas, generais, ofensiva especial, relatório do mês e animação da resolução.
-/* Só aparece quando frontMode(G) (js/core/frentes.js). No 1964 a aba Mapa continua com exércitos e ordens (js/ui/exercitos.js). */
-const POSTURE_ICON = { avancar: "⚔", segurar: "🛡", recuar: "↩" };
+// js/ui/frentes.js — Interface: guerra de 2022 com EXÉRCITOS nas regiões — painel dos exércitos (força, moral, general, ordem),
+// escolha do destino com a chance de vitória antes de confirmar, recrutar numa região, comando automático, ofensiva especial,
+// relatório de cada batalha ("por que ganhou / perdeu") e a animação das batalhas no fim do mês.
+/* Só aparece quando frontMode(G) (js/core/frentes.js + js/core/tropas.js). No 1964 a aba Mapa continua com js/ui/exercitos.js.
+   Seleção: UI.tpSel = id do exército; UI.tpPend = região escolhida (a chance aparece; 2º toque ou ✔ confirma). */
 function fCfg(){ return frontCfg(G); }
 function fFala(grp, k){ return frontFala(G, grp, k); }
-function ratioWord(r){ return r >= 1.5 ? "muito favorável" : r >= 1.15 ? "favorável" : r >= 0.87 ? "equilibrada" : r >= 0.6 ? "arriscada" : "muito arriscada"; }
-// Barra da linha: −100 (perde uma região) … +100 (toma uma região); mostra a próxima região de cada lado
-function frontLineHTML(f, prog0){
-  const p = Math.max(-100, Math.min(100, Math.round(f.progress))), x = (p + 100) / 2, rA = frontTargetReg(G, f, 1), rD = frontTargetReg(G, f, -1);
-  const tA = rA && regLabel(rA), tD = rD && regLabel(rD);
-  const from = prog0 === undefined ? null : (Math.max(-100, Math.min(100, prog0)) + 100) / 2;
-  const sP = G.reg ? regSiege(G, f, 1) : 0, sE = G.reg ? regSiege(G, f, -1) : 0;
-  const siege = (G.reg && regGoalOpen(G, f, 1) && sP > 0 ? `<small class="fsiege good" title="${esc(fFala("regioes", "cercoAjuda"))}">🏰 <span>${esc(gfmt(fFala("regioes", "cercoReduto"), Math.round(sP * 100)))}</span></small>` : "")
-    + (G.reg && regGoalOpen(G, f, -1) && sE > 0 ? `<small class="fsiege bad" title="${esc(fFala("regioes", "cercoAjuda"))}">⚠ <span>${esc(gfmt(fFala("regioes", "cercoCapital"), Math.round(sE * 100)))}</span></small>` : "");
-  return `<div class="fline" title="${esc(fFala("regioes", "barraAjuda"))}">${siege}
-    <div class="flbar"><i class="mid"></i>${from !== null ? `<i class="ghost" style="left:${Math.min(from, x)}%;width:${Math.abs(x - from)}%"></i>` : ""}<i class="pos ${p >= 0 ? "up" : "down"}" style="left:${x}%"></i></div>
-    <div class="flends"><span class="bad">◀ <span>perde</span> <b>${esc(tD || "—")}</b></span><span class="flv"><span>linha</span> <b>${p > 0 ? "+" : ""}${p}</b></span><span class="good"><span>toma</span> <b>${esc(tA || "—")}</b> ▶</span></div></div>`;
-}
+function tF(k){ return frontFala(G, "tropas", k); }
+// nomes próprios (regiões, exércitos) não passam pelo tradutor
+function nm(t){ return `<b class="pn" translate="no">${esc(t)}</b>`; }
+function tpSelArmy(){ const a = UI.tpSel ? tpById(G, UI.tpSel) : null; if (!a || a.side !== "player"){ UI.tpSel = null; UI.tpPend = null; return null; }
+  if (UI.tpPend && !tpTargets(G, a).some(t => t.to === UI.tpPend)) UI.tpPend = null; return a; }
 // "Faltam N regiões até Recife" (caminho mais curto pelas regiões inimigas) e a distância do inimigo até Brasília
 function frontPathHTML(f){
   if (!G.reg) return "";
   const nP = regFaltam(G, f, 1), nE = regFaltam(G, f, -1), gP = regGoalName(G, f, 1), gE = regGoalName(G, f, -1);
   const a = nP ? `<span class="good">🎯 <span>${esc(nP === 1 ? gfmt(fFala("regioes", "faltaUma"), gP) : gfmt(fFala("regioes", "faltam"), nP, gP))}</span></span>` : "";
   const b = nE && nE <= 6 ? `<span class="bad">⚠ <span>${esc(nE === 1 ? gfmt(fFala("regioes", "faltaUmaInimigo"), gE) : gfmt(fFala("regioes", "faltamInimigo"), nE, gE))}</span></span>` : "";
-  return a || b ? `<div class="fpath" title="${esc(fFala("regioes", "rompeAjuda"))}">${a}${b}</div>` : "";
-}
-// Faixa do rompimento (ou da linha estabilizada) do último combate desta frente
-function frontRompeHTML(rec){
-  if (!rec || !G.reg) return "";
-  const f = { id: rec.front }, regs = (rec.regs || []).filter(m => (m.side === "player") === (rec.rompe > 0)).map(m => regName(m.id)).join(", ");
-  if (rec.rompe) return `<p class="frompe ${rec.rompe > 0 ? "good" : "bad"}" role="status">💥 <span>${esc(gfmt(fFala("regioes", rec.rompe > 0 ? "rompeu" : "rompeuInimigo"), regs, regGoalName(G, f, rec.rompe)))}</span></p>`;
-  if (rec.estab) return `<p class="frompe estab ${rec.estab < 0 ? "good" : "bad"}">🛡 <span>${esc(gfmt(fFala("regioes", rec.estab < 0 ? "estabilizou" : "estabilizouInimigo"), frontName(G, rec.front)))}</span></p>`;
-  return "";
-}
-function frontBarsHTML(f){
-  const P = Math.round(frontForce(G, f, f.special ? "avancar" : f.posture, f.special).total), E = Math.round(enemyForce(G, f, f.eposture || "segurar").total), tot = Math.max(1, P + E);
-  return `<div class="pw"><b style="color:#9cc3ea"><span>Você</span> ${P}</b><div class="bar2" title="Força = tropas × moral × suprimento × general × postura × apoio"><i class="p" style="width:${P / tot * 100}%"></i><i class="e" style="width:${E / tot * 100}%"></i></div><b style="color:#f0a493">${E} <span>Inimigo</span></b></div>`;
+  return a || b ? `<div class="fpath">${a}${b}</div>` : "";
 }
 function frontStatHTML(label, v, max, color){
   return `<div class="fstat"><span>${label}</span><div class="bar"><i style="width:${Math.max(0, Math.min(100, v / max * 100))}%;background:${color}"></i></div><b>${Math.round(v)}</b></div>`;
 }
-function frontGenHTML(f){
-  const K = fCfg(), gen = frontGen(G, f), P = gen && portraitOf("pessoas", gen.retrato);
-  const opts = K.generais.map(x => { const on = G.war.gens[x.id], where = on && on !== f.id ? ` (${frontName(G, on)})` : "";
-    return `<option value="${x.id}" ${gen && gen.id === x.id ? "selected" : ""}>${esc(frontGenName(G, x))} — ${esc(fFala("traco", x.traco))}${esc(where)}</option>`; }).join("");
-  return `<div class="fgen">${P ? portraitImg(P, 44) : ""}<div><b>${gen ? esc(frontGenName(G, gen)) : "Sem general"}</b>${gen ? `<small><span>${esc(fFala("traco", gen.traco))}</span>: <span>${esc(fFala("tracoDesc", gen.traco))}</span></small>` : ""}
-    <label class="fsel"><span>Trocar general</span> <select data-fgen="${f.id}" aria-label="Trocar general">${gen ? "" : `<option value="">—</option>`}${opts}</select></label></div></div>`;
+// Força total dos dois lados (barra)
+function tpTotalsHTML(){
+  const P = Math.round(tpTotal(G, "player")), E = Math.round(tpTotal(G, "enemy")), tot = Math.max(1, P + E);
+  return `<div class="pw tptot" title="${esc(tF("totais"))}"><b style="color:#9cc3ea"><span>${esc(tF("voce"))}</span> ${P}</b><div class="bar2"><i class="p" style="width:${P / tot * 100}%"></i><i class="e" style="width:${E / tot * 100}%"></i></div><b style="color:#f0a493">${E} <span>${esc(tF("inimigo"))}</span></b></div>`;
 }
-function frontEnemyHTML(f){
-  const K = fCfg(), D = K.frentes[f.id], P = portraitOf("pessoas", D.retrato), e = f.eposture || "segurar";
-  return `<div class="fenemy">${P ? portraitImg(P, 36) : ""}<div><small><span>${esc(fFala("inimigo", f.id))}</span>${P ? ` · <span>${esc(P.nome)}</span> (<span>${esc(fFala("traco", D.traco))}</span>)` : ""}</small>
-    <b class="fint ${e}"><span>Próximo mês o inimigo vai:</span> ${POSTURE_ICON[e]} <span>${esc(fFala("posturaCurta", e))}</span></b>${f.eSpecial ? `<em class="fwarn">💥 <span>Ofensiva especial inimiga! Segurar a linha reduz o estrago.</span></em>` : ""}</div></div>`;
+// Placar de território (por frente), tendência e o caminho até a capital inimiga
+function tpTallyHTML(){
+  return (G.war.fronts || []).map(f => `<div class="tptally"><div class="fhead"><h4>${esc(frontName(G, f))}</h4><small>★ <b>${esc(fFala("reduto", f.id))}</b></small></div>${G.reg ? regTrendHTML(G, f) : ""}${frontPathHTML(f)}</div>`).join("");
 }
-function frontCardHTML(f){
-  const adv = frontAdvice(G, f), cur = f.special ? "avancar" : f.posture, off = offensiveState(G, f.id), K = fCfg(), red = K.frentes[f.id].reduto;
-  const posts = FRONT_POSTURES.map(p => `<button class="fpost ${p}${cur === p ? " on" : ""}" data-fpost="${p}" data-front="${f.id}" aria-pressed="${cur === p}" ${f.special ? "disabled" : ""}>
-      <b>${POSTURE_ICON[p]} <span>${esc(fFala("postura", p))}</span></b>${adv.posture === p ? `<em class="sug">sugerido</em>` : ""}<small>${esc(fFala("posturaDesc", p))}</small></button>`).join("");
-  return `<div class="fcard2" data-fcard="${f.id}">
-    <div class="fhead"><h4>${esc(frontName(G, f))}</h4><small>${G.reg ? `★ <b>${esc(fFala("reduto", f.id))}</b>` : `<span>Reduto inimigo:</span> <b>${esc(red)}</b>`}</small></div>
-    ${f.last && G.mil && f.last.month === G.mil.month ? frontRompeHTML(f.last) : ""}
-    ${frontPathHTML(f)}
-    ${G.reg ? regTrendHTML(G, f) : ""}
-    ${frontLineHTML(f)}
-    ${frontBarsHTML(f)}
-    <div class="fstats">${frontStatHTML("Tropas", f.troops, Math.max(100, f.troops, f.enemy), "#5b8fc7")}${frontStatHTML("Moral", f.morale, 100, "#8fc488")}${frontStatHTML("Suprimento", f.supply, 100, "#c9a45c")}</div>
-    ${frontEnemyHTML(f)}
-    <div class="ordhead"><b>Postura desta frente</b><span>vale para o próximo mês</span></div>
-    <div class="fposts" role="group" aria-label="Postura">${posts}</div>
-    ${frontGenHTML(f)}
-    <div class="foff">${f.special ? `<p class="fwarn">💥 <span>Ofensiva especial marcada para este mês.</span> <button class="linkbtn" data-foff-cancel="${f.id}">Cancelar (devolve os recursos)</button></p>`
-      : `<button class="secondary small" data-foff="${f.id}" ${off.ok ? "" : "disabled"}>💥 <span>Ofensiva especial</span> <span>(−${K.ofensiva.custo})</span></button><small class="muted">${off.ok ? "+50% de força e avanço maior; se falhar, perde moral e tropas." : esc(off.msg)}</small>`}</div>
-    ${f.last ? `<button class="linkbtn" data-frep="${f.id}">📜 Relatório do último mês: por que a linha andou</button>` : ""}
-  </div>`;
+// Mini-ficha (HTML) para listas
+function tpMiniChip(a){
+  return `<svg class="tpmini" viewBox="-20 -11 40 22" width="38" height="21" aria-hidden="true"><g class="tchip ${a.side === "player" ? "p" : "e"}"><rect class="bg" x="-19" y="-10" width="38" height="20" rx="3"/>${a.side === "player" ? `<rect class="sym" x="-16" y="-5.5" width="10" height="8"/><path class="sym" d="M-16,-5.5L-6,2.5M-16,2.5L-6,-5.5"/>` : `<path class="sym" d="M-11,-7L-5,-1.5L-11,4L-17,-1.5z"/>`}<text class="cn" x="6.5" y="0.5">${Math.round(a.str)}</text></g></svg>`;
 }
-function frontSplitHTML(){
-  const W = G.war; if (W.fronts.length < 2) return "";
-  const pct = frontSplitPct(G), a = W.fronts[0], b = W.fronts[1];
-  return `<div class="fsplit"><div class="ordhead"><b>Divisão das tropas</b><span>arraste para mandar mais tropas a uma frente</span></div>
-    <div class="fsl"><span><span>${esc(frontName(G, a))}</span> <b>${pct}%</b></span><input type="range" id="fSplit" min="10" max="90" step="5" value="${pct}" aria-label="Divisão das tropas entre as frentes"><span><b>${100 - pct}%</b> <span>${esc(frontName(G, b))}</span></span></div>
-    <button class="secondary small" data-fsplit-auto>⚖ Dividir conforme a força inimiga</button></div>`;
+function tpOrderHTML(a){
+  const o = a.order;
+  if (!o) return `<span class="muted">🛡 <span>${esc(tF("semOrdemCurta"))}</span></span>`;
+  const c = o.type === "atacar" ? Math.round(tpChance(G, a, o.to).chance * 100) : null;
+  return `<span class="${o.type === "atacar" ? "tpo-a" : "tpo-m"}">${o.type === "atacar" ? "⚔" : "➜"} <span>${esc(tF(o.type === "atacar" ? "ordemAtaca" : "ordemVai"))}</span> ${nm(regName(o.to))}${c != null ? ` <em class="tpc ${tpChanceCls(c)}">${c}%</em>` : ""}${a.special ? " 💥" : ""}</span>`;
+}
+function tpListHTML(){
+  const mine = tpArmies(G, "player");
+  if (!mine.length) return `<p class="muted">—</p>`;
+  return `<div class="tplist">${mine.map(a => `<button class="tprow${a.order ? " ord" : ""}" data-tpsel="${a.id}">${tpMiniChip(a)}<span class="tpn">${`<b>${esc(tpName(G, a))}</b>`}<small>📍 ${nm(regName(a.reg))} · <span>${esc(tF("moral"))}</span> ${Math.round(a.morale)}${tpGen(G, a) ? " · ★" : ""}</small></span><span class="tpord">${tpOrderHTML(a)}</span></button>`).join("")}</div>`;
+}
+// Ataques que o inimigo prepara (o plano dele é conhecido)
+function tpThreatsHTML(){
+  const list = tpArmies(G, "enemy").filter(e => e.order && e.order.type === "atacar"), seen = new Set(), rows = [];
+  for (const e of list){ const to = e.order.to; if (seen.has(to)) continue; seen.add(to);
+    const c = Math.round(tpChance(G, e, to).chance * 100);
+    rows.push(`<li class="${c >= 50 ? "bad" : ""}"><button class="linkbtn" data-tpfocus="${to}">⚠ ${esc(gfmt(tF("ameaca"), tpName(G, e), regName(to), c))}</button></li>`); }
+  return `<div class="ordhead"><b>${esc(tF("ameacas"))}</b></div>${rows.length ? `<ul class="tpthreat">${rows.join("")}</ul>` : `<p class="muted">${esc(tF("semAmeaca"))}</p>`}`;
 }
 function frontRecruitHTML(){
-  const st = recruitState(G), K = fCfg().recruta;
-  return `<div class="recruit"><div class="ordhead"><b>Recrutar tropas</b><span>entram nas frentes já neste mês</span></div>
-    <button class="primary sm" id="btnRecruit" ${st.ok ? "" : "disabled"}>＋ <span>Recrutar</span> <span>+${K.forca}</span> <span>(${K.custo} ${esc(SCEN.campaign.money.short)})</span></button>${st.ok ? "" : `<small class="muted">${esc(st.msg)}</small>`}</div>`;
+  const ph = phaseOf(G), war = ph.war && G.war.fronts.length && G.reg, K = fCfg().recruta;
+  if (!war){ const st = recruitState(G);
+    return `<div class="recruit"><div class="ordhead"><b>${esc(tF("recrutar"))}</b></div><button class="primary sm" id="btnRecruit" ${st.ok ? "" : "disabled"}>＋ <span>${esc(tF("recrutar"))}</span> <span>+${K.forca}</span> <span>(${K.custo} ${esc(SCEN.campaign.money.short)})</span></button>${st.ok ? "" : `<small class="muted">${esc(st.msg)}</small>`}</div>`; }
+  const L = tpLineDist(G, "player"), regs = frontRecruitRegs(G).sort((a, b) => (L[a] ?? 50) - (L[b] ?? 50) || (a < b ? -1 : 1));
+  const pick = UI.tpRec && regs.includes(UI.tpRec) ? UI.tpRec : frontRecruitPick(G), st = recruitState(G, pick);
+  const opt = id => { const at = tpAt(G, "player", id); return `<option value="${id}" ${id === pick ? "selected" : ""}>${esc(regLabel(id))}${at ? ` — ＋ ${esc(tpName(G, at))}` : ""}</option>`; };
+  return `<div class="recruit"><div class="ordhead"><b>${esc(tF("recrutar"))}</b><span>+${K.forca} · ${K.custo} ${esc(SCEN.campaign.money.short)}</span></div>
+    <label class="fsel tprec"><span>${esc(tF("recrutarEm"))}</span> <select id="tpRecReg" aria-label="${esc(tF("recrutarEm"))}">${regs.map(opt).join("")}</select></label>
+    <button class="primary sm" id="btnRecruit" ${st.ok ? "" : "disabled"}>＋ <span>${esc(tF("recrutar"))}</span></button>${st.ok ? "" : `<small class="muted">${esc(st.msg)}</small>`}<small class="muted">${esc(tF("recrutaAjuda"))}</small></div>`;
 }
 function frontAutoHTML(){
   const m = G.autoOrders || "off";
-  return `<div class="fauto"><label><span>Comando automático:</span> <select id="autoSel"><option value="off" ${m === "off" ? "selected" : ""}>Desligado (você escolhe)</option><option value="auto" ${m === "auto" ? "selected" : ""}>Ligado: posturas e divisão sugeridas</option><option value="defender" ${m === "defender" ? "selected" : ""}>Só defender (nunca avança)</option></select></label></div>`;
+  return `<div class="fauto"><label><span>${esc(tF("auto"))}:</span> <select id="autoSel"><option value="off" ${m === "off" ? "selected" : ""}>${esc(tF("autoOff"))}</option><option value="defender" ${m === "defender" ? "selected" : ""}>${esc(tF("autoDef"))}</option><option value="auto" ${m === "auto" ? "selected" : ""}>${esc(tF("autoOn"))}</option></select></label></div>`;
 }
 function frontSituationHTML(){
   const sides = sideCounts(G), war = phaseOf(G).war && G.reg;
@@ -94,156 +74,242 @@ function frontSituationHTML(){
 }
 // Resumo do modo simples (Fácil): o comando automático decide; você só recruta
 function simpleFrontsHTML(){
-  const W = G.war, auto = (G.autoOrders || "off") !== "off";
-  return `<h3>Frentes de batalha</h3><div class="simplebox">
-    <p>${auto ? `🤖 <b>Seus generais comandam sozinhos.</b> <span>Todo mês eles escolhem avançar, segurar ou recuar em cada frente.</span>` : `⏸ <b>O comando automático está desligado.</b> <span>As frentes ficam na postura que você escolheu.</span>`}</p>
-    ${W.fronts.length ? `<ul class="simplearmies">${W.fronts.map(f => { const T = G.reg && regTally(G, f); return `<li><b>${esc(frontName(G, f))}</b><span>${POSTURE_ICON[f.posture]} <span>${esc(fFala("posturaCurta", f.posture))}</span>${T ? ` · <span>${esc(gfmt(fFala("regioes", "placar"), T.p, T.e))}</span> ${regDeltaHTML(T)}` : ""} · <span>tropas</span> ${Math.round(f.troops)}</span></li>`; }).join("")}</ul>` : `<p class="muted">Nenhuma frente aberta.</p>`}
-    <div class="row2">${auto ? "" : `<button class="primary sm" data-auto-on>🤖 Ligar comando automático</button>`}<button class="secondary sm" data-manual="1">Comandar as frentes</button></div></div>`;
+  const auto = (G.autoOrders || "off") !== "off";
+  return `<h3>⚔ <span>${esc(tF("titulo"))}</span></h3><div class="simplebox">
+    <p>${auto ? `🤖 <b>${esc(tF("autoMsgOn"))}</b>` : `⏸ <b>${esc(tF("autoMsgOff"))}</b>`}</p>
+    ${tpTallyHTML()}${tpTotalsHTML()}${tpListHTML()}
+    <div class="row2">${auto ? "" : `<button class="primary sm" data-auto-on>🤖 ${esc(tF("auto"))}</button>`}<button class="secondary sm" data-manual="1">⚔ ${esc(tF("passo1"))}</button></div></div>`;
+}
+// Bloco de confirmação: chance, poder × defesa, quem defende, quem vai junto
+function tpConfirmHTML(a, to){
+  const t = tpTargets(G, a).find(x => x.to === to); if (!t) return "";
+  const btns = `<div class="row2"><button class="primary" data-tpok="${to}">✔ ${esc(tF("confirmar"))}</button><button class="secondary" data-tpcancel>✕ ${esc(tF("cancelar"))}</button></div>`;
+  if (t.type !== "atacar") return `<div class="tpconf mv" role="status"><p>${t.type === "juntar" ? "＋" : "➜"} ${esc(gfmt(tF(t.type === "juntar" ? "msgJuntar" : "msgMover"), tpName(G, a), regName(to)))}</p>${btns}</div>`;
+  const o = tpChance(G, a, to), c = Math.round(o.chance * 100), F = fCfg().falas.fatores, foe = o.defs;
+  return `<div class="tpconf at ${tpChanceCls(c)}" role="status"><div class="tpbig"><b>${c}%</b><span>${esc(tF("chance"))}</span></div>
+    <p class="tpvs">⚔ ${`<b>${esc(tpName(G, a))}</b>`} → ${nm(regName(to))}</p>
+    <div class="pw"><b style="color:#9cc3ea"><span>${esc(tF("voce"))}</span> ${Math.round(o.A)}</b><div class="bar2"><i class="p" style="width:${o.A / Math.max(1, o.A + o.D) * 100}%"></i><i class="e" style="width:${o.D / Math.max(1, o.A + o.D) * 100}%"></i></div><b style="color:#f0a493">${Math.round(o.D)} <span>${esc(tF("inimigo"))}</span></b></div>
+    <ul class="tpdef"><li>${foe.length ? `<span>${esc(tF("defensores"))}:</span> ${foe.map(d => `${`<b>${esc(tpName(G, d))}</b>`} (${Math.round(d.str)})`).join(", ")}` : `<span>${esc(tF("soGuarnicao"))}</span>`}</li>
+      <li><span>${esc(F.guarnicao)}</span>: ${Math.round(o.gar)}</li>${o.terr > 1.005 ? `<li><span>${esc(F.terreno)}</span>: +${Math.round((o.terr - 1) * 100)}%</li>` : ""}${o.red > 1 ? `<li><span>${esc(F.reduto)}</span>: +${Math.round((o.red - 1) * 100)}%</li>` : ""}
+      ${o.with.length ? `<li>${esc(gfmt(tF("juntoCom"), o.with.map(id => tpName(G, tpById(G, id))).join(", ")))}</li>` : ""}</ul>${btns}</div>`;
+}
+function tpGenHTML(a){
+  const K = fCfg(), gen = tpGen(G, a), P = gen && portraitOf("pessoas", gen.retrato);
+  const opts = K.generais.map(x => { const on = G.war.gens[x.id], b = on && on !== a.id ? tpById(G, on) : null;
+    return `<option value="${x.id}" ${gen && gen.id === x.id ? "selected" : ""}>${esc(frontGenName(G, x))} — ${esc(fFala("traco", x.traco))}${b ? ` (${esc(tpName(G, b))})` : ""}</option>`; }).join("");
+  return `<div class="fgen">${P ? portraitImg(P, 40) : ""}<div><b>${gen ? esc(frontGenName(G, gen)) : esc(tF("semGeneral"))}</b>${gen ? `<small><span>${esc(fFala("traco", gen.traco))}</span>: <span>${esc(fFala("tracoDesc", gen.traco))}</span></small>` : ""}
+    <label class="fsel"><span>${esc(tF("general"))}</span> <select data-tpgen="${a.id}" aria-label="${esc(tF("general"))}"><option value="">${esc(tF("semGeneral"))}</option>${opts}</select></label></div></div>`;
+}
+// Cartão do exército selecionado
+function tpCardHTML(a, wide){
+  const off = offensiveState(G, a.id), K = fCfg(), ts = tpTargets(G, a);
+  const atk = ts.filter(t => t.type === "atacar").map(t => Object.assign({ c: Math.round(tpChance(G, a, t.to).chance * 100) }, t)).sort((x, y) => y.c - x.c);
+  const mv = ts.filter(t => t.type !== "atacar");
+  const tb = t => `<button class="tptg ${t.type}${UI.tpPend === t.to ? " on" : ""}" data-tpto="${t.to}">${t.type === "atacar" ? "⚔" : t.type === "juntar" ? "＋" : "➜"} ${nm(regName(t.to))}<span>${esc(tF(t.type === "atacar" ? (t.empty ? "ocupar" : "atacar") : t.type))}</span>${t.c != null ? `<em class="tpc ${tpChanceCls(t.c)}">${t.c}%</em>` : ""}</button>`;
+  return `<div class="tpcard" data-tpcard="${a.id}">
+    <div class="tphead">${tpMiniChip(a)}<div><h4>${`<b>${esc(tpName(G, a))}</b>`}</h4><small>📍 ${nm(regLabel(a.reg))}</small></div><button class="xbtn" data-tpdesel aria-label="${esc(tF("cancelar"))}">✕</button></div>
+    <div class="fstats">${frontStatHTML(esc(tF("forca")), a.str, Math.max(100, a.str), "#5b8fc7")}${frontStatHTML(esc(tF("moral")), a.morale, 100, "#8fc488")}</div>
+    <p class="tpcur">${a.order ? tpOrderHTML(a) : `<span>${esc(tF("semOrdem"))}</span>`}${a.order ? ` <button class="linkbtn" data-tpundo="${a.id}">↩ ${esc(tF("desfazer"))}</button>` : ""}</p>
+    ${wide && UI.tpPend ? tpConfirmHTML(a, UI.tpPend) : ""}
+    <div class="ordhead"><b>${esc(tF("escolha"))}</b></div>
+    <div class="tptgs">${atk.map(tb).join("")}${mv.map(tb).join("")}</div>
+    <div class="foff">${a.special ? `<p class="fwarn">💥 <span>${esc(tF("ofensivaMarcada"))}</span> <button class="linkbtn" data-foff-cancel="${a.id}">${esc(tF("cancelar"))}</button></p>`
+      : `<button class="secondary small" data-foff="${a.id}" ${off.ok ? "" : "disabled"}>💥 <span>${esc(tF("ofensivaBtn"))}</span> <span>(−${K.ofensiva.custo})</span></button><small class="muted">${esc(off.ok ? tF("ofensivaAjuda") : off.msg)}</small>`}</div>
+    ${tpGenHTML(a)}
+  </div>`;
 }
 function frontsPanel(){
   const ph = phaseOf(G), W = G.war;
   if (ph.noArmies) return frontSituationHTML() + `<p class="muted">Nesta fase você não comanda tropas: o mapa mostra a disputa política. Use propaganda, investimentos e negociação.</p>`;
-  if (!ph.war || !W.fronts.length) return `<h3>Tropas</h3><div class="simplebox"><p><span>Tempo de paz: suas tropas ficam na reserva, em Brasília.</span> <b>${Math.round(frontPool(G))}</b></p><p class="muted">Se a guerra começar, abre-se uma linha de frente: você não move exércitos, só escolhe a postura (avançar, segurar ou recuar) e a linha anda sozinha.</p></div>${frontRecruitHTML()}${frontSituationHTML()}`;
+  if (!ph.war || !W.fronts.length) return `<h3>${esc(tF("titulo"))}</h3><div class="simplebox"><p>${esc(gfmt(tF("reserva"), Math.round(frontPool(G))))}</p><p class="muted">Se a guerra começar, seus exércitos entram no mapa: toque num exército, escolha uma região vizinha, veja a chance e confirme.</p></div>${frontRecruitHTML()}${frontSituationHTML()}`;
+  const a = tpSelArmy(), wide = window.innerWidth >= 900;
+  if (a && !(G.simple && !UI.manual)) return tpCardHTML(a, wide) + tpThreatsHTML();
+  const last = (G.mil && G.mil.battles) || [];
   let html = G.simple && !UI.manual ? simpleFrontsHTML() + frontRecruitHTML()
-    : `${G.simple ? `<button class="linkbtn" data-manual="0">← Voltar ao resumo simples</button>` : ""}<h3>Frentes de batalha</h3>
-      <p class="muted fhow"><span>Você não move exércitos: escolha a postura de cada frente e encerre o mês.</span> <span>${esc(fFala("regioes", "barraAjuda"))}</span> <span>${esc(fFala("regioes", "maioria"))}</span></p>
-      ${frontWeary(G) > 0 ? `<p class="fwarn">😩 <span>Cansaço da guerra:</span> ${G.war.months} <span>meses de combate — Apoio Popular cai aos poucos e as frentes se movem</span> +${Math.round(frontWeary(G) * 100)}%<span>. Tréguas pausam o desgaste.</span></p>` : ""}
+    : `${G.simple ? `<button class="linkbtn" data-manual="0">← Voltar ao resumo simples</button>` : ""}<h3>⚔ <span>${esc(tF("titulo"))}</span></h3>
+      <ol class="tpsteps"><li><b>1</b> <span>${esc(tF("passo1"))}</span></li><li><b>2</b> <span>${esc(tF("passo2"))}</span></li><li><b>3</b> <span>${esc(tF("passo3"))}</span></li><li><b>4</b> <span>${esc(tF("passo4"))}</span></li></ol>
+      ${frontWeary(G) > 0 ? `<p class="fwarn">😩 <span>Cansaço da guerra:</span> ${G.war.months} <span>meses de combate — Apoio Popular cai aos poucos e as batalhas ficam mais sangrentas.</span></p>` : ""}
       ${G.ceasefire > 0 ? `<p class="fwarn">🕊 <span>Trégua em vigor: sem combates por</span> ${G.ceasefire} <span>mês(es).</span></p>` : ""}
-      ${W.fronts.map(frontCardHTML).join("")}${frontSplitHTML()}${frontRecruitHTML()}${frontAutoHTML()}`;
-  const last = (W.log || []).filter(r => G.mil && r.month === G.mil.month);
-  if (last.length) html += `<div class="ordhead"><b>Último mês nas frentes</b><span>toque para ver o relatório</span></div>${frontRowsHTML(last)}`;
+      ${tpTallyHTML()}${tpTotalsHTML()}${tpListHTML()}${tpThreatsHTML()}${frontRecruitHTML()}${frontAutoHTML()}`;
+  html += `<div class="ordhead"><b>${esc(tF("batalhas"))}</b>${last.length ? `<span>${esc(tF("verRelatorio"))}</span>` : ""}</div>${last.length ? frontRowsHTML(last) : `<p class="muted">${esc(tF("semBatalhas"))}</p>`}`;
   return html + frontSituationHTML();
 }
-// Painel de um estado no modo frentes
+// Painel de um estado no modo guerra: dono, agitação, regiões do estado (com exércitos) e ações políticas
 function frontUfPanel(uf){
   const C = SCEN.campaign, ph = phaseOf(G), u = G.uf[uf], fac = STORY.factions[G.control[uf]], side = sideOf(G, G.control[uf]);
   const sideLbl = { player: "Seu lado", enemy: "Inimigo", neutral: "Outros" }[side] || "", acts = mapActions(G, uf), T = TERRAIN_TYPES[TERRAIN[uf]];
-  const fr = ph.war ? G.war.fronts.find(f => frontTarget(G, f, 1) === uf || frontTarget(G, f, -1) === uf || frontBorder(G, f, "player").includes(uf) || frontBorder(G, f, "enemy").includes(uf)) : null;
-  const rA = fr && frontTargetReg(G, fr, 1), rD = fr && frontTargetReg(G, fr, -1);
-  const regs = G.reg && ph.war ? REG_IDS.filter(id => REG_UF[id] === uf) : [];
+  const regs = G.reg && ph.war ? REG_IDS.filter(id => REG_DATA.regs[id].uf === uf) : [];
   return `<h3>${uf} · ${esc(MAP_DATA.states[uf].name)}</h3>
     <div class="ufinfo"><div><span>Controle</span><b><i class="sw" style="background:${fac ? fac.color : "#555"}"></i>${esc(fac ? fac.label : G.control[uf])}</b><em class="side ${side}">${sideLbl}</em></div>
     <div><span>Agitação</span><div class="bar"><i style="width:${u.unrest}%;background:${unrestColor(u.unrest)}"></i></div><b>${Math.round(u.unrest)}</b></div>
     <div><span>Terreno</span><b>${esc(T ? T.label : "—")}${T && T.def ? ` · defesa +${Math.round(T.def * 100)}%` : ""}</b></div>
     <div><span>Peso econômico</span><b>${UF_WEIGHT[uf]}</b></div><div><span>Vizinhos</span><b>${ADJ[uf].join(", ")}</b></div>
     ${STORY.stateNotes && STORY.stateNotes[uf] ? `<small class="muted">${esc(STORY.stateNotesLabel || "")}: ${esc(STORY.stateNotes[uf])}</small>` : ""}</div>
-    ${regs.length ? `<div class="ufregs"><small class="muted">${esc(fFala("regioes", "maioria"))}</small><ul>${regs.map(id => { const f2 = STORY.factions[G.reg[id]]; return `<li><i class="sw" style="background:${f2 ? f2.color : "#555"}"></i><span>${esc(regName(id))}</span>${id === REG_DATA.cap[uf] ? " ★" : ""}</li>`; }).join("")}</ul></div>` : ""}
-    ${fr ? `<div class="ordhead"><b>${esc(frontName(G, fr))}</b><span>${rA && REG_UF[rA] === uf ? esc(gfmt(fFala("regioes", "proxTomar"), regName(rA))) : rD && REG_UF[rD] === uf ? esc(gfmt(fFala("regioes", "proxPerder"), regName(rD))) : "estado na linha de frente"}</span></div>${frontLineHTML(fr)}<button class="secondary small" data-desel>⚔ Ver a frente</button>` : ""}
+    ${regs.length ? `<div class="ufregs"><small class="muted">${esc(fFala("regioes", "maioria"))}</small><ul>${regs.map(id => { const f2 = STORY.factions[G.reg[id]], ar = tpArmies(G).filter(x => x.reg === id);
+      return `<li><i class="sw" style="background:${f2 ? f2.color : "#555"}"></i>${nm(regName(id))}${id === REG_DATA.cap[uf] ? " ★" : ""}${ar.map(x => ` <button class="linkbtn" data-tpsel="${x.side === "player" ? x.id : ""}" ${x.side === "player" ? "" : "disabled"}>${x.side === "player" ? "■" : "◆"} ${esc(tpName(G, x))} (${Math.round(x.str)})</button>`).join("")}</li>`; }).join("")}</ul></div>` : ""}
     ${southOn(G) && G.south.state !== "aliado" && G.south.state !== "esmagada" && southCfg(G).ufs.includes(uf) ? `<p class="why">🌾 Estado da Liga do Sul: <b>investir</b> aqui baixa a Tensão no Sul em 4, e <b>negociar</b> com sucesso, em 6. <button class="linkbtn" data-south>Tensão: ${G.south.t}/100</button></p>` : ""}
     <div class="mapacts">${acts.length ? acts.map(a => `<button class="act" data-k="${a.kind}" ${a.ok ? "" : "disabled"}><span>${esc(a.label)}</span><em>${a.ap ? a.ap + " AP" : "grátis"}${a.cost ? ` · ${a.cost} ${esc(C.money.short)}` : ""}</em><small>${esc(a.ok ? a.desc + (a.kind === "negociar" ? ` Chance: ${negotiateChance(G, uf)}%.` : "") : a.why)}</small></button>`).join("") : `<p class="muted">Nenhuma ação política disponível aqui nesta fase.</p>`}</div>
-    <button class="secondary" data-desel>Voltar às frentes</button>`;
+    <button class="secondary" data-desel>← <span>${esc(tF("titulo"))}</span></button>`;
 }
 function frontHintHTML(){
   const ph = phaseOf(G); if (ph.noArmies || !ph.war || !G.war.fronts.length) return "";
-  return `<div class="maphint">${G.simple && !UI.manual ? "Modo simples: seus generais comandam as frentes sozinhos." : "Escolha a postura de cada frente no painel ao lado e encerre o mês."} <span>Setas amarelas: onde você avança · vermelhas: onde o inimigo vai atacar.</span> <span>O placar na linha mostra a sua força contra a do inimigo; toque nele para abrir a frente.</span></div>`;
+  if (G.simple && !UI.manual) return `<div class="maphint">🤖 <span>${esc(tF("autoMsgOn"))}</span></div>`;
+  const a = tpSelArmy();
+  return `<div class="maphint tphint">${a ? `<b>${`<b>${esc(tpName(G, a))}</b>`}</b> · <span>${esc(UI.tpPend ? tF("passo3") : tF("passo2"))}</span>` : `<span>${esc(tF("comoJogar"))}</span>`}</div>`;
 }
 function frontChipHTML(){
   const ph = phaseOf(G); if (ph.noArmies) return "";
-  const n = G.war.fronts.length;
-  return `<button class="ordchip" id="btnOrders" title="Frentes">⚔ ${n ? `${n} ${n === 1 ? "frente" : "frentes"}` : "Tropas"} · ${Math.round(frontPool(G))}</button>`;
+  const n = tpArmies(G, "player").length;
+  return `<button class="ordchip" id="btnOrders" title="${esc(tF("titulo"))}">⚔ ${n} · ${Math.round(frontPool(G))}</button>`;
 }
-// Setas do mapa: sua postura (avançar → próximo alvo) e a intenção inimiga
-function frontArrows(g){
-  const out = []; if (!frontMode(g) || !phaseOf(g).war) return out;
-  for (const f of g.war.fronts){
-    // com regiões, as setas ligam a região vizinha à próxima região alvo
-    const tA = g.reg ? frontTargetReg(g, f, 1) : frontTarget(g, f, 1), tD = g.reg ? frontTargetReg(g, f, -1) : frontTarget(g, f, -1);
-    const near = (to, side) => g.reg ? REG_DATA.regs[to].adj.find(x => (side === "enemy" ? g.reg[x] === f.id : sideOf(g, g.reg[x]) === side))
-      : ADJ[to].find(x => frontSide(g, x, f) === side) || ADJ[to].find(x => sideOf(g, g.control[x]) === side);
-    if ((f.special || f.posture === "avancar") && tA){ const fr = near(tA, "player"); if (fr) out.push({ side: "player", from: fr, to: tA, type: "atacar" }); }
-    if (f.posture === "recuar" && tD){ const fr = near(tD, "player"); if (fr && fr !== tD) out.push({ side: "player", from: tD, to: fr, type: "recuar" }); }
-    if (f.eposture === "avancar" && tD){ const fr = near(tD, "enemy"); if (fr) out.push({ side: "enemy", from: fr, to: tD, type: "atacar" }); }
-  }
-  return out;
+// Placar sobreposto ao mapa: "Você 34 regiões × Inimigo 21" e o caminho até a capital inimiga
+function tpMapTallyHTML(){
+  if (!G.reg || !phaseOf(G).war || !G.war.fronts.length) return "";
+  const f = G.war.fronts[0], T = regTally(G, f), nP = regFaltam(G, f, 1);
+  return `<div class="tpmaptally" role="status"><b>${esc(gfmt(fFala("regioes", "placar"), T.p, T.e))}</b>${regDeltaHTML(T)}${nP ? `<small>🎯 <span>${esc(nP === 1 ? gfmt(fFala("regioes", "faltaUma"), regGoalName(G, f, 1)) : gfmt(fFala("regioes", "faltam"), nP, regGoalName(G, f, 1)))}</span></small>` : ""}</div>`;
 }
-/* ---------- Relatório da frente ---------- */
-// Lista das regiões que mudaram num combate (texto curto, com nomes)
-function regMovesText(rec){
-  const rs = rec.regs || [], won = rs.filter(m => m.side === "player").map(m => regName(m.id)), lost = rs.filter(m => m.side !== "player").map(m => regName(m.id));
-  if (!won.length && !lost.length) return "";
-  return gfmt(fFala("regioes", won.length && lost.length ? "listaAmbos" : won.length ? "listaGanhou" : "listaPerdeu"), won.join(", "), lost.join(", "));
-}
+/* ---------- Relatório de batalha ---------- */
+function tpRecName(x){ return gfmt(frontFala(G, "tropas", x.side === "player" ? "nomeSeu" : "nome_" + x.fac), x.n); }
+// Rótulo curto do resultado, do seu ponto de vista
+function tpResultKey(r){ return r.side === "player" ? (r.win ? "anVitoria" : "anDerrota") : (r.win ? "relCaiu" : "relSegurou"); }
+function tpMineWon(r){ return r.side === "player" ? r.win : !r.win; }
 function frontRowsHTML(list){
-  return `<div class="batlist">${list.map((r, i) => { const R = frontReport(G, r), good = r.d > 5, bad = r.d < -5, rg = r.regs !== undefined;
-    const mv = rg ? (r.won || r.lost ? `<b class="rdelta"><b class="good">+${r.won}</b> / <b class="bad">−${r.lost}</b></b> ` : "")
-      : r.moved.length ? r.moved.map(m => `${esc(m.uf)} ${m.side === "player" ? "✔" : "✖"}`).join(" ") + " — " : "";
-    return `<button class="batrow ${good ? "good" : bad ? "bad" : ""}" data-frow="${i}" data-fmonth="${r.month}"><b>${POSTURE_ICON[r.p]} <span>${esc(frontName(G, r.front))}</span> · <span>linha</span> ${r.d >= 0 ? "+" : ""}${Math.round(r.d)}</b><span>${mv}${rg && (r.won || r.lost) ? `<small>${esc(regMovesText(r))}</small> ` : ""}<small>${esc(R.summary)}</small></span></button>`; }).join("")}</div>`;
+  return `<div class="batlist">${list.map((r, i) => { const R = frontReport(G, r), good = tpMineWon(r);
+    return `<button class="batrow ${good ? "good" : "bad"}" data-frow="${i}" data-fmonth="${r.month}"><b>${r.side === "player" ? "⚔" : "🛡"} ${nm(regName(r.reg))} · <span>${esc(tF(tpResultKey(r)))}</span></b><span><small>${esc(gfmt(tF("relChance"), R.chance))}</small> <small>${esc(R.summary)}</small></span></button>`; }).join("")}</div>`;
 }
 function frontReportHTML(rec){
   let R; try{ R = frontReport(G, rec); }catch(e){ return ""; }
   const maxW = Math.max(0.05, ...R.rows.map(r => r.w || 0));
-  const favH = r => r.fav ? `<span class="fav ${r.fav}"><i style="width:${Math.round(8 + 52 * Math.min(1, (r.w || 0) / maxW))}px"></i><span>${r.fav === "player" ? "você" : "inimigo"}</span></span>` : `<span class="fav none">—</span>`;
-  const tot = Math.max(1, R.power.p + R.power.e), cls = rec.d > 5 ? "good" : rec.d < -5 ? "bad" : "";
-  return `<h4>${rec.d > 5 ? "Por que a linha avançou" : rec.d < -5 ? "Por que a linha recuou" : "Por que a linha quase não mexeu"}</h4>
-    <p class="sum ${cls}">${esc(R.summary)}</p>
-    <div class="pw"><b style="color:#9cc3ea"><span>Você</span> ${R.power.p}</b><div class="bar2" title="Força na frente = tropas × moral × suprimento × general × postura × apoio"><i class="p" style="width:${R.power.p / tot * 100}%"></i><i class="e" style="width:${R.power.e / tot * 100}%"></i></div><b style="color:#f0a493">${R.power.e} <span>Inimigo</span></b></div>
-    <table><tr><th>Fator</th><th style="text-align:center">Você</th><th style="text-align:center">Inimigo</th><th>Favoreceu</th></tr>
+  const favH = r => r.fav ? `<span class="fav ${r.fav}"><i style="width:${Math.round(8 + 52 * Math.min(1, (r.w || 0) / maxW))}px"></i><span>${esc(r.fav === "player" ? tF("voce") : tF("inimigo"))}</span></span>` : `<span class="fav none">—</span>`;
+  const tot = Math.max(1, R.power.p + R.power.e);
+  return `<p class="sum ${R.won ? "good" : "bad"}">${esc(R.summary)}</p>
+    <div class="pw"><b style="color:#9cc3ea"><span>${esc(tF("voce"))}</span> ${R.power.p}</b><div class="bar2"><i class="p" style="width:${R.power.p / tot * 100}%"></i><i class="e" style="width:${R.power.e / tot * 100}%"></i></div><b style="color:#f0a493">${R.power.e} <span>${esc(tF("inimigo"))}</span></b></div>
+    <table><tr><th></th><th style="text-align:center">${esc(tF("voce"))}</th><th style="text-align:center">${esc(tF("inimigo"))}</th><th></th></tr>
     ${R.rows.map(r => `<tr><td>${esc(r.label)}</td><td class="v p">${esc(r.p)}</td><td class="v e">${esc(r.e)}</td><td>${favH(r)}</td></tr>`).join("")}</table>
-    <div class="loss"><span>Baixas — suas: <b class="p">${rec.lossP}</b></span><span>inimigas: <b class="e">${rec.lossE}</b></span></div>
     <ul class="tips">${R.tips.map(t => `<li>💡 <span>${esc(t)}</span></li>`).join("")}</ul>`;
 }
 function openFrontReport(rec, opts){
   opts = opts || {}; closeOverlay("frep");
-  const K = fCfg(), gen = rec.gen && K.generais.find(x => x.id === rec.gen), GP = gen && portraitOf("pessoas", gen.retrato), EP = portraitOf("pessoas", K.frentes[rec.front].retrato);
-  const f = { id: rec.front, progress: rec.prog };
+  const R = frontReport(G, rec), mine = rec.side === "player" ? rec.atk : rec.def, foes = rec.side === "player" ? rec.def : rec.atk;
+  const loss = L => L.reduce((s, x) => s + Math.max(0, (x.str0 || 0) - (x.str || 0)), 0);
+  const K = fCfg(), side = (L, cls, gar) => `<div class="frside ${cls}"><div><small>${esc(cls === "p" ? tF("voce") : tF("inimigo"))}</small>
+    ${L.length ? L.map(x => { const gen = x.gen && K.generais.find(y => y.id === x.gen), GP = gen && portraitOf("pessoas", gen.retrato); return `<b>${GP ? portraitImg(GP, 28) : ""}${`<b>${esc(tpRecName(x))}</b>`} <span class="muted">${x.str0} → ${x.str}</span></b>`; }).join("") : ""}
+    ${gar ? `<b><span>${esc(K.falas.fatores.guarnicao)}</span> ${rec.gar}</b>` : ""}${!L.length && !gar ? "—" : ""}</div></div>`;
+  const gP = rec.side !== "player", lines = [];
+  for (const x of rec.retreat || []) lines.push(gfmt(tF("relRecuo"), tpRecName(x), regName(x.to)));
+  for (const x of rec.lost || []) lines.push(gfmt(tF("relDestruido"), tpRecName(x)));
+  const res = rec.side === "player" ? (rec.win ? "relV" : "relD") : (rec.win ? "relCaiu" : "relSegurou");
   const o = document.createElement("div"); o.id = "frep"; o.className = "overlay";
-  o.innerHTML = `<div class="bmodal frmodal" role="dialog" aria-label="Relatório da frente">
-    <div class="btop"><div><div class="chap"><span>Relatório da frente</span> · <span>${esc(monthLabel(rec.month))}</span></div><h2>${esc(frontName(G, rec.front))}</h2>
-      <small class="muted">${esc(fFala("inimigo", rec.front))}</small></div><button class="xbtn" data-close aria-label="Fechar">✕</button></div>
-    <div class="frvs"><div class="frside p">${GP ? portraitImg(GP, 48) : ""}<div><small>Você</small><b>${POSTURE_ICON[rec.p]} <span>${esc(fFala("postura", rec.p))}</span></b>${rec.special ? `<em>💥 <span>Ofensiva especial</span></em>` : ""}</div></div>
-      <div class="vs">VS</div><div class="frside e">${EP ? portraitImg(EP, 48) : ""}<div><small>Inimigo</small><b>${POSTURE_ICON[rec.e]} <span>${esc(fFala("postura", rec.e))}</span></b>${rec.eSpecial ? `<em>💥 <span>Ofensiva especial</span></em>` : ""}</div></div></div>
-    ${frontRompeHTML(rec)}
-    ${G.reg && rec.regs ? regTrendHTML(G, rec.front) : ""}
-    <div class="frline">${frontLineHTML(f, rec.regs ? (rec.won || rec.lost ? undefined : rec.prog0) : rec.prog0 + (rec.moved.length ? (rec.moved[0].side === "player" ? -100 : 100) : 0))}
-      ${rec.regs && (rec.won || rec.lost) ? `<p class="frmove"><b class="${rec.won >= rec.lost ? "good" : "bad"}">${esc(gfmt(fFala("regioes", "saldoMes"), rec.won, rec.lost))}</b> · <span>${esc(regMovesText(rec))}</span></p>` : ""}
-      <p class="frmove">${rec.moved.length ? rec.moved.map(m => `<b class="${m.side === "player" ? "good" : "bad"}">${esc(gfmt(fFala("eventos", m.side === "player" ? "tomou" : "perdeu"), MAP_DATA.states[m.uf].name, (STORY.factions[m.to] || {}).label || m.to))}</b>`).join(" ") : rec.regs && (rec.won || rec.lost) ? "" : `<span>Nenhum estado mudou de lado neste mês.</span>`}</p></div>
+  o.innerHTML = `<div class="bmodal frmodal" role="dialog" aria-label="${esc(gfmt(tF("relTitulo"), regName(rec.reg)))}">
+    <div class="btop"><div><div class="chap"><span>${esc(tF(rec.side === "player" ? "relAtaque" : "relDefesa"))}</span> · <span>${esc(monthLabel(rec.month))}</span></div><h2>⚔ <span>${esc(gfmt(tF("relTitulo"), regLabel(rec.reg)))}</span></h2>
+      <small class="muted">${esc(frontName(G, rec.front))}</small></div><button class="xbtn" data-close aria-label="Fechar">✕</button></div>
+    <p class="frres ${R.won ? "good" : "bad"}"><b>${esc(tF(res))}</b> · <span>${esc(gfmt(tF("relChance"), R.chance))}</span>${rec.special ? ` · 💥 <span>${esc(tF("ofensivaBtn"))}</span>` : ""}</p>
+    <div class="frvs">${side(mine, "p", gP)}<div class="vs">VS</div>${side(foes, "e", !gP)}</div>
+    <p class="frmove"><span>${esc(gfmt(tF("relBaixas"), loss(mine), loss(foes)))}</span>${lines.map(t => ` · <span>${esc(t)}</span>`).join("")}</p>
     <div class="brep show">${frontReportHTML(rec)}</div>
     <div class="bbtns">${opts.onBack ? `<button class="secondary" data-back>← Voltar</button>` : ""}<button class="primary" data-close>Fechar</button></div></div>`;
   document.body.appendChild(o); document.body.classList.add("noscroll");
   o.addEventListener("click", e => { if (e.target === o || e.target.closest("[data-close]")){ closeOverlay("frep"); if (opts.onClose) opts.onClose(); }
     else if (e.target.closest("[data-back]")){ closeOverlay("frep"); opts.onBack(); } });
 }
-/* ---------- Resolução animada do mês nas frentes (pulável) ---------- */
+/* ---------- Fim do mês: animação dos movimentos e das batalhas (pulável) ---------- */
+// ev = g.mil (js/core/frentes.js → frontWarMonth): start (exércitos no início), orders, moves, battles
 function playFrontResolution(ev, done){
   const finish = () => { closeOverlay("resol"); done && done(); };
-  if (!ev || !ev.fronts || !ev.fronts.length) return finish();
+  if (!ev || !((ev.battles || []).length || (ev.moves || []).length)) return finish();
   const sp = reduceMotion() ? 0.35 : 1;
   closeOverlay("resol");
   const o = document.createElement("div"); o.id = "resol"; o.className = "overlay";
-  o.innerHTML = `<div class="rmodal"><div class="btop"><div><div class="chap">Resolução militar</div><h2>${esc(monthLabel(ev.month))}</h2></div><button class="secondary" data-skip>Pular ▸▸</button></div>
-    <div class="mapbox" id="resolMap"></div><div class="rcap">As frentes se movem…</div><div class="rlist"></div><div class="bbtns"><button class="primary" data-done style="display:none">Continuar</button></div></div>`;
+  o.innerHTML = `<div class="rmodal"><div class="btop"><div><div class="chap">${esc(tF("anTitulo"))}</div><h2>${esc(monthLabel(ev.month))}</h2></div><button class="secondary" data-skip>${esc(tF("pular"))} ▸▸</button></div>
+    <div class="mapbox" id="resolMap"></div><div class="rcap">${esc(tF("anMovimentos"))}</div><div class="rlist"></div><div class="bbtns"><button class="primary" data-done style="display:none">Continuar</button></div></div>`;
   document.body.appendChild(o); document.body.classList.add("noscroll");
   const box = o.querySelector("#resolMap"), cap = o.querySelector(".rcap"), list = o.querySelector(".rlist");
-  const control = Object.assign({}, ev.control0), RG = ev.reg0 && G.reg && regMapOn(G);
-  // com regiões: começa no mapa do início do mês (reg0), sem flashes, e vai trocando a cor de cada região tomada/perdida
-  box.innerHTML = mapSVG(control, [], { g: G, military: true, armies: [], arrows: [], static: true, reg: RG ? ev.reg0 : undefined, regChg: [], noRegArrows: true });
-  const svg = box.querySelector("svg"), timers = [], later = (fn, ms) => timers.push(setTimeout(fn, ms * sp));
-  const flipFill = (k, fac, rg) => { const p = svg.querySelector(rg ? `path.rg[data-rg="${k}"]` : `path.uf[data-uf="${k}"]`); if (p && STORY.factions[fac]){ p.setAttribute("fill", facFill(fac)); p.classList.remove("flipfx"); void p.getBoundingClientRect(); p.classList.add("flipfx"); } };
+  // estado da animação: regiões e exércitos como estavam no começo do mês
+  const reg = Object.assign({}, ev.reg0 || G.reg), byId = {};
+  let armies = (ev.start || []).map(x => { const c = Object.assign({ morale: 60 }, x); byId[x.id] = c; return c; });
+  let arrows = (ev.orders || []).filter(x => x.side === "player" || x.type === "atacar").map(x => ({ pts: x.path && x.path.length > 1 ? x.path : [x.from, x.to], cls: x.side === "enemy" ? "en" : x.type === "atacar" ? "pl" : "mv" }));
+  let hot = [];
+  const draw = () => { box.innerHTML = mapSVG(G.control, [], { g: G, military: true, fronts: true, armies: [], arrows: [], static: true, reg, regChg: [], noRegArrows: true, tpArmies: armies, tpArrows: arrows, tpHot: hot }); };
+  draw();
+  const timers = [], later = (fn, ms) => timers.push(setTimeout(fn, ms * sp));
   const btn = r => { const b = document.createElement("div"); b.innerHTML = frontRowsHTML([r]); const x = b.firstElementChild.firstElementChild; x.className += " rbat"; x.onclick = () => openFrontReport(r); return x; };
-  let t = 900;
-  ev.fronts.forEach(r => {
-    later(() => { AUDIO.sfx(r.p === "avancar" || r.e === "avancar" ? "boom" : "order");
-      cap.textContent = `${frontName(G, r.front)}: ${frontReport(G, r).summary}`; cap.className = "rcap " + (r.d > 5 ? "good" : r.d < -5 ? "bad" : "");
-      if (r.rompe){ cap.innerHTML = frontRompeHTML(r); cap.className = "rcap rompefx " + (r.rompe > 0 ? "good" : "bad"); AUDIO.sfx("boom"); } // "Rompimento! A linha inimiga desabou em …"
-      list.appendChild(btn(r)); if (RG && r.regs) r.regs.forEach((m, i) => later(() => flipFill(m.id, m.to, true), 350 + i * 120)); else r.moved.forEach(m => later(() => flipFill(m.uf, m.to), 450)); }, t);
-    t += 1300;
+  let t = 700;
+  // 1) movimentos
+  if ((ev.moves || []).length) later(() => { for (const m of ev.moves){ const a = byId[m.id]; if (a) a.reg = m.to; }
+    for (const m of ev.merges || []){ const a = byId[m.id], b = byId[m.into]; if (a && b){ b.str += a.str; armies = armies.filter(x => x !== a); } }
+    arrows = arrows.filter(x => x.cls !== "mv"); draw(); AUDIO.sfx("order"); }, t), t += 900;
+  // 2) batalhas, uma por vez
+  (ev.battles || []).forEach(r => {
+    later(() => { hot = [r.reg]; const att = r.atk.map(x => byId[x.id]).filter(Boolean);
+      arrows = att.map(a => ({ pts: [a.reg, r.reg], cls: r.side === "player" ? "pl" : "en" })); draw(); AUDIO.sfx("boom");
+      cap.innerHTML = `${r.side === "player" ? "⚔" : "🛡"} ${nm(regName(r.reg))} · <span>${esc(gfmt(tF("relChance"), frontReport(G, r).chance))}</span>`; cap.className = "rcap"; }, t);
+    later(() => {
+      for (const x of r.atk.concat(r.def)){ const a = byId[x.id]; if (a) a.str = x.str; }
+      if (r.win && r.took){ reg[r.reg] = r.took.to; for (const x of r.retreat || []){ const a = byId[x.id]; if (a) a.reg = x.to; } if (r.into && byId[r.into]) byId[r.into].reg = r.reg; }
+      const dead = new Set((r.lost || []).map(x => x.id)); armies = armies.filter(a => !dead.has(a.id) && a.str > 0);
+      arrows = []; draw(); const p = box.querySelector(`path.rg[data-rg="${r.reg}"]`); if (p && r.win){ p.classList.add("flipfx"); }
+      const good = tpMineWon(r); cap.innerHTML = `<b>${esc(tF(good ? "anVitoria" : "anDerrota"))}</b> · ${nm(regName(r.reg))} <span>${esc(tF(r.win ? "anTomou" : "anSegurou"))}</span>`; cap.className = "rcap " + (good ? "good" : "bad");
+      list.appendChild(btn(r)); }, t + 650);
+    t += 1500;
   });
-  const end = () => { box.innerHTML = mapSVG(G.control, [], { g: G, military: true, armies: [], arrows: [], static: true, regChg: RG ? ev.regs : undefined });
-    cap.textContent = "Toque numa frente para ver o relatório (por que a linha andou)."; cap.className = "rcap";
+  const end = () => { hot = []; box.innerHTML = mapSVG(G.control, [], { g: G, military: true, fronts: true, armies: [], arrows: [], static: true, regChg: ev.regs, noRegArrows: true, tpArrows: [] });
+    const T = G.reg && G.war.fronts[0] ? regTally(G, G.war.fronts[0]) : null;
+    cap.innerHTML = T ? `<b>${esc(gfmt(fFala("regioes", "placar"), T.p, T.e))}</b> ${regDeltaHTML(T)}` : ""; cap.className = "rcap";
     o.querySelector("[data-done]").style.display = ""; o.querySelector("[data-skip]").style.display = "none"; };
   later(end, t);
-  o.querySelector("[data-skip]").onclick = () => { timers.forEach(clearTimeout); list.innerHTML = ""; ev.fronts.forEach(r => list.appendChild(btn(r))); end(); };
+  o.querySelector("[data-skip]").onclick = () => { timers.forEach(clearTimeout); list.innerHTML = ""; (ev.battles || []).forEach(r => list.appendChild(btn(r))); end(); };
   o.querySelector("[data-done]").onclick = finish;
 }
+/* ---------- Seleção e ordens (mapa e painel) ---------- */
+// toque numa ficha: seleciona (ou tira a seleção); ficha inimiga = toque na região dela
+function tpPickArmy(id){
+  const a = tpById(G, id); if (!a) return;
+  if (a.side !== "player") return tpPickReg(a.reg, REG_DATA.regs[a.reg].uf);
+  if (G.simple && !UI.manual) UI.manual = true;
+  UI.tpPend = null; UI.selUF = null; UI.tpSel = UI.tpSel === id ? null : id;
+  if (UI.tpSel) tpZoomToArmy(a);
+  renderGame(); tpToPanel();
+}
+// com o mapa inteiro, aproxima um pouco no exército escolhido para os destinos não ficarem amontoados
+function tpZoomToArmy(a){
+  if (typeof mapZoomState !== "function" || mapZoomState().k >= 1.5) return;
+  const pts = [a.reg].concat(tpTargets(G, a).map(t => t.to)).map(id => REG_DATA.regs[id]).filter(Boolean);
+  if (!pts.length) return;
+  mapZoomTo(pts.reduce((s, r) => s + r.lx, 0) / pts.length, pts.reduce((s, r) => s + r.ly, 0) / pts.length, 2);
+}
+// toque numa região: com exército selecionado, escolhe o destino (2º toque confirma); sem seleção, abre o estado
+function tpPickReg(rg, uf){
+  const a = tpSelArmy();
+  if (a){
+    if (rg === a.reg){ UI.tpSel = null; UI.tpPend = null; renderGame(); return; }
+    if (tpTargets(G, a).some(t => t.to === rg)){ if (UI.tpPend === rg) return tpConfirm(a, rg); UI.tpPend = rg; AUDIO.sfx("click"); renderGame(); return; }
+    const mine = tpAt(G, "player", rg); if (mine){ UI.tpSel = mine.id; UI.tpPend = null; renderGame(); return; }
+    UI.tpSel = null; UI.tpPend = null;
+  } else { const mine = tpAt(G, "player", rg); if (mine && !(G.simple && !UI.manual)){ UI.tpSel = mine.id; UI.tpPend = null; UI.selUF = null; renderGame(); tpToPanel(); return; } }
+  UI.selUF = uf || REG_DATA.regs[rg].uf; renderGame(); tpToPanel();
+}
+function tpConfirm(a, to){
+  const r = tpOrder(G, a.id, to); if (r.ok) AUDIO.sfx("order");
+  UI.tpPend = null; if (r.ok) UI.tpSel = null; afterAct(r);
+}
+function tpToPanel(){ if (window.innerWidth < 900) setTimeout(() => { const p = $(".sidepanel"); if (p && UI.tpSel && !UI.tpPend) p.scrollIntoView({ behavior: "smooth", block: "start" }); }, 30); }
+// cartão flutuante de confirmação no mapa (telas estreitas)
+function tpFloatHTML(){ const a = tpSelArmy(); if (!a || !UI.tpPend || window.innerWidth >= 900) return ""; return `<div class="tpfloat">${tpConfirmHTML(a, UI.tpPend)}</div>`; }
 /* ---------- Eventos do painel ---------- */
 function bindFronts(el){
-  el.querySelectorAll("[data-fpost]").forEach(b => b.onclick = () => { const r = setFrontPosture(G, b.dataset.front, b.dataset.fpost); if (r.ok) AUDIO.sfx("order"); afterAct(r); });
-  el.querySelectorAll("[data-fgen]").forEach(s => s.onchange = () => { if (s.value) afterAct(setFrontGeneral(G, s.dataset.fgen, s.value)); });
+  el.querySelectorAll("[data-tpsel]").forEach(b => b.onclick = () => { const id = b.dataset.tpsel; if (!id) return; if (G.simple && !UI.manual) UI.manual = true; UI.tpSel = id; UI.tpPend = null; UI.selUF = null; const a0 = tpById(G, id); if (a0) tpZoomToArmy(a0); renderGame();
+    const a = tpById(G, id); if (a && window.innerWidth < 900) window.scrollTo({ top: Math.max(0, ($("#mapMain").getBoundingClientRect().top + window.scrollY) - 70), behavior: "smooth" }); });
+  el.querySelectorAll("[data-tpdesel]").forEach(b => b.onclick = () => { UI.tpSel = null; UI.tpPend = null; renderGame(); });
+  el.querySelectorAll("[data-tpto]").forEach(b => b.onclick = () => { const a = tpSelArmy(); if (!a) return; const to = b.dataset.tpto; if (UI.tpPend === to) return tpConfirm(a, to); UI.tpPend = to; renderGame(); });
+  el.querySelectorAll("[data-tpok]").forEach(b => b.onclick = e => { e.stopPropagation(); const a = tpSelArmy(); if (a) tpConfirm(a, b.dataset.tpok); });
+  el.querySelectorAll("[data-tpcancel]").forEach(b => b.onclick = e => { e.stopPropagation(); UI.tpPend = null; renderGame(); });
+  el.querySelectorAll("[data-tpundo]").forEach(b => b.onclick = () => { UI.tpPend = null; afterAct(tpOrder(G, b.dataset.tpundo, null)); });
+  el.querySelectorAll("[data-tpgen]").forEach(s => s.onchange = () => afterAct(tpSetGeneral(G, s.dataset.tpgen, s.value || null)));
+  el.querySelectorAll("[data-tpfocus]").forEach(b => b.onclick = () => { const R = REG_DATA.regs[b.dataset.tpfocus]; if (!R) return; mapZoomTo(R.lx, R.ly, Math.max(mapZoomState().k, 2.2)); const mine = tpAt(G, "player", b.dataset.tpfocus); if (mine) UI.tpSel = mine.id; renderGame(); window.scrollTo({ top: Math.max(0, ($("#mapMain").getBoundingClientRect().top + window.scrollY) - 70), behavior: "smooth" }); });
   el.querySelectorAll("[data-foff]").forEach(b => b.onclick = () => { const r = launchOffensive(G, b.dataset.foff); if (r.ok) AUDIO.sfx("order"); afterAct(r); });
   el.querySelectorAll("[data-foff-cancel]").forEach(b => b.onclick = () => afterAct(cancelOffensive(G, b.dataset.foffCancel)));
-  el.querySelectorAll("[data-frep]").forEach(b => b.onclick = () => { const f = frontById(G, b.dataset.frep); if (f && f.last) openFrontReport(f.last); });
-  { const last = (G.war.log || []).filter(r => G.mil && r.month === G.mil.month); el.querySelectorAll("[data-frow]").forEach(b => b.onclick = () => { const r = last[+b.dataset.frow]; if (r) openFrontReport(r); }); }
-  if ($("#fSplit")){ const s = $("#fSplit"); s.oninput = () => { const lbl = s.parentElement.querySelectorAll("b"); lbl[0].textContent = s.value + "%"; lbl[1].textContent = (100 - s.value) + "%"; }; s.onchange = () => afterAct(setFrontSplit(G, +s.value)); }
-  el.querySelectorAll("[data-fsplit-auto]").forEach(b => b.onclick = () => afterAct(frontAutoSplit(G)));
-  if ($("#btnRecruit")) $("#btnRecruit").onclick = () => afterAct(recruitArmy(G, null));
+  { const last = (G.mil && G.mil.battles) || []; el.querySelectorAll(".sidepanel [data-frow]").forEach(b => b.onclick = () => { const r = last[+b.dataset.frow]; if (r) openFrontReport(r); }); }
+  if ($("#tpRecReg")) $("#tpRecReg").onchange = e => { UI.tpRec = e.target.value; renderGame(); };
+  if ($("#btnRecruit")) $("#btnRecruit").onclick = () => { const r = recruitArmy(G, $("#tpRecReg") ? $("#tpRecReg").value : null); if (r.ok) AUDIO.sfx("order"); afterAct(r); };
+  if ($("#autoSel")) $("#autoSel").onchange = e => { const r = setAutoOrders(G, e.target.value); if (e.target.value !== "off") frontAuto(G, e.target.value); afterAct(r); };
 }

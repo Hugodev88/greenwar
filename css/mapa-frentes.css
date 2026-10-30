@@ -1,4 +1,4 @@
-/* css/mapa-frentes.css — Mapa de guerra por frentes (2022, estilo Victoria 3): placar de força na linha, lados sombreados, disputa listrada, setas do mês, capital e redutos. */
+/* css/mapa-frentes.css — Mapa de guerra de 2022: fichas dos exércitos, destinos com a chance, setas das ordens, lados sombreados, capital e redutos. */
   /* papel envelhecido + grade de meridianos discreta (só CSS, sem filtros) */
   .mapbox svg.fmap{background:radial-gradient(ellipse at 55% 45%,#2c2419 0%,#1b1610 60%,#120e0a 100%),repeating-linear-gradient(0deg,transparent 0 39px,#e8d9b40a 39px 40px),repeating-linear-gradient(90deg,transparent 0 39px,#e8d9b40a 39px 40px);background-blend-mode:normal;border-radius:8px;box-shadow:inset 0 0 40px #000a}
   .mapbox svg.fmap path.uf{stroke:#15100b;stroke-width:1.1;stroke-linejoin:round}
@@ -12,31 +12,60 @@
   .mapbox svg.fmap path.frontcase{stroke-width:8.5}
   .mapbox svg.fmap path.front{stroke-width:4.2}
   .mapbox svg.fmap.small path.frontcase{stroke-width:10}.mapbox svg.fmap.small path.front{stroke-width:5}
-  /* placar */
-  .mapbox g.fbadge{cursor:pointer;outline:none}
-  .mapbox g.fbadge .fpill{fill:none;stroke:#f3e2b8;stroke-width:1.5;filter:drop-shadow(0 1px 2px #000)}
-  .mapbox g.fbadge.fav-p .fpill{stroke:#bfe0ff}.mapbox g.fbadge.fav-e .fpill{stroke:#ffc2b5}
-  .mapbox g.fbadge:hover .fpill,.mapbox g.fbadge:focus .fpill{stroke:#fff;stroke-width:2.4}
-  .mapbox g.fbadge:focus-visible .fpill{stroke:#ffd166;stroke-width:3}
-  .mapbox g.fbadge .fhalf{stroke:none}
-  .mapbox g.fbadge text.fnum{font-size:11px;font-weight:800;fill:#fff;stroke:#000a;stroke-width:2px}
-  .mapbox g.fbadge .fsym{fill:none;stroke:#fff;stroke-width:1.1}
-  .mapbox g.fbadge .fvs{stroke:#f3e2b8;stroke-width:1.6;stroke-linecap:round}
-  .mapbox g.fbadge .ftug{fill:#000c;stroke:#f3e2b866;stroke-width:.6}
-  .mapbox g.fbadge .ftugf.up{fill:#9cc3ea}.mapbox g.fbadge .ftugf.down{fill:#f0a493}
-  body.cb .mapbox g.fbadge .ftugf.up{fill:#9fd3ff}body.cb .mapbox g.fbadge .ftugf.down{fill:#ffc499}
-  .mapbox g.fbadge .ftick{stroke:#fff;stroke-width:.8}
-  .mapbox g.fbadge .fmk{fill:#fff;stroke:#000;stroke-width:.7}
-  .mapbox g.fbadge text.fprog{font-size:7.5px;font-weight:800;fill:#f3e2b8;stroke-width:2.4px}
-  .mapbox g.fbadge .fpost circle,.mapbox g.fbadge .fgen2 circle{fill:#1a140e;stroke:#f3e2b8;stroke-width:1.2}
-  .mapbox g.fbadge .fpost.sp circle{stroke:#ffd166;stroke-width:1.8}
-  .mapbox g.fbadge .fpost text,.mapbox g.fbadge .fgen2 text{font-size:9px;stroke:none;fill:#f3e2b8}
-  /* setas do último mês (chevrons em sequência) */
-  .mapbox g.fpush{pointer-events:none}
-  .mapbox g.fpush path.ch{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 1px #000);animation:fchev 1.5s ease-in-out infinite}
-  .mapbox g.fpush.up path.ch{stroke:#f3c969}.mapbox g.fpush.down path.ch{stroke:#ff6a52}
-  .mapbox g.fpush path.c1{animation-delay:.25s}.mapbox g.fpush path.c2{animation-delay:.5s}
-  @keyframes fchev{0%,100%{opacity:.25}40%{opacity:1}}
+  /* fichas dos exércitos (OTAN): azul = seu (retângulo com X), vermelho = inimigo (losango); número = força, barrinha = moral */
+  .mapbox g.tchip{cursor:pointer;outline:none}
+  g.tchip rect.bg{stroke-width:1.6;filter:drop-shadow(0 1px 2px #000c)}
+  g.tchip.p rect.bg{fill:#1f4f86;stroke:#cfe6ff}g.tchip.e rect.bg{fill:#8d2416;stroke:#ffd0c4}
+  body.cb g.tchip.p rect.bg{fill:#0072B2}body.cb g.tchip.e rect.bg{fill:#D55E00}
+  g.tchip .sym{fill:none;stroke:#fff;stroke-width:1.2}
+  g.tchip text.cn{font-size:11.5px;font-weight:900;fill:#fff;text-anchor:middle;dominant-baseline:middle;font-variant-numeric:tabular-nums}
+  g.tchip .mb0{fill:#0008}g.tchip .mb{fill:#8fe08a}
+  g.tchip .ordmk{fill:#f3c969}
+  g.tchip .gs circle{fill:#1a140e;stroke:#f3c969;stroke-width:1}g.tchip .gs text{font-size:6.5px;fill:#f3c969;text-anchor:middle;dominant-baseline:middle}
+  g.tchip text.spk{font-size:8px}
+  .mapbox g.tchip.p:hover rect.bg,.mapbox g.tchip:focus-visible rect.bg{stroke:#ffd166;stroke-width:2.4}
+  .mapbox g.tchip.sel rect.bg{stroke:#ffd166;stroke-width:2.6}
+  .mapbox g.tchip rect.ring{fill:none;stroke:#ffd166;stroke-width:1.6;stroke-dasharray:4 3;animation:tring 1.2s linear infinite}
+  @keyframes tring{to{stroke-dashoffset:-14}}
+  .mapbox g.tchip.dim{opacity:.6}
+  /* destinos do exército selecionado: regiões destacadas e a chance (%) */
+  .mapbox path.ttg{stroke-width:2.2;cursor:pointer;stroke-linejoin:round}
+  .mapbox path.ttg.atacar{fill:#ff5a42;fill-opacity:.28;stroke:#ffb4a6;animation:ttg 1.3s ease-in-out infinite}
+  .mapbox path.ttg.mover,.mapbox path.ttg.juntar{fill:#9fd0ff;fill-opacity:.24;stroke:#cfe6ff;stroke-dasharray:4 2}
+  .mapbox path.ttg:hover{fill-opacity:.42}
+  .mapbox path.ttg.pend{fill:#ffd166;fill-opacity:.42;stroke:#ffd166;stroke-width:3;stroke-dasharray:none;animation:none}
+  @keyframes ttg{0%,100%{stroke-opacity:.55}50%{stroke-opacity:1}}
+  .mapbox path.tsrc{fill:#ffd166;fill-opacity:.14;stroke:#ffd166;stroke-width:1.6;pointer-events:none}
+  .mapbox path.thot{fill:#ffb347;fill-opacity:.35;stroke:#fff2b0;stroke-width:2.4;pointer-events:none;animation:thot .5s ease-in-out infinite alternate}
+  @keyframes thot{from{fill-opacity:.15}to{fill-opacity:.55}}
+  .mapbox g.tpct{cursor:pointer;outline:none}
+  g.tpct rect{stroke:#140c06;stroke-width:1.2;filter:drop-shadow(0 1px 2px #000c)}
+  body svg g.tpct text{font-size:9.5px;font-weight:900;text-anchor:middle;dominant-baseline:middle;fill:#140c06;stroke:none;paint-order:normal}
+  g.tpct.good rect{fill:#8fe08a}g.tpct.mid rect{fill:#ffd166}g.tpct.bad rect{fill:#ff8a76}g.tpct.mv rect{fill:#cfe6ff}
+  .mapbox g.tpct.pend rect{stroke:#fff;stroke-width:2.2}
+  .mapbox g.tpct:focus-visible rect{stroke:#fff;stroke-width:2.6}
+  /* setas grossas das ordens: amarelo = ataque, azul-claro = movimento, vermelho tracejado = plano inimigo, branco = prévia */
+  .mapbox g.tarw{pointer-events:none}
+  .mapbox g.tarw path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .mapbox g.tarw path.cs{stroke:#140c06;stroke-width:6.5;opacity:.75}
+  .mapbox g.tarw path.ln{stroke-width:4}
+  .mapbox svg.small g.tarw path.cs{stroke-width:8}.mapbox svg.small g.tarw path.ln{stroke-width:5}
+  .mapbox g.tarw.pl path.ln{stroke:#f3c969}.mapbox g.tarw.mv path.ln{stroke:#cfe3f5}
+  .mapbox g.tarw.en path.ln{stroke:#ff5a42;stroke-dasharray:7 4;animation:tdash 1s linear infinite}
+  .mapbox g.tarw.pv path.ln{stroke:#fff2b0;stroke-dasharray:6 4;animation:tdash .8s linear infinite}
+  @keyframes tdash{to{stroke-dashoffset:-22}}
+  body.rm .mapbox :is(g.tarw path.ln,path.ttg,path.thot,g.tchip rect.ring){animation:none}
+  @media (prefers-reduced-motion:reduce){.mapbox :is(g.tarw path.ln,path.ttg,path.thot,g.tchip rect.ring){animation:none}}
+  /* placar sobre o mapa e cartão de confirmação flutuante (celular) */
+  .mapbox .tpmaptally{position:absolute;top:6px;left:6px;z-index:3;background:#140e09e6;border:1px solid #6b5a3c;border-radius:9px;padding:4px 9px;font-size:.8rem;color:#f3e2b8;display:flex;flex-direction:column;gap:1px;max-width:62%;pointer-events:none}
+  .mapbox .tpmaptally small{color:#bfe3a8}
+  .mapbox .tpfloat{position:absolute;left:6px;right:6px;bottom:6px;z-index:4}
+  .tpconf{margin:8px 0;padding:9px 10px;border-radius:10px;background:#1a140ef2;border:2px solid #6b5a3c;box-shadow:0 4px 16px #000a;font-family:system-ui,sans-serif;font-size:.86rem}
+  .tpconf.good{border-color:#7fc06a}.tpconf.mid{border-color:#e6b84a}.tpconf.bad{border-color:#e0705a}
+  .tpconf .tpbig{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.tpconf .tpbig b{font-size:2rem;line-height:1}
+  .tpconf.good .tpbig b{color:#8fe08a}.tpconf.mid .tpbig b{color:#ffd166}.tpconf.bad .tpbig b{color:#ff8a76}
+  .tpconf p{margin:4px 0}.tpconf ul{margin:4px 0 6px;padding-left:18px;font-size:.84rem}
+  .tpconf .row2{display:flex;gap:6px}.tpconf .row2 button{min-height:44px;flex:1}
   /* capital e redutos */
   .mapbox g.fgoal{pointer-events:none}
   .mapbox g.fgoal.cap path{fill:#f3c969;stroke:#1a1408;stroke-width:1}
@@ -60,5 +89,3 @@
   .fleg span{white-space:nowrap}
   .fcard2.flash{animation:fcflash 1.5s ease}
   @keyframes fcflash{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 3px #f3c969,0 0 18px #f3c96988}}
-  @media (prefers-reduced-motion:reduce){.mapbox g.fpush path.ch{animation:none;opacity:.9}}
-  body.rm .mapbox g.fpush path.ch{animation:none;opacity:.9}

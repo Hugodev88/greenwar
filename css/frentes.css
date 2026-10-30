@@ -42,8 +42,34 @@
   .frline{margin:4px 0 10px;font-family:system-ui,sans-serif}.frmove{margin:6px 0 0;font-size:.84rem}
   .frmove .good{color:#9cc3ea}.frmove .bad{color:#f0a493}
   @media (max-width:520px){ .fposts{grid-template-columns:1fr} .fpost{min-height:52px} .frvs{grid-template-columns:1fr} .frvs .vs{text-align:center} .fsl{grid-template-columns:1fr} }
-  .fcard2 .pw{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:.78rem;margin:4px 0 6px}
-  .fcard2 .pw .bar2{height:9px;border-radius:5px;overflow:hidden;display:flex;background:#0006}
-  .fcard2 .pw .bar2 i{display:block;height:100%}.fcard2 .pw .bar2 i.p{background:#5d8fc4}.fcard2 .pw .bar2 i.e{background:#c2563f}
+  :is(.fcard2,.tpconf,.sidepanel) .pw{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:.78rem;margin:4px 0 6px}
+  :is(.fcard2,.tpconf,.sidepanel) .pw .bar2{height:9px;border-radius:5px;overflow:hidden;display:flex;background:#0006}
+  :is(.fcard2,.tpconf,.sidepanel) .pw .bar2 i{display:block;height:100%}:is(.fcard2,.tpconf,.sidepanel) .pw .bar2 i.p{background:#5d8fc4}:is(.fcard2,.tpconf,.sidepanel) .pw .bar2 i.e{background:#c2563f}
   .fsel{flex-wrap:wrap}.fsel select{min-width:0;flex:1 1 160px}
   .batlist .batrow{font-family:inherit}
+  /* Fase 13: painel dos exércitos (cartão do selecionado, destinos, lista, ameaças, passos) */
+  .tpcard{border:1px solid var(--line);border-left:4px solid #5b8fc7;border-radius:8px;background:#14120f;padding:8px 10px 10px;margin:0 0 10px;font-family:system-ui,sans-serif;font-size:.86rem}
+  .tphead{display:flex;align-items:center;gap:8px}.tphead>div{flex:1;min-width:0}.tphead h4{margin:0;font-size:1rem;color:var(--gold)}.tphead small{color:var(--muted)}
+  .tpcur{margin:6px 0}
+  .tptgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin:6px 0}
+  .tptg{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;min-height:46px;padding:6px 8px;border-radius:7px;border:1px solid var(--line);background:#1d1a16;color:var(--ink);font:inherit;font-size:.84rem;text-align:left;cursor:pointer}
+  .tptg span{font-size:.72rem;color:var(--muted);width:100%}.tptg.atacar{border-color:#a8402f}.tptg.mover,.tptg.juntar{border-color:#4f7aa3}
+  .tptg:hover,.tptg.on{background:#2a2414;border-color:var(--gold)}.tptg:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+  em.tpc{font-style:normal;font-weight:800;padding:0 5px;border-radius:6px;color:#140c06}
+  em.tpc.good{background:#8fe08a}em.tpc.mid{background:#ffd166}em.tpc.bad{background:#ff8a76}
+  .tplist{display:flex;flex-direction:column;gap:5px;margin:6px 0}
+  .tprow{display:flex;align-items:center;gap:8px;min-height:46px;padding:5px 8px;border-radius:7px;border:1px solid var(--line);background:#1a1714;color:var(--ink);font:inherit;font-size:.84rem;text-align:left;cursor:pointer}
+  .tprow:hover{background:#2a2414}.tprow.ord{border-left:3px solid #f3c969}.tprow:focus-visible{outline:2px solid var(--gold)}
+  .tprow .tpn{flex:1;display:flex;flex-direction:column;min-width:0}.tprow .tpn small{color:var(--muted)}
+  .tpmini{flex:none}
+  .tpsteps{list-style:none;margin:6px 0 10px;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:5px;font-family:system-ui,sans-serif;font-size:.8rem}
+  .tpsteps li{display:flex;gap:6px;align-items:center;background:#1a1714;border:1px solid var(--line);border-radius:7px;padding:5px 7px}
+  .tpsteps li b{flex:none;width:20px;height:20px;border-radius:50%;background:#c9a45c;color:#140c06;display:grid;place-items:center;font-size:.75rem}
+  .tpthreat{list-style:none;margin:4px 0 8px;padding:0;font-size:.82rem}.tpthreat li{padding:4px 0;border-bottom:1px dashed #3a3020}
+  .tptally{margin:6px 0 8px;font-family:system-ui,sans-serif;font-size:.84rem}
+  .tpo-a{color:#ffd9a0}.tpo-m{color:#cfe3f5}
+  .frres{margin:6px 0;padding:6px 9px;border-radius:8px;font-weight:600;border:1px solid}
+  .frres.good{background:#21401c;border-color:#7fc06a;color:#dff5d2}.frres.bad{background:#4a1a14;border-color:#e0705a;color:#ffe0d8}
+  b.pn{font-weight:700}
+  @media (max-width:520px){ .tptgs{grid-template-columns:1fr 1fr} .tpsteps{grid-template-columns:1fr} }
+  .tpthreat .linkbtn{text-align:left;font-family:system-ui,sans-serif}

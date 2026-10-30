@@ -332,7 +332,7 @@ for (const sc of SCENARIOS) {
 }
 // ---- saves: migração v2 → v4 e v3 → v4, e um combate de teste ----
 {
-  const API = new Function(JOGO.codigo + "; return { SCENARIOS, scOf, newCampaign, migrateSave, SAVE_VERSION, endTurn, sideStr, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices, battleReport, advisorTips, advisorDo, advisorFrontTips, frontMode, frontReport, frontPool, frontCfg, southRevolt, setFrontPosture, launchOffensive, offensiveState, coupState, coupStoryTip, coupReadiness, golpeCfg, endingGrade, earnedAchievements, achMerge, CONQUISTAS };")();
+  const API = new Function(JOGO.codigo + "; return { SCENARIOS, scOf, newCampaign, migrateSave, SAVE_VERSION, endTurn, sideStr, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices, battleReport, advisorTips, advisorDo, advisorFrontTips, frontMode, frontReport, frontPool, frontCfg, southRevolt, tpTargets, tpOrder, tpArmies, tpOdds, launchOffensive, offensiveState, coupState, coupStoryTip, coupReadiness, golpeCfg, endingGrade, earnedAchievements, achMerge, CONQUISTAS };")();
   let n = 0;
   for (const sc of API.SCENARIOS){ if (sc.soon || !sc.campaign) continue;
     for (let seed = 1; seed <= 25; seed++){
@@ -399,8 +399,17 @@ for (const sc of SCENARIOS) {
     }
     if (API.scOf(API.newCampaign(sc22, 3)) !== sc22) err("Normal precisa usar o cenário original");
     if (JSON.stringify(sc22.campaign.money) + sc22.campaign.enemyPower + JSON.stringify(sc22.campaign.pace) !== C0) err("os modos alteraram o cenário original");
-    // guerra por frentes (save v8): achar uma partida em guerra, migrar v7 com exércitos, relatório sem NaN, Frente Sul na revolta, dicas da conselheira
+    // guerra com exércitos nas regiões (save v12): achar uma partida em guerra, migrar v7 e v11, relatório sem NaN, Liga do Sul, conselheira
     let gwReg = null; // partida em guerra reaproveitada no teste das regiões
+    // guerra no formato antigo (v8–v11: força por frente) a partir de uma partida atual, para testar a migração
+    const oldWar = (g, troops, enemy) => ({ reserve: 5, fronts: g.war.fronts.map((f, i) => ({ id: f.id, troops: i ? 10 : troops, enemy, posture: "segurar", morale: 55, supply: 80, emorale: 60, eposture: "segurar", progress: 0, n: f.n, opened: f.opened, axis: {} })),
+      gens: { valadares: g.war.fronts[0].id }, offAt: g.month, log: [{ month: g.month, front: g.war.fronts[0].id, rows: [] }], hist: g.war.hist || [], months: 2, siege: { "resistencia+": 100 } });
+    const armiesOk = (g, tag) => { const W = g.war, ph = API.phaseOf(g), seen = new Set();
+      for (const a of W.armies){ const own = a.side === "player" ? API.sideOf(g, g.reg[a.reg], ph) === "player" : g.reg[a.reg] === a.fac;
+        if (!own){ err(`${tag}: exército ${a.id} (${a.side}) fora do próprio território`); return false; }
+        if (seen.has(a.side + a.reg)){ err(`${tag}: dois exércitos do mesmo lado na região ${a.reg}`); return false; } seen.add(a.side + a.reg);
+        if (!(a.str > 0) || !(a.morale >= 0)){ err(`${tag}: exército ${a.id} com força/moral inválida`); return false; } }
+      return true; };
     {
       let gw = null;
       for (let seed = 1; seed <= 20 && !gw; seed++){ // segue a conselheira (inclusive no golpe) até a guerra começar
@@ -415,46 +424,74 @@ for (const sc of SCENARIOS) {
         }
       }
       gwReg = gw;
-      if (!gw) err("frentes: nenhuma partida de teste chegou à guerra");
+      if (!gw) err("exércitos: nenhuma partida de teste chegou à guerra");
       else {
-        if ((gw.armies || []).length) err("frentes: modo frentes não deveria ter exércitos");
-        // v7 → v8: exércitos viram tropas
+        if ((gw.armies || []).length) err("exércitos: o 2022 não usa g.armies (só g.war.armies)");
+        if (!API.tpArmies(gw, "player").length || !API.tpArmies(gw, "enemy").length) err("exércitos: guerra sem exércitos dos dois lados");
+        armiesOk(gw, "exércitos (início)");
+        // v7 → v12: exércitos antigos por estado viram exércitos nas regiões, sem perder tropas
         const v7 = JSON.parse(JSON.stringify(gw)); v7.v = 7; delete v7.war; delete v7.warNews;
         const fid = gw.war.fronts[0].id;
         v7.armies = [{ id: 1, side: "player", fac: API.phaseOf(gw).playerMain, uf: "DF", str: 30 }, { id: 2, side: "player", fac: API.phaseOf(gw).playerMain, uf: "GO", str: 25 }, { id: 3, side: "enemy", fac: fid, uf: "PE", str: 40 }];
         const m = API.migrateSave(v7);
-        if (!m || m.v !== API.SAVE_VERSION || !API.frontMode(m) || m.armies.length) err("frentes: migração v7→v8 falhou");
+        if (!m || m.v !== API.SAVE_VERSION || !API.frontMode(m) || m.armies.length) err("exércitos: migração v7→v12 falhou");
         else {
-          if (Math.abs(API.frontPool(m) - 55) > 1) err(`frentes: migração v7→v8 perdeu tropas (${API.frontPool(m)} ≠ 55)`);
-          if (!m.war.fronts.length || m.war.fronts.some(f => !(f.enemy > 0))) err("frentes: migração v7→v8 sem frente/inimigo");
-          if (!API.endTurn(m) && !m.queue.length && !m.ended) err("frentes: save v7 migrado não avança");
+          if (Math.abs(API.frontPool(m) - 55) > 1) err(`exércitos: migração v7→v12 perdeu tropas (${API.frontPool(m)} ≠ 55)`);
+          if (!API.tpArmies(m, "player").length || !API.tpArmies(m, "enemy").length) err("exércitos: migração v7→v12 sem exércitos");
+          armiesOk(m, "migração v7");
+          if (!API.endTurn(m) && !m.queue.length && !m.ended) err("exércitos: save v7 migrado não avança");
         }
-        // relatório: sem NaN, motivo e barras
-        const g = JSON.parse(JSON.stringify(gw)); let reps = 0;
+        // v11 → v12: a força de cada frente vira exércitos nas regiões da linha
+        const v11 = JSON.parse(JSON.stringify(gw)); v11.v = 11; v11.war = oldWar(gw, 60, 90); delete v11.mil;
+        const v11c = JSON.parse(JSON.stringify(v11)), m11 = API.migrateSave(v11c);
+        if (!m11 || m11.v !== API.SAVE_VERSION) err("exércitos: migração v11→v12 falhou");
+        else {
+          const pl = API.tpArmies(m11, "player"), en = API.tpArmies(m11, "enemy"), P = pl.reduce((s, a) => s + a.str, 0) + m11.war.reserve, E = en.reduce((s, a) => s + a.str, 0);
+          if (!pl.length || !en.length) err("exércitos: migração v11→v12 sem exércitos");
+          const P0 = v11.war.reserve + v11.war.fronts.reduce((s, f) => s + f.troops, 0);
+          if (Math.abs(P - P0) > 2) err(`exércitos: migração v11→v12 perdeu tropas (${P} ≠ ${P0})`);
+          if (Math.abs(E - 90) > 2) err(`exércitos: migração v11→v12 mudou a força inimiga (${E} ≠ 90)`);
+          if (m11.war.siege || m11.war.fronts.some(f => "troops" in f || "posture" in f)) err("exércitos: migração v11→v12 deixou campos antigos");
+          if (!Object.values(m11.war.gens).some(id => pl.some(a => a.id === id))) err("exércitos: migração v11→v12 perdeu o general");
+          armiesOk(m11, "migração v11");
+          if (!API.endTurn(m11) && !m11.queue.length && !m11.ended) err("exércitos: save v11 migrado não avança");
+        }
+        // relatório de batalha: sem NaN, motivo e fatores
+        const g = JSON.parse(JSON.stringify(gw)); let reps = 0; g.autoOrders = "auto";
         for (let t = 0; t < 6 && !g.ended; t++){
           while (g.queue.length && !g.ended){ const ch = API.queueChoices(g); API.choose(g, Math.max(0, ch.findIndex(c => c.ok))); }
           if (g.ended) break;
           API.endTurn(g);
-          for (const f of (g.war && g.war.fronts) || []) if (f.last && f.last.month >= g.month - 1){
-            const r = API.frontReport(g, f.last); reps++;
-            if (!r || !r.summary || !Array.isArray(r.rows) || !r.rows.length || /NaN|undefined/.test(JSON.stringify(r))) { err(`frentes: relatório inválido (${f.id})`); break; }
+          for (const b of (g.mil && g.mil.battles) || []){
+            const r = API.frontReport(g, b); reps++;
+            if (!r || !r.summary || !Array.isArray(r.rows) || !r.rows.length || /NaN|undefined/.test(JSON.stringify(r)) || !(r.chance >= 0 && r.chance <= 100)) { err(`exércitos: relatório inválido (${b.reg})`); break; }
           }
+          if (g.war && !armiesOk(g, `exércitos (mês ${t + 1})`)) break;
         }
-        if (!reps) err("frentes: nenhum relatório de frente gerado em 6 meses de guerra");
-        // revolta do Sul abre a Frente Sul
+        if (!reps) err("exércitos: nenhuma batalha em 6 meses de guerra com comando automático");
+        // revolta do Sul abre a Frente Sul, com exércitos da Liga
         const gs = JSON.parse(JSON.stringify(gw)), SF = API.frontCfg(gs).frentes;
         if (API.phaseOf(gs).enemy.includes("separatista") && SF.separatista && !gs.war.fronts.some(f => f.id === "separatista") && gs.south){
           API.southRevolt(gs, null); API.endTurn(gs);
-          if (!gs.ended && Object.values(gs.control).includes("separatista") && !gs.war.fronts.some(f => f.id === "separatista")) err("frentes: revolta do Sul não abriu a Frente Sul");
-          if (!gs.ended && gs.war.fronts.length > 2) err("frentes: mais de 2 frentes");
+          if (!gs.ended && Object.values(gs.control).includes("separatista")){
+            if (!gs.war.fronts.some(f => f.id === "separatista")) err("exércitos: revolta do Sul não abriu a Frente Sul");
+            else if (!API.tpArmies(gs, "enemy").some(a => a.fac === "separatista")) err("exércitos: a Liga do Sul não tem exércitos");
+          }
+          if (!gs.ended && gs.war.fronts.length > 2) err("exércitos: mais de 2 frentes");
         }
-        // conselheira em guerra: dica de postura e "Fazer isso" muda a postura
-        const ga = JSON.parse(JSON.stringify(gw)); ga.autoOrders = "manual"; while (ga.queue.length) ga.queue.pop();
-        const f0 = ga.war.fronts[0]; f0.posture = f0.eposture === "avancar" ? "avancar" : "recuar"; f0.morale = 80; f0.supply = 80;
-        const all = []; API.advisorFrontTips(ga, all); const tp = all.find(t => t.act && t.act.k === "posture");
-        if (API.advisorTips(ga, { tab: "mapa" }).some(t => !t.head || !t.text || !t.act)) err("frentes: dica inválida da conselheira");
-        if (!tp) err("frentes: a conselheira não deu dica de postura");
-        else if (API.advisorDo(ga, tp).ok === false || ga.war.fronts[0].posture !== tp.act.p) err("frentes: \"Fazer isso\" não mudou a postura");
+        // conselheira: dica de ataque com "Fazer isso" dando a ordem ao exército
+        const ga = JSON.parse(JSON.stringify(gw)); ga.autoOrders = "off"; while (ga.queue.length) ga.queue.pop();
+        for (const a of API.tpArmies(ga, "player")){ a.order = null; a.str = 150; a.morale = 90; }
+        const all = []; API.advisorFrontTips(ga, all); const tp = all.find(t => t.act && t.act.k === "tropa");
+        if (API.advisorTips(ga, { tab: "mapa" }).some(t => !t.head || !t.text || !t.act)) err("exércitos: dica inválida da conselheira");
+        if (!tp) err("exércitos: a conselheira não deu dica de ataque/defesa");
+        else { const r = API.advisorDo(ga, tp), a = API.tpArmies(ga, "player").find(x => x.id === tp.act.id);
+          if (r.ok === false || !a || !a.order || a.order.to !== tp.act.to) err("exércitos: \"Fazer isso\" não deu a ordem ao exército"); }
+        // ofensiva especial: só com ordem de ataque; um exército por vez
+        const go = JSON.parse(JSON.stringify(ga)); go.money = 99; go.war.offAt = 0;
+        const atk = API.tpArmies(go, "player").find(a => a.order && a.order.type === "atacar");
+        if (atk){ if (!API.launchOffensive(go, atk.id).ok || !atk.special) err("exércitos: ofensiva especial não foi marcada");
+          const other = API.tpArmies(go, "player").find(a => a !== atk); if (other && API.offensiveState(go, other.id).ok) err("exércitos: duas ofensivas especiais no mesmo mês"); }
       }
       // falas das frentes com inglês
       const fs = require("fs"), EN = new Function(fs.readFileSync(require("path").join(JOGO.RAIZ, "js/i18n/en.js"), "utf8") + "; return I18N_EN;")();
@@ -508,50 +545,73 @@ for (const sc of SCENARIOS) {
         console.log(`Regiões: 133 regiões IBGE, vizinhança simétrica, capitais OK; sem "disputa" no 2022; migração v9→v10 OK; ${moved} regiões mudaram de lado em 10 meses de guerra de teste`);
       }
     }
-    // fase 12: capturas contíguas, caminho até Recife, rompimento, capital da Resistência e migração v10→v11
+    // fase 13: exércitos só andam por regiões vizinhas (nada de teletransporte), ataques só a vizinhas, Recife capital, migração v10→v12
     {
-      const RX = new Function(JOGO.codigo + "; return { REG_DATA, newCampaign, endTurn, phaseOf, choose, queueChoices, advisorTips, advisorDo, frontMode, coupState, coupStoryTip, sideOf, regPath, regFaltam, regGoal, migrateSave, SAVE_VERSION };")();
+      const RX = new Function(JOGO.codigo + "; return { REG_DATA, newCampaign, endTurn, phaseOf, choose, queueChoices, advisorTips, advisorDo, frontMode, coupState, coupStoryTip, sideOf, regPath, regFaltam, regGoal, migrateSave, SAVE_VERSION, tpArmies, tpTargets, tpOrder, frontCfg, setAutoOrders };")();
       const RG = RX.REG_DATA.regs;
       if (RG["2702"].adj.includes("2801")) err("regiões: Arapiraca e Aracaju só se tocam num ponto e não podem ser vizinhas");
-      let recs = 0, caps = 0, naoAdj = 0, naoAdjPre = 0, romp = 0, flagOk = 0, wars = 0, pathBad = 0, ex = "";
+      let moves = 0, bats = 0, caps = 0, badMove = 0, badAtk = 0, flagOk = 0, wars = 0, pathBad = 0, ex = "";
       for (let seed = 1; seed <= 14; seed++){
-        const g = RX.newCampaign(sc22, seed); const seen = new Set(); let opened = false;
+        const g = RX.newCampaign(sc22, seed); let opened = false;
         for (let t = 0; t < 70 && !g.ended; t++){ let guard = 0;
           while (g.queue.length && !g.ended && guard++ < 20){ const tip = RX.coupStoryTip(g, RX.coupState(g)); if (tip) RX.advisorDo(g, tip); else { const ch = RX.queueChoices(g); RX.choose(g, Math.max(0, ch.findIndex(c => c.ok))); } }
           if (g.ended) break;
           for (let k = 0; k < 10; k++){ const tp = RX.advisorTips(g, { tab: "mapa" }).find(x => x.act.k !== "tab" && x.act.k !== "end"); if (!tp || RX.advisorDo(g, tp).ok === false) break; }
-          const war = RX.frontMode(g) && RX.phaseOf(g).war && g.war.fronts.length, pre = g.reg ? Object.assign({}, g.reg) : null, ph = RX.phaseOf(g);
-          if (war && !opened){ opened = true; wars++; if (g.war.fronts.some(f => f.id === "resistencia") && g.flags.includes("recife_capital")) flagOk++; }
+          const war = RX.frontMode(g) && RX.phaseOf(g).war && g.war.fronts.length, ph = RX.phaseOf(g);
+          if (war && !opened){ opened = true; wars++; RX.setAutoOrders(g, seed % 3 ? "auto" : "defender"); if (g.war.fronts.some(f => f.id === "resistencia") && g.flags.includes("recife_capital")) flagOk++; }
           if (war) for (const f of g.war.fronts){ const P = RX.regPath(g, f, 1);
             if (P && (P[P.length - 1] !== RX.regGoal(g, f, 1) || P.some((id, i) => i && !RG[id].adj.includes(P[i - 1])) || RX.regFaltam(g, f, 1) !== P.length)) pathBad++; }
+          const pre = g.reg ? Object.assign({}, g.reg) : null;
           RX.endTurn(g);
-          if (!war || !pre) continue;
-          const cur = Object.assign({}, pre);
-          for (const r of (g.war && g.war.log) || []){ if (seen.has(r)) continue; seen.add(r); recs++; if (r.rompe) romp++;
-            for (const m of r.regs || []){ caps++; const dir = m.side === "player" ? 1 : -1;
-              const mine = (map, x) => m.side === "player" ? RX.sideOf(g, map[x], ph) === "player" : map[x] === r.front;
-              if (!RG[m.id].adj.some(x => mine(cur, x))){ naoAdj++; if (!ex) ex = `s${seed} ${RG[m.id].n}`; }
-              if (r.rompe !== dir && !RG[m.id].adj.some(x => mine(pre, x))) naoAdjPre++;
-              cur[m.id] = m.to; } }
+          const ev = g.mil; if (!war || !pre || !ev || !ev.start) continue;
+          const own = (side, fac, id) => side === "player" ? RX.sideOf(g, pre[id], ph) === "player" : pre[id] === fac;
+          const T = RX.frontCfg(g).tropas;
+          for (const mv of ev.moves){ if (mv.fix) continue; moves++;
+            const P = mv.path, ok = P.length >= 2 && P.length <= T.passos + 1 && P.every((id, i) => !i || (RG[id].adj.includes(P[i - 1]) && own(mv.side, mv.fac, id)));
+            if (!ok){ badMove++; if (!ex) ex = `s${seed} mover ${P.map(x => RG[x] && RG[x].n).join(">")}`; } }
+          const start = {}; for (const a of ev.start) start[a.id] = a.reg;
+          for (const b of ev.battles){ bats++; if (b.took) caps++;
+            for (const a of b.atk){ const from = ev.moves.find(m => m.id === a.id && !m.fix) ? null : start[a.id];
+              if (!from || !RG[b.reg].adj.includes(from)){ badAtk++; if (!ex) ex = `s${seed} ataque a ${RG[b.reg].n}`; } } }
         }
       }
-      if (!caps) err("fase 12: nenhuma região capturada nas partidas de teste");
-      if (naoAdj) err(`fase 12: ${naoAdj} capturas sem vizinhança com o atacante na hora da captura (ex.: ${ex})`);
-      if (naoAdjPre) err(`fase 12: ${naoAdjPre} capturas fora de rompimento sem vizinhança com o território do início do mês`);
-      if (pathBad) err(`fase 12: ${pathBad} caminhos até a capital inimiga inválidos`);
-      if (wars && flagOk < wars) err(`fase 12: Recife não foi anunciada como capital da Resistência em ${wars - flagOk} guerras`);
-      // migração v10 → v11: eixos zerados, cerco limitado e a flag da capital criada
-      if (gwReg){ const v10 = JSON.parse(JSON.stringify(gwReg)); v10.v = 10; v10.flags = v10.flags.filter(x => x !== "recife_capital"); for (const f of v10.war.fronts) f.rompe = { dir: 1, month: 1 };
+      if (!bats || !caps) err("fase 13: nenhuma batalha/captura nas partidas de teste");
+      if (badMove) err(`fase 13: ${badMove} movimentos fora do próprio território ou com salto (ex.: ${ex})`);
+      if (badAtk) err(`fase 13: ${badAtk} ataques a região não vizinha do exército (ex.: ${ex})`);
+      if (pathBad) err(`fase 13: ${pathBad} caminhos até a capital inimiga inválidos`);
+      if (wars && flagOk < wars) err(`fase 13: Recife não foi anunciada como capital da Resistência em ${wars - flagOk} guerras`);
+      // sem teletransporte: um destino a 2 regiões, passando só por região inimiga, não é válido (nem à força, na resolução)
+      if (gwReg){
+        const g = JSON.parse(JSON.stringify(gwReg)); while (g.queue.length) g.queue.pop();
+        const ph = RX.phaseOf(g), mine = id => RX.sideOf(g, g.reg[id], ph) === "player", foe = id => RX.sideOf(g, g.reg[id], ph) === "enemy";
+        let a = null, far = null, via = null;
+        for (const x of RX.tpArmies(g, "player")){ for (const n of RG[x.reg].adj) if (foe(n)) for (const m of RG[n].adj) if (m !== x.reg && !RG[x.reg].adj.includes(m) && RG[m].adj.filter(mine).length === 0 && (foe(m) || mine(m))){ a = x; via = n; far = m; break; } if (a) break; }
+        if (!a) err("fase 13: não achei um caso de teste de teletransporte");
+        else {
+          if (RX.tpTargets(g, a).some(t => t.to === far)) err("fase 13: destino a 2 regiões passando pelo inimigo aparece como válido");
+          if (RX.tpOrder(g, a.id, far).ok) err("fase 13: ordem de teletransporte aceita");
+          a.order = { type: "mover", to: far, path: [via, far] }; const from = a.reg; g.autoOrders = "off";
+          RX.endTurn(g);
+          const b = RX.tpArmies(g, "player").find(x => x.id === a.id);
+          if (b && b.reg === far) err("fase 13: exército atravessou região inimiga na resolução");
+          if (g.mil && g.mil.moves.some(m => m.id === a.id && !m.fix)) err("fase 13: movimento inválido foi registrado");
+          void from;
+        }
+      }
+      // migração v10 → v12: eixos/cerco somem, exércitos criados na linha e a flag da capital criada
+      if (gwReg){ const v10 = JSON.parse(JSON.stringify(gwReg)); v10.v = 10; v10.flags = v10.flags.filter(x => x !== "recife_capital"); v10.war = oldWar(gwReg, 50, 70); for (const f of v10.war.fronts) f.rompe = { dir: 1, month: 1 };
         const m = RX.migrateSave(v10);
-        if (!m || m.v !== RX.SAVE_VERSION || m.v < 11) err("fase 12: migração v10→v11 falhou");
-        else if (m.war.fronts.some(f => f.rompe)) err("fase 12: migração v10→v11 manteve rompimento antigo");
-        else if (m.war.fronts.some(f => f.id === "resistencia") && !m.flags.includes("recife_capital")) err("fase 12: migração v10→v11 não criou a capital da Resistência"); }
-      // interface: evento de Recife, estatísticas só de campanhas concluídas
+        if (!m || m.v !== RX.SAVE_VERSION) err("fase 13: migração v10→v12 falhou");
+        else if (m.war.fronts.some(f => f.rompe || f.axis) || m.war.siege) err("fase 13: migração v10→v12 manteve campos antigos");
+        else if (!RX.tpArmies(m, "player").length || !RX.tpArmies(m, "enemy").length) err("fase 13: migração v10→v12 sem exércitos");
+        else if (m.war.fronts.some(f => f.id === "resistencia") && !m.flags.includes("recife_capital")) err("fase 13: migração v10→v12 não criou a capital da Resistência"); }
+      // interface: evento de Recife, estatísticas só de campanhas concluídas, sem tela de postura
       const rd = f => fs.readFileSync(require("path").join(JOGO.RAIZ, f), "utf8");
       if (!/recife_capital:\s*\{/.test(rd("js/ui/grandes-eventos.js"))) err("fase 12: falta o grande evento de Recife");
       if (/campaignStarted/.test(rd("js/ui/menu.js"))) err("estatísticas: começar campanha não pode contar nas estatísticas");
       if (!/achDone[\s\S]{0,200}finRecord|finRecord[\s\S]{0,200}achDone/.test(rd("js/ui/conquistas.js"))) err("estatísticas: a campanha só conta no final (finRecord)");
-      console.log(`Fase 12: ${caps} capturas em ${recs} meses de frente, todas contíguas (sem saltos); ${romp} rompimentos; caminho até a capital OK; Recife anunciada em ${flagOk}/${wars} guerras; migração v10→v11 OK`);
+      if (/setFrontPosture|POSTURE_ICON/.test(rd("js/ui/frentes.js") + rd("js/ui/jogo.js"))) err("fase 13: a tela de postura das frentes deveria ter saído");
+      console.log(`Fase 13: ${moves} movimentos e ${bats} batalhas (${caps} capturas) em ${wars} guerras, todos contíguos; sem teletransporte; caminho até a capital OK; Recife anunciada em ${flagOk}/${wars}; migrações v7/v10/v11→v12 OK`);
     }
     // conselheira: no máximo 2 dicas, com título, texto e ação; "Fazer isso" funciona e não quebra a partida
     for (let seed = 1; seed <= 12; seed++){

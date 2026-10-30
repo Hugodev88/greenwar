@@ -1,6 +1,6 @@
-// js/ui/aba-mapa.js — Interface: aba Mapa (camadas, ordens, recrutar).
+// js/ui/aba-mapa.js — Interface: aba Mapa (camadas, ordens, recrutar). Na guerra de 2022, os exércitos nas regiões (js/ui/frentes.js).
 function tabMapa(el){
-  const ph = phaseOf(G), FM = frontMode(G); // 2022: guerra por frentes (js/ui/frentes.js) — sem exércitos nem ordens
+  const ph = phaseOf(G), FM = frontMode(G); // 2022: exércitos nas regiões do IBGE (js/ui/frentes.js); os exércitos por estado do 1964 ficam de fora
   if (FM){ UI.selArmy = null; UI.pend = null; UI.ordMode = null; }
   if (UI.selArmy && !armyById(G, UI.selArmy)) UI.selArmy = null;
   if (!UI.selArmy) UI.ordMode = null;
@@ -53,15 +53,14 @@ function tabMapa(el){
     if (ph.war && sideOf(G, G.control[p], ph) === "contested"){ const b = battleAt(p); b ? openBattle(b) : openForecast(p); return; }
     toPanel();
   };
-  // placar na linha de frente: abre o cartão daquela frente no painel (no modo simples, passa para o comando manual)
-  const onFront = id => { UI.selUF = null; if (G.simple && !UI.manual) UI.manual = true; renderGame();
-    setTimeout(() => { const c = document.querySelector(`[data-fcard="${id}"]`); if (!c) return; c.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: window.innerWidth < 900 ? "start" : "nearest" }); c.classList.add("flash"); setTimeout(() => c.classList.remove("flash"), 1600); }, 40); };
   const milOn = UI.mapMode !== "agitacao", wideFc = window.innerWidth > 900 && !big;
-  if (FM) renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, mode: UI.mapMode, military: milOn, fronts: true, arrows: milOn ? frontArrows(G) : [], onPick, onFront, zoom: true });
+  if (FM){ if (!milOn){ UI.tpSel = null; UI.tpPend = null; } // guerra de 2022: fichas dos exércitos, destinos com chance e setas (js/ui/mapa-frentes.js)
+    renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, mode: UI.mapMode, military: milOn, fronts: true, arrows: [], onPick, onReg: tpPickReg, onTropa: tpPickArmy,
+      tpSel: UI.tpSel, tpPend: UI.tpPend, noRegArrows: true, overlay: milOn ? tpMapTallyHTML() + tpFloatHTML() : "", zoom: true }); }
   else renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, selArmy: sel, tgtMode: UI.ordMode || null, pend: milOn && sel ? pend : null, mode: UI.mapMode, military: milOn, onPick, onArmy: pickArmy, overlay: milOn && sel && pend && !wideFc ? forecastCardHTML(sel, pend) : "", zoom: true });
   if (milOn && sel && pend && wideFc) $(".sidepanel").insertAdjacentHTML("afterbegin", forecastCardHTML(sel, pend));
   if (!tabMapa._esc){ tabMapa._esc = e => { if (e.key !== "Escape" || UI.tab !== "mapa" || document.querySelector(".overlay, .modal, #ecoModal") || (typeof coachBusy === "function" && coachBusy())) return;
-      if (UI.pend){ UI.pend = null; renderGame(); } else if (UI.selArmy){ UI.selArmy = null; renderGame(); } }; document.addEventListener("keydown", tabMapa._esc); }
+      if (UI.tpPend){ UI.tpPend = null; renderGame(); } else if (UI.tpSel){ UI.tpSel = null; renderGame(); } else if (UI.pend){ UI.pend = null; renderGame(); } else if (UI.selArmy){ UI.selArmy = null; renderGame(); } }; document.addEventListener("keydown", tabMapa._esc); }
   if ($("#btnMapDesc")) $("#btnMapDesc").onclick = () => { UI.mapDesc = !UI.mapDesc; renderGame(); if (UI.mapDesc) setTimeout(() => $("#mapDesc") && $("#mapDesc").focus(), 30); };
   if ($("#btnMapBig")) $("#btnMapBig").onclick = () => { UI.mapBig = !big; renderGame(); };
   el.querySelectorAll("[data-fc]").forEach(b => b.onclick = e => { e.stopPropagation(); const k = b.dataset.fc;

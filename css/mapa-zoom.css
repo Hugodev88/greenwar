@@ -7,7 +7,7 @@
   .mapbox svg.zoomable{touch-action:pan-y;cursor:default}
   .mapbox svg.zoomable.zoomed{cursor:grab}.mapbox svg.zoomable.dragging{cursor:grabbing}
   .mapbox svg.zoomed :is(path,line,polyline){vector-effect:non-scaling-stroke}
-  .mapbox svg.zoomed :is(g.fbadge,g.cnt,g.fgoal,g.fpush,pattern) :is(path,line,polyline){vector-effect:none}
+  .mapbox svg.zoomed :is(g.tchip,g.tpct,g.cnt,g.fgoal,pattern) :is(path,line,polyline){vector-effect:none}
   .mapbox svg g.rgnames{display:none;pointer-events:none}
   .mapbox svg.znames g.rgnames{display:inline}
   .mapbox svg g.rgnames text{font-size:7.5px;font-weight:600;fill:#fff8e4;stroke:#000b;stroke-width:2px;opacity:.9}

@@ -116,6 +116,8 @@ function trCore(raw, depth, L){
   const rule = R => { calls = 0; hits = 0; const fn = (L === "zh" ? R[2] : L === "ru" ? R[3] : null) || R[1]; const r = fn(t.match(R[0]), f); return r !== t && (hits || !calls) ? r : null; };
   const mo = t.match(/^(Janeiro|Fevereiro|Março|Abril|Maio|Junho|Julho|Agosto|Setembro|Outubro|Novembro|Dezembro) de (\d{4})(.*)$/);
   if (mo) return m[1] + i18nMonth(L, MONTHS_PT.indexOf(mo[1]), mo[2]) + (mo[3] ? f(mo[3]) : "") + m[3];
+  // modelos com nomes (D.fmt: "{0}: ataque a {1} (chance {2}%)." → "{0}: attack on {1} ({2}% chance)."): cada {n} é traduzido à parte (ou fica, se for um nome próprio)
+  for (const D of chain) for (const [re, out] of i18nFmt(D)){ const mm = t.match(re); if (mm) return m[1] + out.replace(/\{(\d+)\}/g, (_, i) => f(mm[+i + 1] || "")) + m[3]; }
   for (const R of I18N_PRE) if (R[0].test(t)){ const r = rule(R); if (r != null) return m[1] + r + m[3]; }
   for (const sep of [" · ", "; ", " — ", ". ", ": ", ", "]){
     const parts = i18nSplit(t, sep); if (!parts) continue;
@@ -124,6 +126,16 @@ function trCore(raw, depth, L){
   }
   for (const R of I18N_RULES) if (R[0].test(t)){ const r = rule(R); if (r != null) return m[1] + r + m[3]; }
   return null;
+}
+// compila (uma vez por dicionário) os modelos D.fmt em expressões regulares; os mais longos primeiro
+function i18nFmt(D){
+  if (D.__fmt) return D.__fmt;
+  const esc = x => x.replace(/[.*+?^$()|[\]\\]/g, "\\$&");
+  return (D.__fmt = Object.keys(D.fmt || {}).sort((a, b) => b.length - a.length).map(k => {
+    const order = []; const re = esc(k).replace(/\\?\{(\d+)\\?\}/g, (_, i) => { order.push(+i); return "(.+?)"; });
+    const out = D.fmt[k].replace(/\{(\d+)\}/g, (_, i) => "{" + order.indexOf(+i) + "}");
+    return [new RegExp("^" + re + "$"), out];
+  }));
 }
 // divide uma frase composta; ". " não divide abreviações ("Relações Int. -6", "Gen. Arruda")
 function i18nSplit(t, sep){

@@ -68,8 +68,6 @@ function regTrendHTML(g, f){
 }
 // Legenda extra do mapa de regiões
 function regLegendHTML(g){
-  return `<span><b style="color:#f3e2b8">34 × 21</b>&nbsp;${esc(frontFala(g, "regioes", "legPlacar"))}</span>
-    <span><svg viewBox="0 0 22 12" width="22" height="12"><rect x="1" y="1" width="20" height="10" fill="#2a5d93" stroke="#f3c969" stroke-width="2"/></svg>${esc(frontFala(g, "regioes", "legTomada"))}</span>
-    <span><svg viewBox="0 0 22 12" width="22" height="12"><rect x="1" y="1" width="20" height="10" fill="#a3301f" stroke="#ff6a52" stroke-width="2" stroke-dasharray="3 2"/></svg>${esc(frontFala(g, "regioes", "legPerdida"))}</span>
-    <span><svg viewBox="0 0 22 10" width="22" height="10"><path d="M2,5H15" stroke="#f3c969" stroke-width="2"/><path d="M14,1.5L20,5L14,8.5z" fill="#f3c969"/></svg>${esc(frontFala(g, "regioes", "legSeta"))}</span>`;
+  return `<span><svg viewBox="0 0 22 12" width="22" height="12"><rect x="1" y="1" width="20" height="10" fill="#2a5d93" stroke="#f3c969" stroke-width="2"/></svg>${esc(frontFala(g, "regioes", "legTomada"))}</span>
+    <span><svg viewBox="0 0 22 12" width="22" height="12"><rect x="1" y="1" width="20" height="10" fill="#a3301f" stroke="#ff6a52" stroke-width="2" stroke-dasharray="3 2"/></svg>${esc(frontFala(g, "regioes", "legPerdida"))}</span>`;
 }

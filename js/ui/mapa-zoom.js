@@ -25,10 +25,10 @@ function mapZoomAttach(el, opts){
   svg.classList.add("zoomable");
   // nomes das regiões (só aparecem com zoom alto)
   if (g && typeof regMapOn === "function" && regMapOn(g) && opts.mode !== "agitacao")
-    svg.insertAdjacentHTML("beforeend", `<g class="rgnames" aria-hidden="true">${REG_IDS.map(id => { const r = REG_DATA.regs[id]; return `<text x="${r.lx}" y="${r.ly}">${esc(r.n)}</text>`; }).join("")}</g>`);
+    (svg.querySelector("g.tarw, g.tchip, g.tpct, g.cnt, g.fgoal") || { insertAdjacentHTML: (w, h) => svg.insertAdjacentHTML("beforeend", h) }).insertAdjacentHTML("beforebegin", `<g class="rgnames" aria-hidden="true">${REG_IDS.map(id => { const r = REG_DATA.regs[id]; return `<text x="${r.lx}" y="${r.ly}">${esc(r.n)}</text>`; }).join("")}</g>`);
   // elementos contra-escalados: grupos com transform (placares, contadores, estrelas) e textos soltos (siglas dos estados)
-  const inv = [...svg.querySelectorAll("g.fbadge, g.cnt, g.fgoal, g.fpush")].map(n => ({ n, t0: n.getAttribute("transform") || "" }))
-    .concat([...svg.querySelectorAll("text")].filter(t => !t.closest("g.fbadge, g.cnt, g.fgoal, defs")).map(n => ({ n, x: +n.getAttribute("x") || 0, y: +n.getAttribute("y") || 0 })));
+  const inv = [...svg.querySelectorAll("g.tchip, g.tpct, g.cnt, g.fgoal")].map(n => ({ n, t0: n.getAttribute("transform") || "" }))
+    .concat([...svg.querySelectorAll("text")].filter(t => !t.closest("g.tchip, g.tpct, g.cnt, g.fgoal, defs, title")).map(n => ({ n, x: +n.getAttribute("x") || 0, y: +n.getAttribute("y") || 0 })));
   const set = (k, cx, cy) => {
     svg.setAttribute("viewBox", `${(cx - W / k / 2).toFixed(2)} ${(cy - H / k / 2).toFixed(2)} ${(W / k).toFixed(2)} ${(H / k).toFixed(2)}`);
     const s = 1 / Math.pow(k, 0.85);

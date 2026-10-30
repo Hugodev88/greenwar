@@ -9,8 +9,8 @@ document.addEventListener("keydown", e => {
 document.addEventListener("keydown", e => {
   if (e.key !== "Enter" && e.key !== " ") return;
   const t = e.target; if (!t || !t.closest) return;
-  const el = t.closest(".mapbox path.uf[tabindex], .mapbox g.cnt[tabindex], .mapbox g.fbadge[tabindex]"); if (!el) return;
-  e.preventDefault(); UI.kbFocus = el.matches("g.fbadge") ? `g.fbadge[data-front="${el.dataset.front}"]` : el.matches("g.cnt") ? `g.cnt[data-uf="${el.dataset.uf}"][data-side="${el.dataset.side}"]` : `path.uf[data-uf="${el.dataset.uf}"]`;
+  const el = t.closest(".mapbox path.uf[tabindex], .mapbox g.cnt[tabindex], .mapbox g.tchip[tabindex], .mapbox g.tpct[tabindex]"); if (!el) return;
+  e.preventDefault(); UI.kbFocus = el.matches("g.tchip") ? `g.tchip[data-army="${el.dataset.army}"]` : el.matches("g.tpct") ? `g.tpct[data-rg="${el.dataset.rg}"]` : el.matches("g.cnt") ? `g.cnt[data-uf="${el.dataset.uf}"][data-side="${el.dataset.side}"]` : `path.uf[data-uf="${el.dataset.uf}"]`;
   el.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 });
 // Abas com setas

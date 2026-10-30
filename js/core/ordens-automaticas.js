@@ -32,5 +32,6 @@ function autoOrders(g, mode, onlyIdle){
   return { ok: true, n, msg: n ? `${n} ${n === 1 ? "ordem dada" : "ordens dadas"} automaticamente.` : "Todos os exércitos já têm ordem." };
 }
 function clearOrders(g){ let n = 0; for (const a of armiesOf(g, "player")) if (a.order && setOrder(g, a.id, null).ok) n++; return { ok: true, msg: n ? `${n} ${n === 1 ? "ordem desfeita" : "ordens desfeitas"}.` : "Nenhuma ordem para desfazer." }; }
-function setAutoOrders(g, mode){ g.autoOrders = ["off", "defender", "auto"].includes(mode) ? mode : "off"; if (frontMode(g)) return { ok: true, msg: g.autoOrders === "off" ? "Comando automático desligado: você escolhe a postura das frentes." : g.autoOrders === "auto" ? "Comando automático ligado: todo mês os generais escolhem a postura e a divisão das tropas." : "Comando automático: as frentes só defendem (nunca avançam)." };
+function setAutoOrders(g, mode){ g.autoOrders = ["off", "defender", "auto"].includes(mode) ? mode : "off";
+  if (frontMode(g)) return { ok: true, msg: frontFala(g, "tropas", g.autoOrders === "off" ? "autoMsgOff" : g.autoOrders === "auto" ? "autoMsgOn" : "autoMsgDef") };
   return { ok: true, msg: g.autoOrders === "off" ? "Ordens automáticas desligadas." : `Todo mês, exércitos sem ordem vão ${g.autoOrders === "auto" ? "atacar onde a chance é boa ou defender" : "defender as fronteiras"}.` }; }

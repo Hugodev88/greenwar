@@ -286,6 +286,18 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 58 
 
 - **Balanceamento (Fase 12):** `poderBase` 1,05, `k` 105, `reduto` 1,6, `regioes.maxMes` 5, `suprimento` 5, `rompe` 1,5, `rompeN` 1, `rompeBonus` 100. `sim.js 300`: golpista Normal 45% (guerra média 20,9 meses), pacificador 79%; tuning Fácil iniciante ~63%, Difícil golpista ~3%.
 
+## 7o. Fase 13 (out/2026): exércitos nas regiões do IBGE (save v12)
+- **Ideia:** misto de estado e região. Os exércitos ficam e se movem nas 133 regiões intermediárias; política e agitação continuam por UF; o dono da UF é a maioria das regiões (empate: região da capital), sem "em disputa". O avanço automático da linha (progresso/rompimento da fase 12) não decide mais o território: só as batalhas dos exércitos.
+- **Núcleo novo:** `js/core/tropas.js` (sem DOM, carregado antes de `js/core/frentes.js`). `g.war.armies[]` = `{ id, n, side, fac, reg, str, morale, gen, order: { type: atacar|mover, to, path }, special, moved }`. API: `tpArmies/tpById/tpAt`, `tpTargets(g,a)` (mover 1–2 regiões pelo próprio território, atacar região inimiga vizinha), `tpChance(g,a,to)`, `tpOrder(g,id,to)` (sem AP), `tpAI` (IA inimiga: defende o reduto, empurra rumo a Brasília, contra-ataca; só vizinhas), `tpEnemyPlan`, `tpResolve(g,ev)` (movimentos → junções → batalhas → `tpFix`), `tpBattle` → rec com `pow`, `rows`, `why` para `frontReport`.
+- **Combate:** chance = `A^k/(A^k+D^k)`, `k = tropas.expoente` (2,4). `D = (defensores × cavar 1,2 se não se moveram + guarnição) × terreno × reduto`. Guarnição: `guarnicao` 8, capital de estado 12, capital da facção 20. Perdas e moral em `tropas.perdas` / `tropas.moral`. Região inimiga vazia é ocupada; o perdedor recua para região própria vizinha (ou é destruído).
+- **Dados (`FRENTES_2022.tropas`):** `inicio` 4 exércitos, `porExercito` 22, `max` 8, `passos` 2, `novo` 20; textos em `falas.tropas` (nomes "{0}º Exército", "{0}ª Brigada da Resistência/Liga").
+- **Recrutar:** `frontRecruit(g, reg)` numa região própria escolhida (`frontRecruitRegs`); junta com o exército que já estiver lá. **Ofensiva especial:** `offensiveState`/`launchOffensive(g, id)`/`cancelOffensive` — um exército com ordem de ataque ganha ×mult neste mês.
+- **Automático:** `frontAuto(g, mode)` / `setAutoOrders` usa `tpAI` do lado do jogador (Fácil e comando automático). As posturas e `setFrontPosture` foram removidas da UI e da simulação.
+- **UI:** `js/ui/frentes.js` (painel: passos, lista de exércitos, placar e tendência, plano do inimigo, recrutar, cartão de confirmação `.tpconf` com barra A×D e fatores, `tpZoomToArmy` aproxima 2× ao selecionar com zoom < 1,5), `js/ui/mapa-frentes.js` (fichas `g.tchip`, alvos `ttg`, rótulos de chance `g.tpct`, setas grandes `g.tarw`, animação da resolução `playFrontResolution`), CSS em `css/mapa-frentes.css` e `css/frentes.css`. Nomes de região são inseridos antes das fichas (`mapa-zoom.js`) para não cobri-las.
+- **Save v12:** `migrateV12` (em `js/core/frentes.js`) converte a força de cada frente em exércitos nas regiões da linha e zera `log`.
+- **i18n:** os dicionários ganharam a seção `fmt` (chaves com `{n}` viram regex em `i18nFmt`, `js/i18n/traducao.js`), usada para nomes de exércitos, falas e eventos com números. Nomes de região ficam com `translate="no"`.
+- **Balanceamento (Fase 13):** Resistência `tropas` 56, `porEstado` 4, `reforco` 9. `sim.js 300` (Normal): golpista 44% (guerra 9,5 meses), pacificador 56%; Fácil iniciante ~62%, conselheira ~69%; Difícil golpista ~11%.
+
 ## 8. Limitações conhecidas
 - Guerra por regiões: as regiões são simplificadas (litorais e fronteiras finas aproximados); o inimigo escolhe a região pela mesma regra que você (sem plano de vários meses); no celular as fronteiras finas ficam bem discretas. No modo Difícil, o pacificador vence ~29% e as guerras longas podem passar de 100 meses em casos raros.
 - Idiomas: inglês, chinês e russo cobrem todo o cenário 2022; o cenário 1964 (bloqueado) só tem o cartão do menu traduzido. Frases montadas por partes (registro do turno, dicas com nomes) podem ter ordem de palavras menos natural em chinês/russo; a tradução zh/ru não passou por revisão de falante nativo.
@@ -296,7 +308,9 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 58 
 - O ramo do regime é curto (cerca de 9 meses até o nó `guerra`). Não dá para fazer todos os focos numa partida.
 - As IAs da simulação são heurísticas.
 - **Militar:**
-  - a IA inimiga é simples (ataques locais, sem cercos nem planos de vários meses) e só abre frentes, nunca toma um estado seu direto;
+  - a IA inimiga é simples (ataques locais por regiões vizinhas, sem planos de vários meses);
+  - nomes de regiões não são traduzidos (nomes próprios); no inglês os ordinais viram "Army N";
+  - no celular o cartão de confirmação cobre a parte de baixo do mapa;
   - não há linhas de suprimento detalhadas (só "estado próprio ou vizinho");
   - em 2022, nos turnos de 3 meses, os exércitos agem uma vez por turno;
   - as frentes são calculadas pelos vértices compartilhados do mapa simplificado; em litorais recortados podem ficar trechos curtos.

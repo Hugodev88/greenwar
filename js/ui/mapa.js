@@ -46,9 +46,9 @@ function mapSVG(control, changed, opts){
     const xs = [...L.counters.matchAll(/translate\(([\d.]+),/g)].map(m => +m[1]);
     if (xs.length) w = Math.max(620, Math.ceil(Math.max(...xs) + 24 * CNT_K()));
   }
-  const FL = mil && opts.fronts && frontMode(opts.g) ? frontMapLayers(opts.g, control, w) : null;
-  const aria = FL ? "Mapa de guerra do Brasil por facção, com as frentes e o placar de força de cada uma" : `Mapa do Brasil por facção${mil ? ", com exércitos e ordens" : ""}`;
-  return `<svg viewBox="0 0 ${w} ${MAP_DATA.size[1]+6}" class="${mil ? "milmap" : ""}${FL ? " fmap" : ""}${MOBILE_MAP() ? " small" : ""}" role="group" aria-label="${aria}. Use Tab para percorrer os estados; a descrição em texto está no botão Descrição do mapa.">${mil ? ARROW_DEFS : ""}${SET.cb || FL ? `<defs>${cbDefs()}${FL ? FL.defs : ""}</defs>` : ""}${paths}${FL ? `<g class="funder">${FL.under}</g>` : ""}<g class="fx">${L.pulses}${L.fronts}</g>${labels}<g class="arrows">${RG && !opts.noRegArrows ? regArrowsSVG(opts.g, opts.regChg) : ""}${L.arrows}${FL ? FL.over : ""}</g><g class="counters">${L.counters}${FL ? FL.badges : ""}</g></svg>`;
+  const FL = mil && opts.fronts && frontMode(opts.g) ? frontMapLayers(opts.g, control, w, opts) : null;
+  const aria = FL ? "Mapa de guerra do Brasil por regiões, com os exércitos e as ordens" : `Mapa do Brasil por facção${mil ? ", com exércitos e ordens" : ""}`;
+  return `<svg viewBox="0 0 ${w} ${MAP_DATA.size[1]+6}" class="${mil ? "milmap" : ""}${FL ? " fmap" : ""}${MOBILE_MAP() ? " small" : ""}" role="group" aria-label="${aria}. Use Tab para percorrer os estados; a descrição em texto está no botão Descrição do mapa.">${mil ? ARROW_DEFS : ""}${SET.cb || FL ? `<defs>${cbDefs()}${FL ? FL.defs + TARW_DEFS : ""}</defs>` : ""}${paths}${FL ? `<g class="funder">${FL.under}</g>` : ""}<g class="fx">${L.pulses}${L.fronts}</g>${labels}<g class="arrows">${RG && !opts.noRegArrows ? regArrowsSVG(opts.g, opts.regChg) : ""}${L.arrows}${FL ? FL.over : ""}</g><g class="counters">${L.counters}${FL ? FL.badges : ""}</g></svg>`;
 }
 function legendHTML(control){
   const counts = {};
@@ -75,7 +75,7 @@ function renderMap(el, control, changed, withNotes, opts){
   el.innerHTML = mapSVG(control, changed, opts) + `<div class="maptip"></div>${opts && opts.overlay ? opts.overlay : ""}${legend}${milLeg}` + notes;
   const tip = el.querySelector(".maptip"), svg = el.querySelector("svg");
   const show = (e) => {
-    const p = e.target.closest("path.uf, g.cnt"); if (!p || e.target.closest("g.fbadge")) { tip.style.display = "none"; return; }
+    const p = e.target.closest("path.uf, g.cnt"); if (!p || e.target.closest("g.tchip, g.tpct")) { tip.style.display = "none"; return; }
     const uf = p.dataset.uf, f = STORY.factions[control[uf]], r = el.getBoundingClientRect(), rg = p.dataset.rg && opts && opts.g && opts.g.reg ? p.dataset.rg : null;
     const extra = STORY.stateNotes && STORY.stateNotes[uf] ? `<br><span style="color:#9c9182">${esc(STORY.stateNotesLabel||"")}: ${esc(STORY.stateNotes[uf])}</span>` : "";
     const here = opts && opts.g && opts.military ? (opts.armies || opts.g.armies || []).filter(a => a.uf === uf) : [];
@@ -87,9 +87,9 @@ function renderMap(el, control, changed, withNotes, opts){
   svg.addEventListener("mousemove", show);
   svg.addEventListener("mouseleave", () => tip.style.display = "none");
   if (opts && opts.onPick) svg.addEventListener("click", e => {
-    const fb = e.target.closest("g.fbadge"); if (fb && opts.onFront){ tip.style.display = "none";
-      if (opts.zoom){ const m = (fb.getAttribute("transform") || "").match(/translate\(([-\d.]+),([-\d.]+)\)/); if (m) mapZoomTo(+m[1], +m[2], Math.max(mapZoomState().k, 2.2)); } // placar: aproxima e centraliza a frente
-      opts.onFront(fb.dataset.front); return; }
+    // guerra de 2022: ficha de exército → onTropa; região (ou etiqueta de chance) → onReg
+    const tc = e.target.closest("g.tchip"); if (tc && opts.onTropa){ tip.style.display = "none"; opts.onTropa(tc.dataset.army); return; }
+    const tr = e.target.closest("g.tpct, path.rg"); if (tr && opts.onReg){ tip.style.display = "none"; opts.onReg(tr.dataset.rg, tr.dataset.uf); return; }
     const c = e.target.closest("g.cnt"); if (c && opts.onArmy){ tip.style.display = "none"; opts.onArmy(c.dataset.uf, c.dataset.side); return; }
     const p = e.target.closest("path.uf"); if (p) opts.onPick(p.dataset.uf); });
   else svg.addEventListener("click", show);
@@ -173,7 +173,7 @@ function militaryLayers(g, control, opts){
   return { fronts, pulses, arrows, counters };
 }
 function currentArrows(g){
-  if (frontMode(g)) return frontArrows(g);
+  if (frontMode(g)) return []; // 2022: setas dos exércitos em js/ui/mapa-frentes.js
   const out = [];
   for (const a of armiesOf(g, "player")) if (a.order && a.order.to) out.push({ side: "player", from: a.uf, to: a.order.to, type: a.order.type });
   for (const p of knownIntents(g)){ const a = armyById(g, p.id); if (a) out.push({ side: "enemy", from: a.uf, to: p.to, type: p.type }); }

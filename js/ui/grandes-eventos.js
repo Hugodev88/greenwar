@@ -57,14 +57,14 @@ function majorCheck(b){
   const nowA = armiesOf(G, "player"), lost = b.armies.length - nowA.length;
   if (frontMode(G)){ // 2022: tropas das frentes
     if (b.pool > 0 && ph.noArmies) cons.push({ k: "bad", t: `Suas tropas (${Math.round(b.pool)}) foram desmobilizadas porque ${PHASE_WHY[ph.id] || "nesta fase você não comanda tropas"}.` });
-    if (G.war.fronts.length > (b.nf || 0) && b.war && ph.war) cons.push({ k: "bad", t: "Abriu uma nova frente de batalha. Divida as tropas entre as frentes na aba Mapa." });
+    if (G.war.fronts.length > (b.nf || 0) && b.war && ph.war) cons.push({ k: "bad", t: "Abriu uma nova frente de batalha: a Liga do Sul tem exércitos próprios. Veja o mapa e proteja o Sul." });
   } else if (b.armies.length && ph.noArmies){
     const tot = Math.round(b.armies.reduce((s, a) => s + a.str, 0));
     cons.push({ k: "bad", t: `${b.armies.length === 1 ? `Seu exército (força ${tot}) foi desmobilizado` : `Seus ${b.armies.length} exércitos (força total ${tot}) foram desmobilizados`} porque ${PHASE_WHY[ph.id] || "nesta fase você não comanda tropas"}.` });
   } else if (lost > 0) cons.push({ k: "bad", t: `Você perdeu ${lost} exército(s) nesta virada.` });
   if (phaseChanged){
     cons.push({ k: "", t: `Nova fase: ${ph.label}${ph.war ? " — em guerra" : ""}.` });
-    if (ph.war && !b.war) cons.push({ k: "bad", t: frontMode(G) ? "Começou a guerra: abriu a linha de frente. Na aba Mapa, escolha a postura de cada frente (avançar, segurar ou recuar) — não gasta AP." : "Começou a guerra: as frentes de combate estão abertas. Dê ordens aos seus exércitos na aba Mapa — elas não gastam AP." });
+    if (ph.war && !b.war) cons.push({ k: "bad", t: frontMode(G) ? "Começou a guerra: seus exércitos estão no mapa. Na aba Mapa, toque num exército, escolha a região, veja a chance e confirme. As ordens não gastam AP." : "Começou a guerra: as frentes de combate estão abertas. Dê ordens aos seus exércitos na aba Mapa — elas não gastam AP." });
     if (!ph.war && b.war) cons.push({ k: "good", t: "A guerra terminou: não há mais frentes de combate." });
     if (ph.noArmies && !b.noArmies) cons.push({ k: "", t: "Agora a luta é política: use propaganda, investimentos e acordos com governadores no mapa, além de diplomacia e facções." });
     if ((ph.income ?? 0) !== (b.income ?? 0)) cons.push({ k: (ph.income ?? 0) < (b.income ?? 0) ? "bad" : "good", t: `Renda básica de ${C.money.label}: ${b.income ?? 0} → ${ph.income ?? 0} por mês.` });

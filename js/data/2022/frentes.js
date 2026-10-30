@@ -1,122 +1,96 @@
-// js/data/2022/frentes.js — Dados (2022): guerra por FRENTES (estilo Victoria 3, simplificado): números, generais, posturas e falas.
-/* Como funciona (regras em js/core/frentes.js, tela em js/ui/frentes.js):
-   - Não há exércitos para mover. Uma LINHA DE FRENTE separa você de cada inimigo e anda REGIÃO por região
-     (as 133 regiões intermediárias do IBGE, js/data/mapa-regioes.js). Um estado é de quem tem a maioria das regiões dele.
-   - Cada frente recebe uma POSTURA por mês (avançar / segurar / recuar e reorganizar) e uma parte das suas tropas.
-   - Força da frente = tropas × moral × suprimento × general × postura × modificadores (comando, apoio, armas, cofres).
-   - A linha anda pela diferença de força; a cada ±100 de avanço uma região muda de lado (várias no mesmo mês se a vantagem for grande).
-   - Não existe "em disputa": toda região e todo estado é de um lado ou do outro.
-   - Se a Liga do Sul se rebelar, abre a segunda frente (Sul) e as tropas precisam ser divididas.
-   - Vitória: tomar a região de Recife (reduto da resistência). Derrota: perder Brasília (DF). A região de Porto Alegre é o reduto da Liga do Sul.
+// js/data/2022/frentes.js — Dados (2022): guerra com EXÉRCITOS nas regiões do IBGE: números, generais, inimigos e falas.
+/* Como funciona (regras em js/core/tropas.js e js/core/frentes.js; tela em js/ui/frentes.js e js/ui/mapa-frentes.js):
+   - Na guerra o mapa se divide nas 133 regiões intermediárias do IBGE (js/data/mapa-regioes.js). Um estado é de quem tem a
+     maioria das regiões dele (empate: quem tem a região da capital). Não existe "em disputa". Política e agitação: por estado.
+   - Cada lado tem alguns EXÉRCITOS (fichas no mapa, com a força escrita). Todo mês: toque num exército e numa região
+     destacada — mover/juntar (até "passos" regiões pelo seu território) ou atacar uma região inimiga vizinha. Ordens não gastam PA.
+   - Batalha no fim do mês: chance = A^k / (A^k + D^k) — atacantes × (defensores entrincheirados + guarnição) × terreno × reduto.
+   - O inimigo também move e ataca (setas vermelhas: o plano dele fica visível um mês antes).
+   - Se a Liga do Sul se rebelar, abre a segunda frente (Sul), com exércitos próprios.
+   - Vitória: tomar a região de Recife (capital da resistência). Derrota: perder Brasília (DF). Porto Alegre derruba a Liga do Sul.
    Generais e rostos: só personagens fictícios (os retratos já existem em js/data/2022/retratos.js). */
 const FRENTES_2022 = {
   capital: "DF", capitalNome: "Brasília",
   poderBase: 1.05,            // enemyPower do Normal: Fácil/Difícil escalam as tropas inimigas em relação a ele
-  k: 105,                     // quanto a linha anda por mês com uma vantagem de força (escala logarítmica)
-  bonusAvanco: 8,            // empurrão extra de quem avança com vantagem (a linha nunca fica parada demais)
-  ruido: 7,                  // sorte: ± pontos na linha por mês
-  defesaSegurar: 1.3,        // segurar a linha: defesa ×1,3
-  defesaInimiga: 1.0,        // o inimigo entrincheirado (posição preparada) além do terreno
-  reduto: 1.6,               // defesa extra na região-reduto inimiga (Recife / Porto Alegre) e na capital (Brasília)
-  // regiões: escala = quanto o avanço mensal vale em "progresso" (100 = uma região); máximo de regiões por frente por mês
-  // (+extraOfensiva com ofensiva especial de qualquer lado); suprimento gasto por região tomada; escolha do alvo:
-  // foco (peso da distância até o objetivo), coesao (por região vizinha do atacante) e coesaoFr (fração da borda já cercada):
-  // a linha anda larga; dedo: penalidade para região encostada em uma só do atacante; local: peso da distância ao eixo da
-  // batalha (a última região tomada — nada de pular para outro trecho da frente); sorte;
-  // custoAlvo: a região da capital / do reduto exige um cerco de (custoAlvo − 1) × 100 de avanço encostado nela;
-  // rompe: razão de força para o ROMPIMENTO (a linha desaba e o atacante avança rompeN regiões a mais pelo caminho mais curto)
-  regioes: { escala: 3.5, maxMes: 5, extraOfensiva: 2, suprimento: 5, foco: 1, coesao: 1, coesaoFr: 1.5, dedo: 1.5, local: 1.2, sorte: 0.8, custoAlvo: 3,
-    rompe: 1.5, rompeN: 1, rompeBonus: 100 },
-  recuo: 22,                 // recuar e reorganizar: a linha cede este tanto (menos se o inimigo também não ataca)
+  reduto: 1.35,              // defesa extra na região de Brasília, de Recife e de Porto Alegre
+  // exércitos: inicio = quantos você recebe quando a guerra começa (porExercito de força cada, no máximo);
+  // max por lado; passos = regiões por mês andando pelo seu território; guarnição local (região comum, capital de estado,
+  // capital do lado); cavar = defesa de quem ficou parado; expoente da chance; autoChance = chance mínima do comando
+  // automático para atacar (alvoChance: na capital inimiga); novo = reforço inimigo acumulado que forma um exército novo; perdas (fração da força) e moral
+  tropas: { inicio: 4, porExercito: 22, max: 8, passos: 2, guarnicao: 8, guarnicaoCapEstado: 12, guarnicaoCapital: 20, cavar: 1.2,
+    expoente: 2.4, autoChance: 0.6, alvoChance: 0.45, novo: 20,
+    perdas: { venceu: 0.1, perdeu: 0.25, defVenceu: 0.08, defPerdeu: 0.22 },
+    moral: { ataque: -4, vitoria: 4, derrota: -12, descanso: 6 } },
   recruta: { forca: 20, custo: 10, porMes: 2, moral: 50 },
   poolMin: 10,
   moralMax: { base: 55, lealdade: 0.3, militar: 0.3, min: 40 },
-  posturas: {
-    avancar: { icone: "⚔", moral: -12, supr: -10, perdas: 0.06 },
-    segurar: { icone: "🛡", moral: 4,   supr: 5,   perdas: 0.025 },
-    recuar:  { icone: "↺", moral: 20,  supr: 25,  perdas: 0.01 }
-  },
-  // general: um por frente. Traços: bônus por postura (fração), suprimento extra por mês, moral extra ao atacar
+  // general: um por exército. Traços: bônus ao atacar / defender (fração) e moral extra por mês de descanso
   tracos: {
-    agressivo: { avancar: 0.2, segurar: 0, recuar: 0, supr: 0, moralAtk: -3 },
-    defensivo: { avancar: -0.1, segurar: 0.25, recuar: 0, supr: 0, moralAtk: 0 },
-    logistico: { avancar: 0.05, segurar: 0.05, recuar: 0.05, supr: 10, moralAtk: 0, recuo: 10 }
+    agressivo: { ataque: 0.2, defesa: 0 },
+    defensivo: { ataque: -0.1, defesa: 0.25 },
+    logistico: { ataque: 0.05, defesa: 0.05, moral: 4 }
   },
   generais: [
     { id: "valadares", retrato: "gen_valadares", traco: "agressivo" },
     { id: "pessanha",  retrato: "gen_pessanha",  traco: "defensivo" },
     { id: "tavares",   retrato: "brig_tavares",  traco: "logistico" }
   ],
-  // frentes possíveis (uma por facção inimiga). tropas = base + porEstado × estados que o inimigo controla ao abrir
+  // frentes possíveis (uma por facção inimiga). tropas = base + porEstado × estados que o inimigo controla ao abrir;
+  // reforco por mês; ataca = chance mínima para a IA atacar; exercitos = máximo de exércitos; moral inicial/teto; teto de força
   frentes: {
-    resistencia: { tropas: 40, porEstado: 4, reforco: 9, ataca: 1.0, retrato: "gen_barreto", traco: "agressivo", reduto: "PE", vitoria: "fim_regime", capitalFlag: "recife_capital", capitalNews: "capitalRecife" },
-    separatista: { tropas: 14, porEstado: 6, reforco: 2.5, ataca: 1.35, retrato: "gen_kessler", traco: "defensivo", reduto: "RS" }
+    resistencia: { tropas: 56, porEstado: 4, reforco: 9, ataca: 0.6, exercitos: 6, moral: 65, teto: 260, retrato: "gen_barreto", traco: "agressivo", reduto: "PE", vitoria: "fim_regime", capitalFlag: "recife_capital", capitalNews: "capitalRecife" },
+    separatista: { tropas: 14, porEstado: 6, reforco: 2.5, ataca: 0.72, exercitos: 3, moral: 60, teto: 120, retrato: "gen_kessler", traco: "defensivo", reduto: "RS" }
   },
-  ofensiva: { custo: 10, intervalo: 4, primeira: 2, mult: 1.5, avanco: 1.5, falhaMoral: -20, falhaPerdas: 0.1,
-    // o inimigo também tem ofensivas especiais (aparecem no painel um mês antes: dá tempo de segurar a linha)
-    inimiga: { chance: 0.35, mult: 1.35, intervalo: 5, primeira: 1, minRazao: 0.75, falhaMoral: -15 } },
-  // Textos (PT-BR; o inglês fica em js/i18n/en.js). Números entram como {0}, {1}.
+  // ofensiva especial: um exército com ordem de ataque ganha ×mult neste mês; se falhar, perde mais tropa e moral
+  ofensiva: { custo: 10, intervalo: 4, primeira: 2, mult: 1.5, falhaMoral: -15, falhaPerdas: 0.08 },
+  // Textos (PT-BR; as traduções ficam em js/i18n/en.js, zh.js e ru.js). Números e nomes entram como {0}, {1}.
   falas: {
     nome: { resistencia: "Frente Nordeste", separatista: "Frente Sul" },
     inimigo: { resistencia: "Resistência constitucional", separatista: "Liga do Sul" },
     reduto: { resistencia: "Recife — capital da Resistência", separatista: "Porto Alegre — capital da Liga do Sul" },
-    postura: { avancar: "Avançar", segurar: "Segurar a linha", recuar: "Recuar e reorganizar" },
-    posturaCurta: { avancar: "Avançar", segurar: "Segurar", recuar: "Recuar" },
-    posturaDesc: {
-      avancar: "Ganha terreno, mas custa moral, suprimento e mais baixas.",
-      segurar: "Defende bem (+30%) e recupera um pouco. Bom quando o inimigo é forte.",
-      recuar: "Cede um pouco de terreno para recuperar muita moral e suprimento."
-    },
     traco: { agressivo: "Agressivo", defensivo: "Defensivo", logistico: "Logístico" },
     tracoDesc: {
-      agressivo: "+20% ao avançar e nas ofensivas; avançar cansa um pouco mais.",
-      defensivo: "+25% ao segurar a linha; −10% ao avançar.",
-      logistico: "+10 de suprimento por mês, +5% em tudo e recua com menos perda de terreno."
+      agressivo: "+20% ao atacar.",
+      defensivo: "+25% ao defender; −10% ao atacar.",
+      logistico: "+5% em tudo e o exército recupera a moral mais rápido."
     },
     fatores: {
-      tropas: "Tropas", moral: "Moral", supr: "Suprimento", general: "General", postura: "Postura",
+      tropas: "Tropas", guarnicao: "Guarnição local", moral: "Moral", general: "General",
       comando: "Comando e lealdade militar", apoio: "Apoio popular", armas: "Armas estrangeiras", cofres: "Cofres vazios",
-      terreno: "Terreno e trincheiras", reduto: "Reduto / capital", estrangeiro: "Apoio estrangeiro ao inimigo", sancoes: "Sanções contra o inimigo",
-      ofensiva: "Ofensiva especial", dificuldade: "Dificuldade (força do inimigo)", sorte: "Sorte"
+      dificuldade: "Dificuldade (força do inimigo)", estrangeiro: "Apoio estrangeiro ao inimigo", sancoes: "Sanções contra o inimigo",
+      cavar: "Entrincheirado (ficou parado)", terreno: "Terreno", reduto: "Reduto / capital", ofensiva: "Ofensiva especial", poder: "Poder final"
     },
     porque: {
-      avancouForte: "Você avançou com vantagem clara de força.",
-      avancouApertado: "Você avançou, mas a vantagem era pequena: a linha andou pouco.",
-      avancoTravado: "Você mandou avançar sem força suficiente: o ataque travou.",
-      segurou: "Você segurou a linha e o ataque inimigo não passou.",
-      segurouCedeu: "Você segurou, mas o inimigo era forte demais e a linha cedeu.",
-      parado: "Os dois lados ficaram nas trincheiras: a linha quase não mexeu.",
-      inimigoRecuou: "O inimigo recuou para se reorganizar: você ganhou terreno.",
-      recuou: "Você recuou para reorganizar: perdeu um pouco de terreno, mas a tropa descansou.",
-      recuouAtacado: "Você recuou enquanto o inimigo atacava: a linha cedeu bastante.",
-      choque: "Os dois lados atacaram ao mesmo tempo: venceu quem tinha mais força.",
-      ofensivaOk: "A ofensiva especial rompeu a linha inimiga!",
-      ofensivaFalhou: "A ofensiva especial fracassou: perdas pesadas e moral em baixa."
+      ocupou: "Não havia exército inimigo: a guarnição local não segurou a região.",
+      venceuForte: "Você atacou com vantagem clara de força e tomou a região.",
+      venceuApertado: "A batalha foi equilibrada, mas você venceu e tomou a região.",
+      venceuSorte: "Você estava mais fraco, mas teve sorte e tomou a região.",
+      perdeuFraco: "Você atacou sem força suficiente: o ataque foi repelido.",
+      perdeuApertado: "A batalha foi equilibrada e o ataque foi repelido.",
+      perdeuAzar: "Você era o favorito, mas o ataque deu errado (azar).",
+      caiuForte: "O inimigo atacou com força bem maior: a região caiu.",
+      caiuAzar: "A sua defesa era boa, mas o inimigo teve sorte: a região caiu.",
+      segurouForte: "A sua defesa era mais forte: o ataque inimigo não passou.",
+      segurouSorte: "O inimigo era o favorito, mas a sua defesa aguentou."
     },
-    dicas: {
-      fraco: "Você está mais fraco nesta frente: segure a linha e recrute tropas.",
-      moral: "Moral ou suprimento baixos: recue e reorganize por um mês.",
-      forte: "Você está bem mais forte: avance.",
-      ofensiva: "Ofensiva especial disponível: um empurrão grande, com risco.",
-      dividir: "Mande mais tropas para a frente mais difícil.",
-      general: "Um general defensivo segura melhor; o agressivo avança mais."
+    dicasTropas: {
+      juntar: "Ataque com dois exércitos vizinhos no mesmo alvo: as forças se somam.",
+      azar: "A chance era boa: tente de novo no próximo mês.",
+      defender: "Deixe um exército parado na região ameaçada: entrincheirado ele defende +20%.",
+      terreno: "Terreno difícil e capitais defendem mais: leve mais força.",
+      ofensiva: "A ofensiva especial dá +50% de poder a um exército por um mês.",
+      recrutar: "Recrute numa capital de estado sua ou reforce um exército que já existe."
     },
     regioes: {
-      saldoMes: "+{0} / −{1} regiões no mês",
       listaGanhou: "Regiões tomadas: {0}.",
       listaPerdeu: "Regiões perdidas: {1}.",
-      listaAmbos: "Regiões tomadas: {0}. Regiões perdidas: {1}.",
       placar: "Você {0} regiões × Inimigo {1}",
       placarCurto: "Você {0} × {1}",
       tendencia: "Território nos últimos meses (suas regiões)",
       semHistorico: "A tendência aparece depois do primeiro mês de guerra.",
-      proxTomar: "Próxima região que você toma: {0}",
-      proxPerder: "Próxima região que você perde: {0}",
-      barraAjuda: "A cada +100 a linha toma uma região (várias no mesmo mês se a vantagem for grande); a −100, perde uma.",
       maioria: "Cada estado é de quem tem a maioria das regiões dele.",
       legTomada: "Região tomada neste mês",
       legPerdida: "Região perdida neste mês",
-      legSeta: "Setas: para onde a linha andou",
       revolta: "Revolta! {1} regiões passaram para o inimigo: {0}.",
       acc: "Regiões que mudaram de lado no último mês: {0}.",
       accNada: "Nenhuma região mudou de lado no último mês.",
@@ -126,39 +100,139 @@ const FRENTES_2022 = {
       legPlacar: "suas regiões × regiões do inimigo da frente",
       suas: "Suas regiões",
       inimigas: "Regiões inimigas",
-      cercoCapital: "Cerco à sua capital: {0}%",
-      cercoReduto: "Cerco ao reduto inimigo: {0}%",
-      cercoAjuda: "Capital e reduto só caem com o cerco completo; enquanto isso, a linha toma as regiões em volta.",
-      rompeu: "Rompimento! A linha inimiga desabou em {0}. Suas tropas avançam rumo a {1}.",
-      rompeuInimigo: "Rompimento inimigo! Sua linha desabou em {0}. O inimigo avança rumo a {1}.",
-      estabilizou: "{0}: você segurou e a linha se estabilizou — sem novo rompimento neste mês.",
-      estabilizouInimigo: "{0}: o inimigo segurou e a linha dele se estabilizou — sem novo rompimento neste mês.",
-      rompeTitulo: "Rompimento!",
-      dicaRompe: "Com 1,5× ou mais de força e o mês ganho, a linha inimiga rompe e você avança várias regiões seguidas rumo à capital deles.",
-      dicaEstab: "A linha desabou na {0}. Segure a linha neste mês: quem segura logo depois de um rompimento estabiliza a frente e impede um novo rompimento.",
-      rompeTituloInimigo: "Rompimento inimigo!",
       capitalSua: "Brasília — sua capital",
       faltam: "Faltam {0} regiões até {1}",
       faltaUma: "Falta 1 região até {0}",
       faltamInimigo: "O inimigo está a {0} regiões de {1}",
       faltaUmaInimigo: "O inimigo está a 1 região de {0}",
-      rota: "Caminho mais curto até {0}",
-      rompeAjuda: "Rompimento: com força 1,5× maior e o mês ganho, a linha desaba e avança várias regiões seguidas rumo ao alvo. Quem segura a linha logo depois estabiliza."
+      rota: "Caminho mais curto até {0}"
+    },
+    tropas: {
+      nomeSeu: "{0}º Exército",
+      nome_resistencia: "{0}ª Brigada da Resistência",
+      nome_separatista: "{0}ª Brigada da Liga",
+      titulo: "Seus exércitos",
+      inimigos: "Exércitos inimigos",
+      comoJogar: "Toque num exército azul e depois numa região destacada. Veja a chance, confirme e encerre o mês.",
+      passo1: "Toque num exército",
+      passo2: "Escolha o destino",
+      passo3: "Veja a chance e confirme",
+      passo4: "Encerre o mês",
+      forca: "Força",
+      moral: "Moral",
+      general: "General",
+      semGeneral: "Sem general",
+      semOrdem: "Sem ordem: fica e defende a região (entrincheirado, +20%).",
+      semOrdemCurta: "defende",
+      ordemAtaca: "ataca",
+      ordemVai: "vai para",
+      escolha: "Escolha o destino no mapa (regiões destacadas) ou aqui:",
+      mover: "Mover",
+      juntar: "Juntar",
+      atacar: "Atacar",
+      ocupar: "Ocupar",
+      chance: "Chance de vitória",
+      confirmar: "Confirmar",
+      cancelar: "Cancelar",
+      desfazer: "Desfazer ordem",
+      juntoCom: "Junto com: {0}",
+      soGuarnicao: "Sem exército inimigo: só a guarnição local.",
+      defensores: "Defensores",
+      ameacas: "O inimigo prepara para o próximo fim de mês",
+      ameaca: "{0} ataca {1} (chance dele {2}%)",
+      semAmeaca: "O inimigo não prepara ataques para este mês.",
+      recrutar: "Recrutar",
+      recrutarEm: "Recrutar em",
+      recrutaAjuda: "Novo exército numa capital de estado sua, ou reforço onde já há um exército seu.",
+      reserva: "Reserva em Brasília: {0}",
+      totais: "Força total",
+      voce: "Você",
+      inimigo: "Inimigo",
+      batalhas: "Batalhas do último mês",
+      semBatalhas: "Nenhuma batalha no último mês.",
+      verRelatorio: "Relatório",
+      ofensivaBtn: "Ofensiva especial",
+      ofensivaAjuda: "+50% de poder para este exército neste mês.",
+      ofensivaMarcada: "Ofensiva especial marcada",
+      auto: "Comando automático",
+      autoOff: "Desligado: você dá as ordens",
+      autoDef: "Só defender",
+      autoOn: "Automático: ataca onde a chance é boa",
+      legSeu: "Seu exército",
+      legInimigo: "Exército inimigo",
+      legAlvo: "Destino possível",
+      legPlano: "Seta vermelha: ataque inimigo planejado",
+      anTitulo: "Fim do mês: batalhas",
+      anMovimentos: "Os exércitos se movem…",
+      anVitoria: "Vitória",
+      anDerrota: "Derrota",
+      anTomou: "tomada",
+      anSegurou: "resistiu",
+      pular: "Pular",
+      relTitulo: "Batalha de {0}",
+      relAtaque: "Você atacou",
+      relDefesa: "O inimigo atacou",
+      relChance: "Chance antes da batalha: {0}%",
+      relBaixas: "Baixas: suas {0}, inimigas {1}",
+      relRecuo: "{0} recuou para {1}.",
+      relDestruido: "{0} foi destruído.",
+      relV: "Vitória: a região é sua.",
+      relD: "Derrota: a região continua com o inimigo.",
+      relCaiu: "A região caiu.",
+      relSegurou: "Você segurou a região.",
+      erroExercito: "Exército não encontrado.",
+      erroGeneral: "General indisponível.",
+      generalAssume: "{0} assume o {1}.",
+      semGuerra: "Sem guerra: não há ordens a dar.",
+      ordemDesfeita: "{0}: ordem desfeita.",
+      alvoInvalido: "Destino inválido: só regiões vizinhas do inimigo ou até 2 regiões pelo seu território.",
+      msgAtaque: "{0}: ataque a {1} (chance {2}%).",
+      msgMover: "{0}: vai para {1}.",
+      msgJuntar: "{0}: vai se juntar em {1}.",
+      autoUma: "{0} ordem dada automaticamente.",
+      autoVarias: "{0} ordens dadas automaticamente.",
+      autoNada: "Todos os exércitos já têm ordem.",
+      autoLogUma: "Comando automático: {0} exército recebeu ordem.",
+      autoLog: "Comando automático: {0} exércitos receberam ordem.",
+      recrutaOnde: "Recrute numa capital de estado sua ou onde já há um exército seu.",
+      limite: "Limite de {0} exércitos: reforce os que já existem.",
+      msgReforca: "{0}: +{1} de tropas (−{2}).",
+      msgNovo: "{0} formado em {1} (−{2}).",
+      ofensivaJa: "Já há uma ofensiva especial marcada para este mês.",
+      ofensivaSemAtaque: "Dê antes uma ordem de ataque a este exército.",
+      cansaco: "Cansaço da guerra ({0} meses de combate): Apoio Popular −1 e as batalhas ficam mais sangrentas.",
+      resumoMes: "Batalhas no mês: {0} (regiões tomadas {1}, perdidas {2}).",
+      logSegurou: "Você segurou: {0}.",
+      logFalhou: "Ataques repelidos: {0}.",
+      logDestruido: "{0} foi destruído.",
+      logDestruiuInimigo: "{0} (inimigo) foi destruída.",
+      autoMsgOff: "Comando automático desligado: você dá as ordens aos exércitos.",
+      autoMsgOn: "Comando automático ligado: todo mês, exércitos sem ordem atacam onde a chance é boa ou vão para a linha.",
+      autoMsgDef: "Comando automático: exércitos sem ordem só defendem e vão para a linha.",
+      dicaAtaqueTit: "Ataque com boa chance",
+      dicaAtaque: "{0} pode atacar {1}: chance {2}%.",
+      dicaDefTit: "Região ameaçada",
+      dicaDef: "O inimigo vai atacar {0} (chance dele {1}%). Mande o {2} para lá.",
+      dicaAutoTit: "Exércitos parados",
+      dicaAuto: "{0} exércitos estão sem ordem. O comando automático ataca onde a chance é boa e leva a retaguarda até a linha.",
+      dicaAutoUm: "Um exército está sem ordem. O comando automático ataca onde a chance é boa e leva a retaguarda até a linha.",
+      dicaOfTit: "Ofensiva especial",
+      dicaOf: "{0} ataca {1} com {2}% de chance. Uma ofensiva especial ({3} Recursos) dá +50% de poder a este exército.",
+      dicaRecTit: "Mais tropas",
+      dicaRec: "Você tem {0} de tropas e o inimigo {1}. Recrutar +{2} custa {3} Recursos."
     },
     eventos: {
-      abriu: "Abriu a {0}: a linha de frente contra {1} está ativa.",
+      abriu: "Abriu a {0}: a guerra contra {1} começou.",
       fechou: "A {0} foi fechada.",
-      tomou: "{0}: a linha avançou e o estado agora é {1}.",
-      perdeu: "{0}: a linha recuou e o estado agora é {1}.",
-      capitalRisco: "⚠ A frente chegou à capital! Se Brasília cair, o regime cai.",
+      tomou: "{0}: você tem a maioria das regiões e o estado agora é {1}.",
+      perdeu: "{0}: o inimigo tem a maioria das regiões e o estado agora é {1}.",
+      capitalRisco: "⚠ Há exército inimigo encostado em Brasília! Se a capital cair, o regime cai.",
       vitoria: "Recife caiu: o governo provisório da resistência se rendeu.",
       derrota: "Brasília caiu: a resistência tomou a capital.",
       ligaCaiu: "Porto Alegre caiu: a Liga do Sul se rendeu e a Frente Sul foi fechada.",
-      mobiliza: "Alistamento: +{0} de tropas para o seu efetivo.",
-      ofensiva: "Ofensiva especial lançada na {0}.",
-      capitalRecife: "Recife é a capital da Resistência: o governo constitucional se instalou no Palácio do Campo das Princesas.",
-      ofensivaInimiga: "{0}: o inimigo prepara uma ofensiva especial! Segurar a linha reduz o estrago.",
-      ofensivaInimigaFalhou: "{0}: a ofensiva inimiga quebrou contra a sua linha."
+      mobiliza: "Alistamento: +{0} de tropas para os seus exércitos.",
+      ofensiva: "{0}: ofensiva especial contra {1}.",
+      capitalRecife: "Recife é a capital da Resistência: o governo constitucional se instalou no Palácio do Campo das Princesas."
     }
   }
 };
