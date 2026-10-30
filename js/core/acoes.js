@@ -63,8 +63,6 @@ function doMapAction(g, uf, kind){
 function checkSway(g, uf){
   const ph = phaseOf(g), u = g.uf[uf], to = ph.flipTo && ph.flipTo[g.control[uf]];
   if (to && u.sway >= 100){
-    // guerra por regiões (2022): convencer o governador vira metade das regiões do estado; o estado muda se a maioria virar
-    if (ph.war && frontMode(g) && !scOf(g).campaign.contested){ regHalf(g, uf, to, sideOf(g, to, ph), "negociacao"); u.sway = 0; return true; }
     setControl(g, uf, to); return true; }
   return false;
 }

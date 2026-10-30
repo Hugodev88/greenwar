@@ -26,14 +26,11 @@ function mapSVG(control, changed, opts){
   const tg = {};
   if (mil && opts.selArmy && opts.selArmy.side === "player" && !opts.static) for (const t of armyTargets(opts.g, opts.selArmy)) if (!opts.tgtMode || (opts.tgtMode === "atacar" ? t.type === "atacar" : t.type !== "atacar")) tg[t.uf] = t.type;
   let paths = "", labels = "";
-  // guerra por regiões (2022): pinta as 133 regiões e deixa os estados por cima só como contorno/alvo do teclado
-  const RG = opts.mode !== "agitacao" && regMapOn(opts.g) ? (opts.reg || opts.g.reg) : null;
-  if (RG) paths += regionLayerSVG(opts.g, RG, opts);
   for (const uf in MAP_DATA.states){
     const s = MAP_DATA.states[uf], f = STORY.factions[control[uf]] || STORY.factions[STORY.defaultFaction || "federal"];
     const fill = opts.mode === "agitacao" && opts.g ? unrestColor(opts.g.uf[uf].unrest) : facFill(control[uf]);
     const ia = opts.static ? "" : ` tabindex="0" role="button" aria-label="${esc(uf + " · " + s.name + ": " + (f ? f.label : control[uf]) + (opts.g ? ", agitação " + Math.round(opts.g.uf[uf].unrest) : "") + (tg[uf] ? ", destino possível: " + ORDER_LABEL[tg[uf]].toLowerCase() : ""))}"`;
-    paths += `<path class="uf${RG ? " ghost" : ""}${ch.has(uf)?" changed":""}${opts.sel===uf?" sel":""}${control[uf]==="disputa"?" contested":""}${tg[uf] ? " tgt tgt-" + tg[uf] : ""}${opts.selArmy && opts.selArmy.uf === uf ? " origin" : ""}${opts.pend && opts.pend.to === uf ? " pend" : ""}" data-uf="${uf}" d="${s.d}" fill="${RG ? "none" : fill}"${ia}></path>`;
+    paths += `<path class="uf${ch.has(uf)?" changed":""}${opts.sel===uf?" sel":""}${control[uf]==="disputa"?" contested":""}${tg[uf] ? " tgt tgt-" + tg[uf] : ""}${opts.selArmy && opts.selArmy.uf === uf ? " origin" : ""}${opts.pend && opts.pend.to === uf ? " pend" : ""}" data-uf="${uf}" d="${s.d}" fill="${fill}"${ia}></path>`;
     const o = LABEL_POS[uf], x = o ? o[0] : s.lx, y = o ? o[1] : s.ly;
     if (o) labels += `<line x1="${s.lx}" y1="${s.ly}" x2="${o[0]-10}" y2="${o[1]}"/>`;
     labels += `<text x="${x}" y="${y}">${uf}</text>`;
@@ -41,14 +38,15 @@ function mapSVG(control, changed, opts){
   }
   let L = { fronts: "", pulses: "", arrows: "", counters: "" }, w = 620;
   if (mil){
-    L = militaryLayers(opts.g, control, { reg: RG, armies: opts.armies, arrows: opts.arrows !== undefined ? opts.arrows : currentArrows(opts.g), selArmy: opts.selArmy });
+    L = militaryLayers(opts.g, control, { armies: opts.armies, arrows: opts.arrows !== undefined ? opts.arrows : currentArrows(opts.g), selArmy: opts.selArmy });
     if (opts.pend && opts.selArmy) L.arrows += arrowSVG(opts.selArmy.uf, opts.pend.to, orderArrowClass(opts.pend.type, "player") + " pv");
     const xs = [...L.counters.matchAll(/translate\(([\d.]+),/g)].map(m => +m[1]);
     if (xs.length) w = Math.max(620, Math.ceil(Math.max(...xs) + 24 * CNT_K()));
   }
   const FL = mil && opts.fronts && frontMode(opts.g) ? frontMapLayers(opts.g, control, w, opts) : null;
-  const aria = FL ? "Mapa de guerra do Brasil por regiões, com os exércitos e as ordens" : `Mapa do Brasil por facção${mil ? ", com exércitos e ordens" : ""}`;
-  return `<svg viewBox="0 0 ${w} ${MAP_DATA.size[1]+6}" class="${mil ? "milmap" : ""}${FL ? " fmap" : ""}${MOBILE_MAP() ? " small" : ""}" role="group" aria-label="${aria}. Use Tab para percorrer os estados; a descrição em texto está no botão Descrição do mapa.">${mil ? ARROW_DEFS : ""}${SET.cb || FL ? `<defs>${cbDefs()}${FL ? FL.defs + TARW_DEFS : ""}</defs>` : ""}${paths}${FL ? `<g class="funder">${FL.under}</g>` : ""}<g class="fx">${L.pulses}${L.fronts}</g>${labels}<g class="arrows">${RG && !opts.noRegArrows ? regArrowsSVG(opts.g, opts.regChg) : ""}${L.arrows}${FL ? FL.over : ""}</g><g class="counters">${L.counters}${FL ? FL.badges : ""}</g></svg>`;
+  if (FL && FL.w > w) w = FL.w;
+  const aria = FL ? "Mapa de guerra do Brasil por estados, com os exércitos e as ordens" : `Mapa do Brasil por facção${mil ? ", com exércitos e ordens" : ""}`;
+  return `<svg viewBox="0 0 ${w} ${MAP_DATA.size[1]+6}" class="${mil ? "milmap" : ""}${FL ? " fmap" : ""}${MOBILE_MAP() ? " small" : ""}" role="group" aria-label="${aria}. Use Tab para percorrer os estados; a descrição em texto está no botão Descrição do mapa.">${mil ? ARROW_DEFS : ""}${SET.cb || FL ? `<defs>${cbDefs()}${FL ? FL.defs + TARW_DEFS : ""}</defs>` : ""}${paths}${FL ? `<g class="funder">${FL.under}</g>` : ""}<g class="fx">${L.pulses}${L.fronts}</g>${labels}<g class="arrows">${L.arrows}${FL ? FL.over : ""}</g><g class="counters">${L.counters}${FL ? FL.badges : ""}</g></svg>`;
 }
 function legendHTML(control){
   const counts = {};
@@ -76,20 +74,19 @@ function renderMap(el, control, changed, withNotes, opts){
   const tip = el.querySelector(".maptip"), svg = el.querySelector("svg");
   const show = (e) => {
     const p = e.target.closest("path.uf, g.cnt"); if (!p || e.target.closest("g.tchip, g.tpct")) { tip.style.display = "none"; return; }
-    const uf = p.dataset.uf, f = STORY.factions[control[uf]], r = el.getBoundingClientRect(), rg = p.dataset.rg && opts && opts.g && opts.g.reg ? p.dataset.rg : null;
+    const uf = p.dataset.uf, f = STORY.factions[control[uf]], r = el.getBoundingClientRect();
     const extra = STORY.stateNotes && STORY.stateNotes[uf] ? `<br><span style="color:#9c9182">${esc(STORY.stateNotesLabel||"")}: ${esc(STORY.stateNotes[uf])}</span>` : "";
-    const here = opts && opts.g && opts.military ? (opts.armies || opts.g.armies || []).filter(a => a.uf === uf) : [];
-    const gx = opts && opts.g ? `<br>Agitação ${Math.round(opts.g.uf[uf].unrest)} (${unrestLabel(opts.g.uf[uf].unrest)})${here.length ? "<br>" + here.map(a => `<span style="color:${a.side === "player" ? "#9cc3ea" : "#f09a86"}">${esc(a.name)} (${Math.round(a.str)})</span>`).join("<br>") : ""}` : "";
-    const rgl = rg ? `<br><span style="color:#e8d9b4">${esc(regName(rg))}</span>: ${esc((STORY.factions[opts.g.reg[rg]] || {}).label || opts.g.reg[rg])}` : "";
-    tip.innerHTML = `<strong>${uf}</strong> · ${esc(MAP_DATA.states[uf].name)}<br>${esc(f ? f.label : control[uf])}${rgl}${gx}${extra}`;
+    const FM = opts && opts.g && frontMode(opts.g), here = opts && opts.g && opts.military ? (FM ? (opts.tpArmies || tpArmies(opts.g)) : (opts.armies || opts.g.armies || [])).filter(a => a.uf === uf) : [];
+    const gx = opts && opts.g ? `<br>Agitação ${Math.round(opts.g.uf[uf].unrest)} (${unrestLabel(opts.g.uf[uf].unrest)})${here.length ? "<br>" + here.map(a => `<span style="color:${a.side === "player" ? "#9cc3ea" : "#f09a86"}">${esc(FM ? tpName(opts.g, a) : a.name)} (${Math.round(a.str)})</span>`).join("<br>") : ""}` : "";
+    tip.innerHTML = `<strong>${uf}</strong> · ${esc(MAP_DATA.states[uf].name)}<br>${esc(f ? f.label : control[uf])}${gx}${extra}`;
     tip.style.left = (e.clientX - r.left) + "px"; tip.style.top = (e.clientY - r.top) + "px"; tip.style.display = "block";
   };
   svg.addEventListener("mousemove", show);
   svg.addEventListener("mouseleave", () => tip.style.display = "none");
   if (opts && opts.onPick) svg.addEventListener("click", e => {
-    // guerra de 2022: ficha de exército → onTropa; região (ou etiqueta de chance) → onReg
+    // guerra de 2022: ficha de exército → onTropa; estado destacado (ou etiqueta de chance) → onTpTarget
     const tc = e.target.closest("g.tchip"); if (tc && opts.onTropa){ tip.style.display = "none"; opts.onTropa(tc.dataset.army); return; }
-    const tr = e.target.closest("g.tpct, path.rg"); if (tr && opts.onReg){ tip.style.display = "none"; opts.onReg(tr.dataset.rg, tr.dataset.uf); return; }
+    const tr = e.target.closest("g.tpct, path.ttg"); if (tr && opts.onTpTarget){ tip.style.display = "none"; opts.onTpTarget(tr.dataset.uf); return; }
     const c = e.target.closest("g.cnt"); if (c && opts.onArmy){ tip.style.display = "none"; opts.onArmy(c.dataset.uf, c.dataset.side); return; }
     const p = e.target.closest("path.uf"); if (p) opts.onPick(p.dataset.uf); });
   else svg.addEventListener("click", show);
@@ -136,8 +133,8 @@ function counterSVG(side, uf, list, opts){
   return `<g class="cnt ${side === "player" ? "p" : "e"}${sel ? " sel" : ""}${ordered ? " ord" : ""}" data-uf="${uf}" data-side="${side}" data-id="${list[0].id}" tabindex="0" role="button" aria-label="${esc(nm)}" transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)}) scale(${k})"><title>${esc(nm)}</title>
     ${counterInner(side, str, n, ARMY_MAX * n)}${ordered ? `<path class="ordmk" d="M-20,-9L-13,-9L-20,-2z"/>` : ""}</g>`;
 }
-// Seta curva entre dois estados (UF) ou duas regiões (id numérico do IBGE)
-function arrowPt(k){ const r = REG_DATA.regs[k]; return r ? r : MAP_DATA.states[k]; }
+// Seta curva entre dois estados
+function arrowPt(k){ return MAP_DATA.states[k]; }
 function arrowSVG(from, to, cls, short){
   const a = arrowPt(from), b = arrowPt(to), k0 = short ? 2 : 6, k1 = short ? 4 : 9;
   const x1 = a.lx, y1 = a.ly, x2 = b.lx, y2 = b.ly, dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1;
@@ -154,8 +151,7 @@ function militaryLayers(g, control, opts){
   const ph = phaseOf(g), war = !!ph.war;
   let fronts = "", pulses = "", arrows = "", counters = "";
   const side = uf => sideOf(g, control[uf], ph);
-  if (war && regMapOn(g)) fronts = regFrontLinesSVG(g, opts.reg || g.reg);
-  else if (war) for (const a in ADJ) for (const b of ADJ[a]){
+  if (war) for (const a in ADJ) for (const b of ADJ[a]){
     if (a > b) continue;
     const sa = side(a), sb = side(b);
     const hostile = (sa === "player" && (sb === "enemy" || sb === "contested")) || (sb === "player" && (sa === "enemy" || sa === "contested")) || (sa === "contested" && sb === "enemy") || (sb === "contested" && sa === "enemy");

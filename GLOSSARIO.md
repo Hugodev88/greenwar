@@ -20,10 +20,13 @@ Chinês usa pontuação de largura total (，。：（）“”) e —— para t
 | Tensão no Sul | Southern Tension | 南方紧张度 | напряжённость на Юге |
 | linha de frente | front line | 战线 | линия фронта |
 | Frente Nordeste / Frente Sul | Northeast Front / South Front | 东北战线 / 南方战线 | Северо-восточный / Южный фронт |
-| postura | posture | 姿态 | позиция |
-| Avançar | Advance | 进攻 | наступать |
-| Segurar a linha | Hold the line | 坚守战线 | держать линию |
-| Recuar e reorganizar | Fall back and regroup | 后撤整编 | отойти и перестроиться |
+| exército (ficha) | army (counter) | 军队（棋子） | армия (фишка) |
+| flanco | flank | 侧翼 | фланг |
+| cercado / cerco | encircled / encirclement | 被包围 / 包围 | окружён / окружение |
+| ímpeto | momentum | 势头 | натиск |
+| Batalha de Recife | Battle of Recife | 累西腓战役 | битва за Ресифи |
+| última resistência | last stand | 最后抵抗 | последний рубеж |
+| Assalto frontal / Cerco por dois lados / Desembarque no porto | Frontal assault / Two-sided encirclement / Landing at the port | 正面强攻 / 两面包围 / 港口登陆 | лобовой штурм / окружение с двух сторон / высадка в порту |
 | Ofensiva especial | Special offensive | 特别攻势 | особое наступление |
 | moral / suprimento | morale / supply | 士气 / 补给 | боевой дух / снабжение |
 | manobra | maneuver | 机动 | манёвр |

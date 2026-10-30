@@ -79,7 +79,6 @@ function newCampaign(sc, seed, opts){
   prepContested(g);
   initArmies(g);
   focusInit(g);
-  regSync(g);
   enterStory(g, S.start, []);
   if (g.focus) g.focus.known = focusTree(g).nodes.filter(F => !F.oport && focusStatus(g, F).state === "available").map(F => F.id);
   { const A = apFor(g); g.ap = A.total; g.apParts = A.parts; }

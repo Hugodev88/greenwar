@@ -1,6 +1,6 @@
-// js/ui/aba-mapa.js — Interface: aba Mapa (camadas, ordens, recrutar). Na guerra de 2022, os exércitos nas regiões (js/ui/frentes.js).
+// js/ui/aba-mapa.js — Interface: aba Mapa (camadas, ordens, recrutar). Na guerra de 2022, os exércitos nos estados (js/ui/frentes.js).
 function tabMapa(el){
-  const ph = phaseOf(G), FM = frontMode(G); // 2022: exércitos nas regiões do IBGE (js/ui/frentes.js); os exércitos por estado do 1964 ficam de fora
+  const ph = phaseOf(G), FM = frontMode(G); // 2022: exércitos nos estados (js/ui/frentes.js e js/core/tropas.js); os exércitos do 1964 (js/ui/exercitos.js) ficam de fora
   if (FM){ UI.selArmy = null; UI.pend = null; UI.ordMode = null; }
   if (UI.selArmy && !armyById(G, UI.selArmy)) UI.selArmy = null;
   if (!UI.selArmy) UI.ordMode = null;
@@ -21,7 +21,7 @@ function tabMapa(el){
     ${infoOpen ? `<div class="layerinfo" id="layerInfo">${UI.mapMode === "agitacao" ? `<b>Agitação</b> (0–100) mede a tensão em cada estado: protestos, greves, bloqueios. A cor vai do <b>roxo (calmo)</b>, passando por azul e verde, ao <b>amarelo (revolta)</b>; o número aparece sob a sigla.
       <ul><li>Todo mês ela tende a um alvo que depende do seu <b>Apoio Popular</b>${frontMode(G) ? ", da economia, das tropas no estado e de haver guerra por perto." : ", da economia, das tropas no estado e de haver disputa."}</li>
       <li>Média <b>acima de 62</b> nos seus estados: <b>−2 de Apoio Popular por mês</b>. Abaixo de 30: +1.</li>
-      <li>Estado <b>acima de 88</b> com pouca tropa: em guerra, <b>revolta</b> ${frontMode(G) ? "(metade das regiões do estado passa para o inimigo)" : "(o estado entra em disputa)"}; fora dela, grandes protestos (−2 de apoio) ou até perder o estado.</li>
+      <li>Estado <b>acima de 88</b> com pouca tropa: em guerra, <b>revolta</b> ${frontMode(G) ? "(o estado passa para o inimigo vizinho)" : "(o estado entra em disputa)"}; fora dela, grandes protestos (−2 de apoio) ou até perder o estado.</li>
       <li>Agitação alta também enfraquece suas tropas em combate ali.</li>
       <li>Para baixar: <b>investir</b> (−15), <b>propaganda</b> (−8) ou <b>acordo com o governador</b> (−20), clicando no estado; tropas estacionadas também ajudam.</li></ul>` : `<b>Controle</b> mostra quem governa cada estado (cores na legenda). Troque para <b>Agitação</b> para ver onde o país está prestes a explodir.`}</div>` : ""}${UI.mapMode === "agitacao" ? "" : hint}<div class="mapbox" id="mapMain"></div></div><aside class="panel sidepanel">${panel}</aside></div>`;
   const toPanel = () => { if (window.innerWidth < 900) setTimeout(() => $(".sidepanel") && $(".sidepanel").scrollIntoView({ behavior: "smooth", block: "start" }), 30); };
@@ -55,8 +55,8 @@ function tabMapa(el){
   };
   const milOn = UI.mapMode !== "agitacao", wideFc = window.innerWidth > 900 && !big;
   if (FM){ if (!milOn){ UI.tpSel = null; UI.tpPend = null; } // guerra de 2022: fichas dos exércitos, destinos com chance e setas (js/ui/mapa-frentes.js)
-    renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, mode: UI.mapMode, military: milOn, fronts: true, arrows: [], onPick, onReg: tpPickReg, onTropa: tpPickArmy,
-      tpSel: UI.tpSel, tpPend: UI.tpPend, noRegArrows: true, overlay: milOn ? tpMapTallyHTML() + tpFloatHTML() : "", zoom: true }); }
+    renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, mode: UI.mapMode, military: milOn, fronts: true, arrows: [], onPick, onTpTarget: tpPickUF, onTropa: tpPickArmy,
+      tpSel: UI.tpSel, tpPend: UI.tpPend, overlay: milOn ? tpMapGoalHTML() + tpFloatHTML() : "", zoom: true }); }
   else renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, selArmy: sel, tgtMode: UI.ordMode || null, pend: milOn && sel ? pend : null, mode: UI.mapMode, military: milOn, onPick, onArmy: pickArmy, overlay: milOn && sel && pend && !wideFc ? forecastCardHTML(sel, pend) : "", zoom: true });
   if (milOn && sel && pend && wideFc) $(".sidepanel").insertAdjacentHTML("afterbegin", forecastCardHTML(sel, pend));
   if (!tabMapa._esc){ tabMapa._esc = e => { if (e.key !== "Escape" || UI.tab !== "mapa" || document.querySelector(".overlay, .modal, #ecoModal") || (typeof coachBusy === "function" && coachBusy())) return;

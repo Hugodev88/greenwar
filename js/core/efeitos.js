@@ -83,7 +83,8 @@ function mapChange(g, spec){
   if (spec.resolve) for (const uf in g.control) if (spec.resolve[g.control[uf]]) g.control[uf] = spec.resolve[g.control[uf]];
   if (spec.map) Object.assign(g.control, spec.map);
   noteChanges(g, before);
-  if (spec.split && regOn(g)) regSplit(g, spec.split); // 2022: estado dividido ao meio (regiões), sem "em disputa"
+  // "split" (2022): estado rachado — não muda de dono (não existe "em disputa"), mas a agitação dispara
+  if (spec.split) for (const uf in spec.split) if (g.uf[uf]) g.uf[uf].unrest = Math.max(g.uf[uf].unrest, 70);
 }
 function noteChanges(g, before){
   for (const uf in g.control) if (g.control[uf] !== before[uf]){

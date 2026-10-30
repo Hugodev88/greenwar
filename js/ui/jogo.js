@@ -53,7 +53,8 @@ function renderGame(){
     AUDIO.sfx("turn"); announce(`${monthLabel(G.month)}: turno ${G.turn}. ${G.ap} ações disponíveis.`);
     UI.tab = "historia"; UI.dealMsg = null; UI.selArmy = null; save(); cloud("syncSave", SCEN.id); renderGame(); window.scrollTo({ top: 0 });
     const ev = G.mil, major = majorCheck(snap);
-    if (ev && !G.ended && ev.month === G.month && frontMode(G) && ((ev.battles || []).length || (ev.moves || []).length)) playFrontResolution(ev, () => showMajor(major));
+    if (ev && G.ended && frontMode(G) && (ev.battles || []).some(r => r.final && r.win)) playFrontResolution(ev, null); // Recife caiu: animação + "Recife caiu!" por cima do final
+    else if (ev && !G.ended && ev.month === G.month && frontMode(G) && ((ev.battles || []).length || (ev.moves || []).length)) playFrontResolution(ev, () => showMajor(major));
     else if (ev && !G.ended && ev.month === G.month && (ev.battles.length || ev.flips.length || ev.moves.length)) playResolution(ev, () => showMajor(major));
     else showMajor(major);
   };

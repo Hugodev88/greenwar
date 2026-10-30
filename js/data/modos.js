@@ -14,6 +14,6 @@ const DIFICULDADES = {
   normal: { label: "Normal", icone: "⚖️", resumo: "O jogo como foi pensado: decisões com peso e guerra equilibrada.",
     inimigo: 1, sul: 1, dinheiro: 0, renda: 0, status: {}, folga: 0, simples: false, ordensAuto: "off", nota: 0 },
   dificil: { label: "Difícil", icone: "🔥", resumo: "Inimigo mais forte, menos Recursos, o Sul mais inquieto, popularidade alta que se desgasta e só uma revanche nas urnas. Para quem já conhece o jogo.",
-    inimigo: 1.3, sul: 1.25, dinheiro: -5, renda: -1, status: { apoio: -3, militar: -3, base: -3 }, folga: -4, desgaste: 65, simples: false, ordensAuto: "off", nota: 1 }
+    inimigo: 1.16, sul: 1.25, dinheiro: -5, renda: -1, status: { apoio: -3, militar: -3, base: -3 }, folga: -4, desgaste: 65, simples: false, ordensAuto: "off", nota: 1 }
 };
 const DIF_ORDEM = ["facil", "normal", "dificil"];

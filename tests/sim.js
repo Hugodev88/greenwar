@@ -17,7 +17,7 @@ const API = new Function(code + `; return { SCENARIOS, MAP_DATA, convertMoney, a
   phaseOf, sideOf, sideCounts, playerUFs, findEvent, fxSummary, incomeFor, monthLabel, OFF_TYPES,
   focusTree, focusStatus, focusCheck, startFocus, focusDef,
   ADJ, ARMY_MAX, SAVE_VERSION, armiesOf, armyById, armyTargets, setOrder, recruitArmy, battleOdds, commandLimit, ordersUsed,
-  reinforceCost, recruitCost, armyAllowed, sideStr, frontMode, frontAuto, tpArmies, tpTargets, tpOrder, tpChance, offensiveState, launchOffensive, frontReport, frontPool, migrateSave, knownIntents, battleReport, choicePreview, advisorTips, advisorDo, coupState, coupStoryTip, coupReadiness, endingGrade, earnedAchievements, CONQUISTAS,
+  reinforceCost, recruitCost, armyAllowed, sideStr, frontMode, frontAuto, tpArmies, tpOwn, tpTargets, tpOrder, tpChance, offensiveState, launchOffensive, frontReport, frontPool, migrateSave, knownIntents, battleReport, choicePreview, advisorTips, advisorDo, coupState, coupStoryTip, coupReadiness, endingGrade, earnedAchievements, CONQUISTAS,
   ...(typeof southFactors === "function" ? { southFactors, southRate, southEta, autoOrders, clearOrders, setAutoOrders, nodeView } : {}) };`)();
 const ARGS = process.argv.slice(2).filter(a => !a.startsWith("--")), FLAGS = process.argv.slice(2).filter(a => a.startsWith("--"));
 const OPTS = { diff: ((FLAGS.find(a => a.startsWith("--dif=")) || "").split("=")[1]) || "normal", quick: FLAGS.includes("--rapida") };
@@ -281,8 +281,9 @@ function play(sc, seed, greedy, novice, advisor){
     if (g.mil && !API.frontMode(g)) for (const b of g.mil.battles){ const R = API.battleReport(b);
       if (!R.summary || !R.tips.length || !R.rows.length || !Number.isFinite(R.power.p + R.power.e + R.loss.p + R.loss.e) || R.rows.some(x => !Number.isFinite(x.lr)) || R.won !== (b.win === R.pi)) return { err: `relatório de batalha inválido em ${b.uf}`, g }; }
     if (g.mil && g.mil.war && API.frontMode(g)) for (const b of g.mil.battles){ const R = API.frontReport(g, b);
-      if (!R.summary || !R.rows.length || !Number.isFinite(R.power.p + R.power.e + R.chance)) return { err: `relatório de batalha inválido (${b.reg})`, g }; }
-    if (g.war){ const W = g.war; if (!(W.reserve >= 0) || (W.armies || []).some(a => !(a.str > 0) || !(a.morale >= 0 && a.morale <= 100) || !g.reg[a.reg])) return { err: "estado dos exércitos inválido", g };
+      if (!R.summary || !R.rows.length || !Number.isFinite(R.power.p + R.power.e + R.chance)) return { err: `relatório de batalha inválido (${b.uf})`, g }; }
+    if (g.war){ const W = g.war; if (!(W.reserve >= 0) || (W.armies || []).some(a => !(a.str > 0) || !(a.morale >= 0 && a.morale <= 100) || !API.ADJ[a.uf] || !API.tpOwn(g, a, a.uf))) return { err: "estado dos exércitos inválido", g };
+      { const k = new Set((W.armies || []).map(a => a.side + a.uf)); if (k.size !== (W.armies || []).length) return { err: "dois exércitos do mesmo lado no mesmo estado", g }; }
       if (W.fronts.length > 2 || new Set(W.fronts.map(f => f.id)).size !== W.fronts.length) return { err: "frentes duplicadas", g };
       if ((g.armies || []).length) return { err: "exércitos no modo frentes", g }; }
     if (g.battleLog && g.battleLog.length > 30) return { err: "battleLog acima de 30", g };

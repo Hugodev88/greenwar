@@ -52,7 +52,7 @@ function advisorTips(g, ctx){
     const best = advisorBestAction(g, a => a.cat === "sul");
     if (best) tips.push({ id: "sul", pri: 78 + (g.south.t >= 75 ? 10 : 0), head: "Tensão no Sul", text: `A tensão está em ${Math.round(g.south.t)} de 100. Em 100 o Sul se rebela. Esta ação ajuda a acalmar:`, sub: best.a.name, act: { k: "action", id: best.a.id } });
   }
-  // guerra de 2022 (exércitos nas regiões): defesa, ataque, ofensiva especial, comando automático e recrutamento
+  // guerra de 2022 (exércitos nos estados): defesa, ataque, ofensiva especial, comando automático e recrutamento
   if (ph.war && !ph.noArmies && frontMode(g)) advisorFrontTips(g, tips);
   // guerra: exércitos sem ordem
   else if (ph.war && !ph.noArmies){
@@ -106,49 +106,56 @@ function advisorRun(g, tip){
   if (a.k === "recruit") return recruitArmy(g);
   if (a.k === "choose") return choose(g, a.i) ? { ok: true } : { ok: false, msg: "Escolha indisponível" };
   if (a.k === "tropa") return tpOrder(g, a.id, a.to);
+  if (a.k === "flanco"){ let r = { ok: false }; for (const id of a.ids) r = tpOrder(g, id, a.to); return r; }
   if (a.k === "ofensiva") return launchOffensive(g, a.id);
   if (a.k === "auto" && frontMode(g)){ const m = setAutoOrders(g, "auto"); frontAuto(g, "auto"); return m; }
   if (a.k === "auto"){ setAutoOrders(g, "auto"); autoOrders(g, "auto"); return { ok: true, msg: "Ordens automáticas ligadas: as tropas agem sozinhas todo mês." }; }
   return { ok: true };
 }
-// Caminho até a capital inimiga: " Faltam N regiões até Recife."
+// Caminho até Recife: " Recife a N estados."
 function advisorPathText(g, f){
-  if (!g.reg) return "";
-  const n = regFaltam(g, f, 1); if (!n) return "";
-  return " " + (n === 1 ? gfmt(frontFala(g, "regioes", "faltaUma"), regGoalName(g, f, 1)) : gfmt(frontFala(g, "regioes", "faltam"), n, regGoalName(g, f, 1))) + ".";
+  const D = f && frontCfg(g).frentes[f.id]; if (!D || !D.vitoria) return "";
+  const P = tpGoalPath(g, f.id); if (!P) return "";
+  return " " + (P.length === 1 ? frontFala(g, "mapa", "faltaUma") : gfmt(frontFala(g, "mapa", "faltam"), P.length) + ".");
 }
-// Dicas de guerra (2022, exércitos): defender a região ameaçada, o melhor ataque, ofensiva especial, comando automático, recrutar
+// Dicas de guerra (2022, exércitos): defender o estado ameaçado, o melhor ataque, ataque de flanco, ofensiva especial, comando automático, recrutar
 function advisorFrontTips(g, tips){
   const W = g.war, K = frontCfg(g), F = k => frontFala(g, "tropas", k); if (!W.fronts.length || !W.armies) return;
-  const mine = tpArmies(g, "player"), auto = g.autoOrders === "auto";
-  // 1) ameaça: o inimigo planeja atacar uma região sua com boa chance e um exército seu (sem ordem) pode chegar lá
+  const mine = tpArmies(g, "player"), auto = g.autoOrders === "auto", cap = tpCap(g);
+  // 1) ameaça: o inimigo planeja atacar um estado seu com boa chance e um exército seu (sem ordem) pode chegar lá
   const threats = {};
   for (const e of tpArmies(g, "enemy")) if (e.order && e.order.type === "atacar") (threats[e.order.to] ||= []).push(e);
   let bestT = null;
-  for (const reg in threats){
-    const ch = tpOdds(g, threats[reg], reg).chance; if (ch < 0.45) continue;
-    const helper = mine.filter(a => !a.order && a.reg !== reg && tpTargets(g, a).some(t => t.to === reg && t.type !== "atacar")).sort((x, y) => y.str - x.str)[0];
+  for (const uf in threats){
+    const ch = tpOdds(g, threats[uf], uf).chance; if (ch < 0.45) continue;
+    const helper = mine.filter(a => !a.order && a.uf !== uf && tpTargets(g, a).some(t => t.to === uf && t.type !== "atacar")).sort((x, y) => y.str - x.str)[0];
     if (!helper) continue;
-    const imp = ch + (reg === tpCapReg(g) ? 1 : 0) + (REG_DATA.cap[REG_DATA.regs[reg].uf] === reg ? 0.2 : 0);
-    if (!bestT || imp > bestT.imp) bestT = { reg, ch, helper, imp };
+    const imp = ch + (uf === cap ? 1 : 0) + (UF_WEIGHT[uf] || 1) / 20;
+    if (!bestT || imp > bestT.imp) bestT = { uf, ch, helper, imp };
   }
-  if (bestT && !auto) tips.push({ id: "tp_def", pri: bestT.reg === tpCapReg(g) ? 92 : 84, head: F("dicaDefTit"), text: gfmt(F("dicaDef"), regName(bestT.reg), Math.round(bestT.ch * 100), tpName(g, bestT.helper)), act: { k: "tropa", id: bestT.helper.id, to: bestT.reg } });
+  if (bestT && !auto) tips.push({ id: "tp_def", pri: bestT.uf === cap ? 92 : 84, head: F("dicaDefTit"), text: gfmt(F("dicaDef"), ufName(bestT.uf), Math.round(bestT.ch * 100), tpName(g, bestT.helper)), act: { k: "tropa", id: bestT.helper.id, to: bestT.uf } });
   // 2) melhor ataque de um exército sem ordem (chance ≥ 60%), preferindo o caminho até a capital inimiga
-  let best = null;
+  let best = null, flank = null;
+  const goalD = to => { const goal = tpHome(g, "enemy", g.control[to]); return goal ? (ufDist(goal)[to] ?? 30) - (to === goal ? 25 : 0) : 30; };
   for (const a of mine){
     if (a.order || (bestT && a === bestT.helper)) continue;
     for (const t of tpTargets(g, a)) if (t.type === "atacar"){
-      const ch = tpChance(g, a, t.to).chance; if (ch < 0.6) continue;
-      const fac = g.reg[t.to], goal = tpHome(g, "enemy", fac), v = ch - 0.04 * (regDist(goal)[t.to] ?? 30) + (t.to === goal ? 1 : 0);
-      if (!best || v > best.v) best = { a, to: t.to, ch, v, fac };
+      const ch = tpChance(g, a, t.to).chance, v = ch - 0.04 * goalD(t.to);
+      if (ch >= 0.6){ if (!best || v > best.v) best = { a, to: t.to, ch, v, fac: g.control[t.to] }; continue; }
+      // flanco: outro exército sem ordem, em outro estado vizinho do mesmo alvo, completa a chance
+      for (const b of mine) if (b !== a && !b.order && b.uf !== a.uf && (ADJ[b.uf] || []).includes(t.to) && (!bestT || b !== bestT.helper)){
+        const c2 = tpOdds(g, [a, b], t.to).chance, v2 = c2 - 0.04 * goalD(t.to);
+        if (c2 >= 0.6 && (!flank || v2 > flank.v)) flank = { a, b, to: t.to, ch: c2, v: v2 };
+      }
     }
   }
-  if (best && !auto) tips.push({ id: "tp_atk", pri: 72, head: F("dicaAtaqueTit"), text: gfmt(F("dicaAtaque"), tpName(g, best.a), regName(best.to), Math.round(best.ch * 100)) + advisorPathText(g, frontById(g, best.fac) || W.fronts[0]), act: { k: "tropa", id: best.a.id, to: best.to } });
+  if (best && !auto) tips.push({ id: "tp_atk", pri: 72, head: F("dicaAtaqueTit"), text: gfmt(F("dicaAtaque"), tpName(g, best.a), ufName(best.to), Math.round(best.ch * 100)) + advisorPathText(g, frontById(g, best.fac) || W.fronts[0]), act: { k: "tropa", id: best.a.id, to: best.to } });
+  else if (flank && !auto) tips.push({ id: "tp_flanco", pri: 70, head: F("dicaFlancoTit"), text: gfmt(F("dicaFlanco"), tpName(g, flank.a), tpName(g, flank.b), ufName(flank.to), Math.round(flank.ch * 100)), act: { k: "flanco", ids: [flank.a.id, flank.b.id], to: flank.to } });
   // 3) ofensiva especial num ataque já ordenado e apertado
   const off = offensiveState(g);
   if (off.ok && g.money >= off.cost + 10){
     const c = mine.filter(a => a.order && a.order.type === "atacar" && a.morale >= 30).map(a => ({ a, ch: tpChance(g, a, a.order.to).chance })).filter(x => x.ch >= 0.35 && x.ch < 0.8).sort((x, y) => y.ch - x.ch)[0];
-    if (c) tips.push({ id: "ofensiva", pri: 62, head: F("dicaOfTit"), text: gfmt(F("dicaOf"), tpName(g, c.a), regName(c.a.order.to), Math.round(c.ch * 100), off.cost), act: { k: "ofensiva", id: c.a.id } });
+    if (c) tips.push({ id: "ofensiva", pri: 62, head: F("dicaOfTit"), text: gfmt(F("dicaOf"), tpName(g, c.a), ufName(c.a.order.to), Math.round(c.ch * 100), off.cost), act: { k: "ofensiva", id: c.a.id } });
   }
   // 4) vários exércitos parados: comando automático
   const idle = mine.filter(a => !a.order).length;

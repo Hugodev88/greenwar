@@ -28,7 +28,7 @@
   .mapbox g.tchip rect.ring{fill:none;stroke:#ffd166;stroke-width:1.6;stroke-dasharray:4 3;animation:tring 1.2s linear infinite}
   @keyframes tring{to{stroke-dashoffset:-14}}
   .mapbox g.tchip.dim{opacity:.6}
-  /* destinos do exército selecionado: regiões destacadas e a chance (%) */
+  /* destinos do exército selecionado: estados destacados e a chance (%) */
   .mapbox path.ttg{stroke-width:2.2;cursor:pointer;stroke-linejoin:round}
   .mapbox path.ttg.atacar{fill:#ff5a42;fill-opacity:.28;stroke:#ffb4a6;animation:ttg 1.3s ease-in-out infinite}
   .mapbox path.ttg.mover,.mapbox path.ttg.juntar{fill:#9fd0ff;fill-opacity:.24;stroke:#cfe6ff;stroke-dasharray:4 2}
@@ -77,15 +77,49 @@
   @keyframes frota{to{stroke-dashoffset:-13}}
   body.rm .mapbox polyline.frota{animation:none}
   @media (prefers-reduced-motion:reduce){.mapbox polyline.frota{animation:none}}
-  /* Fase 12: "Faltam N regiões até Recife" e o rompimento */
+  /* "Recife a N estados" e a distância do inimigo até Brasília */
   .fpath{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.82rem;margin:4px 0 2px}.fpath .good{color:#bfe3a8}.fpath .bad{color:#f0a493}
-  .frompe{margin:6px 0;padding:6px 9px;border-radius:8px;font-weight:700;font-size:.86rem;border:1px solid}
-  .frompe.good{background:#21401c;border-color:#7fc06a;color:#dff5d2}.frompe.bad{background:#4a1a14;border-color:#e0705a;color:#ffe0d8}
-  .frompe.estab{font-weight:600;opacity:.92}
-  .rcap.rompefx{animation:rompefx .9s ease 2}.rcap.rompefx .frompe{margin:0}
-  @keyframes rompefx{0%,100%{transform:none}20%{transform:translateX(-4px) scale(1.03)}40%{transform:translateX(4px)}60%{transform:translateX(-2px)}}
-  body.rm .rcap.rompefx{animation:none}
-  @media (prefers-reduced-motion:reduce){.rcap.rompefx{animation:none}}
   .fleg span{white-space:nowrap}
   .fcard2.flash{animation:fcflash 1.5s ease}
   @keyframes fcflash{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 3px #f3c969,0 0 18px #f3c96988}}
+  /* Fase 14: cerco (moldura tracejada + cadeado), bônus de flanco no destino, alvo final (Recife) */
+  .mapbox g.tchip rect.cutr{fill:none;stroke:#ff5a42;stroke-width:1.6;stroke-dasharray:3 2}
+  g.tchip text.cutk{font-size:7.5px}
+  .mapbox g.tchip.cut rect.bg{opacity:.82}
+  g.tpct .flk rect{fill:#f3c969;stroke:#140c06;stroke-width:1}
+  body svg g.tpct .flk text{font-size:6.6px}
+  .mapbox path.ttg.final{stroke:#fff;stroke-width:3}
+  .mapbox g.tpct.final rect{stroke:#fff;stroke-width:2}
+  /* ímpeto: barra de 7 casas */
+  .tpmom{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0;font-size:.84rem}
+  .tpmom .mombar{display:inline-flex;gap:2px}.tpmom .mombar i{width:11px;height:9px;border-radius:2px;background:#3a3127}
+  .tpmom .mombar i.c{background:#6b5a3c}.tpmom .mombar i.on.up{background:#8fe08a}.tpmom .mombar i.on.dn{background:#ff8a76}
+  .tpmom.up b{color:#bfe3a8}.tpmom.dn b{color:#f0a493}
+  /* avisos de cerco */
+  .tpcut{list-style:none;margin:4px 0 8px;padding:0;font-size:.82rem}.tpcut li{margin:2px 0}
+  .tpcut li.bad .linkbtn{color:#ffb4a6}.tpcut li.good .linkbtn{color:#bfe3a8}
+  .tpconf li.good{color:#bfe3a8}.tpconf li.bad{color:#ffb4a6}.tpconf li.tip{color:#f3e2b8;list-style:none;margin-left:-16px}
+  /* Batalha de Recife: escolha da tática */
+  .tpconf.final{border-width:3px;background:linear-gradient(180deg,#2a1610f2,#1a140ef2)}
+  .tpconf h4.tprec,.tprec2{margin:2px 0 6px;color:#ffd166;font-weight:800}
+  .tptat{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;margin:4px 0 6px}
+  .tptat .tptb{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:7px 9px;min-height:44px;border-radius:9px;background:#241b12;border:2px solid #6b5a3c;color:#f3e2b8;cursor:pointer}
+  .tptat .tptb.on{border-color:#ffd166;background:#3a2a14;box-shadow:0 0 0 2px #ffd16655}
+  .tptat .tptb small{font-size:.74rem;opacity:.85}.tptat .tptb em{font-style:normal;font-weight:900}
+  .frdrama{margin:4px 0;font-weight:800;color:#ffd166;font-size:1rem}
+  /* animação: frases dramáticas e as três fases de Recife */
+  .rcap.final{font-weight:800;color:#ffd166}.rcap.final.big{font-size:1.25rem}.rcap.final.good{color:#8fe08a}
+  .rcap.shake{animation:rshake .5s ease 2}
+  @keyframes rshake{0%,100%{transform:none}20%{transform:translateX(-4px) scale(1.03)}40%{transform:translateX(4px)}60%{transform:translateX(-2px)}}
+  body.rm .rcap.shake{animation:none}
+  @media (prefers-reduced-motion:reduce){.rcap.shake{animation:none}}
+  /* tela "Recife caiu!" */
+  .overlay.rvic{background:radial-gradient(circle at 50% 40%,#5a3a10ee,#0d0906f5 70%);z-index:60}
+  .rvbox{max-width:440px;margin:12vh auto 0;text-align:center;padding:24px 20px;border-radius:16px;background:#1a140ef2;border:3px solid #ffd166;box-shadow:0 0 60px #ffd16655;animation:rvin .7s cubic-bezier(.2,1.4,.4,1)}
+  .rvbox h2{font-size:2.1rem;margin:6px 0;color:#ffd166;letter-spacing:.5px}.rvbox p{font-size:1.02rem;margin:6px 0 16px}
+  .rvbox .rvburst{font-size:3.4rem;animation:rvpulse 1.4s ease-in-out infinite}
+  .rvbox button{min-height:48px;padding:0 22px;font-size:1.05rem}
+  @keyframes rvin{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+  @keyframes rvpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+  body.rm .rvbox,body.rm .rvbox .rvburst{animation:none}
+  @media (prefers-reduced-motion:reduce){.rvbox,.rvbox .rvburst{animation:none}}

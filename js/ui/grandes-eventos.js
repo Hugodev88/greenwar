@@ -26,9 +26,12 @@ const MAJOR_FLAGS = {
   sul_esmagado: { tone: "gold", head: "A Liga do Sul cai", sub: "Não resta nenhum estado sob controle separatista. A revolta do Sul acabou.", cons: () => [] },
   // Fase 12: a resistência instala o governo constitucional no Recife (abre a frente da resistência). "over": vira a tela principal mesmo junto com "O país está partido".
   recife_capital: { any: true, over: true, head: "Recife, capital da Resistência", sub: "No Palácio do Campo das Princesas, governadores, parlamentares e comandantes leais à Constituição declaram instalado no Recife o governo constitucional. A partir de hoje o Brasil tem duas capitais — e a guerra, dois alvos.",
-    cons: () => [{ k: "good", t: "Vitória: tomar a região de Recife (PE) — a estrela vermelha no mapa." },
-      { k: "bad", t: "Derrota: perder a região de Brasília (DF)." },
-      { k: "", t: "O cartão da frente mostra quantas regiões faltam até Recife pelo caminho mais curto. Com força 1,5× maior, a linha inimiga pode romper." }] }
+    cons: () => [{ k: "good", t: "Vitória: tomar Pernambuco (Recife) — a estrela vermelha no mapa." },
+      { k: "bad", t: "Derrota: perder Brasília (DF)." },
+      { k: "", t: "O painel mostra quantos estados faltam até Recife. Ataque o mesmo estado por dois lados (flanco) e corte a ligação dos exércitos inimigos com Recife (cerco)." }] },
+  recife_portas: { any: true, over: true, head: "Às portas de Recife", sub: "Seus exércitos chegaram à divisa de Pernambuco. A Resistência convoca a última resistência: cada rua do Recife vai ser defendida.",
+    cons: () => [{ k: "", t: "Na Batalha de Recife você escolhe a tática: assalto frontal, cerco por dois lados ou desembarque no porto." },
+      { k: "bad", t: "Os defensores de Recife ganham +15% (última resistência)." }] }
 };
 const PHASE_WHY = {
   oposicao: "o poder está passando ao presidente eleito: as Forças Armadas voltaram à cadeia de comando regular e não obedecem mais às suas ordens políticas",
@@ -64,7 +67,7 @@ function majorCheck(b){
   } else if (lost > 0) cons.push({ k: "bad", t: `Você perdeu ${lost} exército(s) nesta virada.` });
   if (phaseChanged){
     cons.push({ k: "", t: `Nova fase: ${ph.label}${ph.war ? " — em guerra" : ""}.` });
-    if (ph.war && !b.war) cons.push({ k: "bad", t: frontMode(G) ? "Começou a guerra: seus exércitos estão no mapa. Na aba Mapa, toque num exército, escolha a região, veja a chance e confirme. As ordens não gastam AP." : "Começou a guerra: as frentes de combate estão abertas. Dê ordens aos seus exércitos na aba Mapa — elas não gastam AP." });
+    if (ph.war && !b.war) cons.push({ k: "bad", t: frontMode(G) ? "Começou a guerra: seus exércitos estão no mapa. Na aba Mapa, toque num exército, escolha um estado destacado, veja a chance e confirme. As ordens não gastam AP." : "Começou a guerra: as frentes de combate estão abertas. Dê ordens aos seus exércitos na aba Mapa — elas não gastam AP." });
     if (!ph.war && b.war) cons.push({ k: "good", t: "A guerra terminou: não há mais frentes de combate." });
     if (ph.noArmies && !b.noArmies) cons.push({ k: "", t: "Agora a luta é política: use propaganda, investimentos e acordos com governadores no mapa, além de diplomacia e facções." });
     if ((ph.income ?? 0) !== (b.income ?? 0)) cons.push({ k: (ph.income ?? 0) < (b.income ?? 0) ? "bad" : "good", t: `Renda básica de ${C.money.label}: ${b.income ?? 0} → ${ph.income ?? 0} por mês.` });

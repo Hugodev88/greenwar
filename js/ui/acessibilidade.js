@@ -16,17 +16,17 @@ function mapDescriptionHTML(g, mode){
     html += `<h4>Tropas: ${Math.round(frontPool(g))} (reserva ${Math.round(W.reserve)})</h4>`;
     if (W.fronts.length && ph.war){ const K = frontCfg(g), F = (grp, k) => frontFala(g, grp, k), T2 = k => F("tropas", k);
       html += `<p><span>${esc(T2("comoJogar"))}</span> <span>Sua capital</span>: ${esc(K.capitalNome || K.capital)} · <span>capitais inimigas</span>: ${W.fronts.map(f => esc(F("reduto", f.id))).join(", ")}.</p>`;
-      // placar de território de cada frente e as regiões que mudaram de lado no último mês
-      if (g.reg){ const ch = regChanges(g);
-        html += `<h4>${esc(F("regioes", "territorio"))}</h4><p>${esc(F("regioes", "maioria"))}</p><ul>${W.fronts.map(f => { const T = regTally(g, f); return `<li><b>${esc(frontName(g, f))}</b>: <span>${esc(gfmt(F("regioes", "placar"), T.p, T.e))}</span> (+${T.got} / −${T.lost})${accPathText(g, f)}</li>`; }).join("")}</ul>
-          <p>${ch.length ? esc(gfmt(F("regioes", "acc"), ch.map(m => gfmt(F("regioes", m.side === "player" ? "tomadaPor" : "perdidaPara"), regLabel(m.id))).join("; "))) : esc(F("regioes", "accNada"))}</p>`; }
+      // caminho até Recife, ímpeto e os estados que mudaram de lado no último mês
+      const ch = (g.mil && g.mil.flips) || [];
+      html += `<p>${W.fronts.map(f => `<b>${esc(frontName(g, f))}</b>${accPathText(g, f)}`).join("<br>")}</p><p>⚡ ${esc(F("impeto", "titulo"))}: ${esc(F("impeto", tpMomentum(g) > 0 ? "m" + tpMomentum(g) : tpMomentum(g) < 0 ? "n" + (-tpMomentum(g)) : "z"))}</p>
+        <p>${ch.length ? esc(gfmt(F("mapa", "acc"), ch.map(m => ufName(m.uf) + (m.side === "player" ? " (+)" : " (−)")).join(", "))) : esc(F("mapa", "accNada"))}</p>`;
       const mine = tpArmies(g, "player"), foes = tpArmies(g, "enemy");
       html += `<h4>${esc(T2("titulo"))} (${mine.length})</h4><ul>${mine.map(a => `<li>${esc(tpChipLabel(g, a))}</li>`).join("")}</ul>`;
       html += `<h4>${esc(T2("inimigos"))} (${foes.length})</h4><ul>${foes.map(a => `<li>${esc(tpChipLabel(g, a))}</li>`).join("")}</ul>`;
       const thr = foes.filter(e => e.order && e.order.type === "atacar");
-      html += `<h4>${esc(T2("ameacas"))}</h4><p>${thr.length ? thr.map(e => esc(gfmt(T2("ameaca"), tpName(g, e), regName(e.order.to), Math.round(tpChance(g, e, e.order.to).chance * 100)))).join(" · ") : esc(T2("semAmeaca"))}</p>`;
+      html += `<h4>${esc(T2("ameacas"))}</h4><p>${thr.length ? thr.map(e => esc(gfmt(T2("ameaca"), tpName(g, e), ufName(e.order.to), Math.round(tpChance(g, e, e.order.to).chance * 100)))).join(" · ") : esc(T2("semAmeaca"))}</p>`;
       const bl = (g.mil && g.mil.battles) || [];
-      if (bl.length) html += `<h4>${esc(T2("batalhas"))}</h4><ul>${bl.map(r => `<li>${esc(regLabel(r.reg))}: ${esc(T2(tpResultKey(r)))} · ${esc(frontReport(g, r).summary)}</li>`).join("")}</ul>`;
+      if (bl.length) html += `<h4>${esc(T2("batalhas"))}</h4><ul>${bl.map(r => `<li>${esc(ufName(r.uf))}: ${esc(T2(tpResultKey(r)))} · ${esc(frontReport(g, r).summary)}</li>`).join("")}</ul>`;
     }
   } else if (!ph.noArmies){
     const mine = armiesOf(g, "player"), foes = armiesOf(g, "enemy");
@@ -38,10 +38,10 @@ function mapDescriptionHTML(g, mode){
   }
   return html;
 }
-// "Faltam N regiões até Recife" e a distância do inimigo até Brasília, para o leitor de tela
+// "Recife a N estados" e a distância do inimigo até Brasília, para o leitor de tela
 function accPathText(g, f){
-  const F = (grp, k) => frontFala(g, grp, k), nP = regFaltam(g, f, 1), nE = regFaltam(g, f, -1), out = [];
-  if (nP) out.push(nP === 1 ? gfmt(F("regioes", "faltaUma"), regGoalName(g, f, 1)) : gfmt(F("regioes", "faltam"), nP, regGoalName(g, f, 1)));
-  if (nE) out.push(nE === 1 ? gfmt(F("regioes", "faltaUmaInimigo"), regGoalName(g, f, -1)) : gfmt(F("regioes", "faltamInimigo"), nE, regGoalName(g, f, -1)));
-  return out.map(t => ` · <span>${esc(t)}</span>`).join("");
+  const F = k => frontFala(g, "mapa", k), t = (frontCfg(g).frentes[f.id] || {}).vitoria ? tpGoalText(g, f) : "", nE = tpEnemyNear(g), out = [];
+  if (t) out.push(t);
+  if (nE) out.push(nE === 1 ? F("faltaUmaInimigo") : gfmt(F("faltamInimigo"), nE));
+  return out.map(x => ` · <span>${esc(x)}</span>`).join("");
 }

@@ -2,10 +2,10 @@
 // pinça e arraste com um dedo no celular, arrastar no computador, botões + / − / ⟲ e "Ir para Recife", teclas + − 0 e setas.
 /* O zoom mexe só no viewBox do SVG; o estado fica em MAPZ (por cenário) e sobrevive às re-renderizações de cada mês.
    Rótulos, placares, contadores e estrelas são "contra-escalados" para continuar legíveis; os traços não engrossam
-   (vector-effect no CSS css/mapa-zoom.css). Com zoom alto aparecem os nomes das regiões (guerra por regiões, 2022).
-   Clique × arraste: um arraste de mais de 6 px não vira clique, para os cliques em estados, regiões e placares continuarem valendo. */
+   (vector-effect no CSS css/mapa-zoom.css).
+   Clique × arraste: um arraste de mais de 6 px não vira clique, para os cliques em estados, fichas e placares continuarem valendo. */
 const MAPZ = {};                 // { cenário: { k, cx, cy, from } }
-const MAPZ_MIN = 1, MAPZ_MAX = 6, MAPZ_NAMES = 2.4, MAPZ_DRAG = 6;
+const MAPZ_MIN = 1, MAPZ_MAX = 6, MAPZ_DRAG = 6;
 function mapZoomState(){ const id = (typeof SCEN !== "undefined" && SCEN && SCEN.id) || "_"; return MAPZ[id] || (MAPZ[id] = { k: 1, cx: null, cy: null }); }
 function mapZoomReset(){ const S = mapZoomState(); S.k = 1; S.cx = S.cy = null; }
 // limita o zoom e o centro: o mapa nunca some da tela
@@ -23,9 +23,6 @@ function mapZoomAttach(el, opts){
   const svg = el.querySelector("svg"); if (!svg) return;
   const vb = svg.viewBox.baseVal, W = vb.width, H = vb.height, S = mapZoomState(), g = opts && opts.g;
   svg.classList.add("zoomable");
-  // nomes das regiões (só aparecem com zoom alto)
-  if (g && typeof regMapOn === "function" && regMapOn(g) && opts.mode !== "agitacao")
-    (svg.querySelector("g.tarw, g.tchip, g.tpct, g.cnt, g.fgoal") || { insertAdjacentHTML: (w, h) => svg.insertAdjacentHTML("beforeend", h) }).insertAdjacentHTML("beforebegin", `<g class="rgnames" aria-hidden="true">${REG_IDS.map(id => { const r = REG_DATA.regs[id]; return `<text x="${r.lx}" y="${r.ly}">${esc(r.n)}</text>`; }).join("")}</g>`);
   // elementos contra-escalados: grupos com transform (placares, contadores, estrelas) e textos soltos (siglas dos estados)
   const inv = [...svg.querySelectorAll("g.tchip, g.tpct, g.cnt, g.fgoal")].map(n => ({ n, t0: n.getAttribute("transform") || "" }))
     .concat([...svg.querySelectorAll("text")].filter(t => !t.closest("g.tchip, g.tpct, g.cnt, g.fgoal, defs, title")).map(n => ({ n, x: +n.getAttribute("x") || 0, y: +n.getAttribute("y") || 0 })));
@@ -33,7 +30,7 @@ function mapZoomAttach(el, opts){
     svg.setAttribute("viewBox", `${(cx - W / k / 2).toFixed(2)} ${(cy - H / k / 2).toFixed(2)} ${(W / k).toFixed(2)} ${(H / k).toFixed(2)}`);
     const s = 1 / Math.pow(k, 0.85);
     for (const o of inv) o.n.setAttribute("transform", o.t0 !== undefined ? (k > 1.01 ? `${o.t0} scale(${s.toFixed(3)})` : o.t0) : (k > 1.01 ? `translate(${o.x},${o.y}) scale(${s.toFixed(3)}) translate(${-o.x},${-o.y})` : ""));
-    svg.classList.toggle("zoomed", k > 1.01); svg.classList.toggle("znames", k >= MAPZ_NAMES);
+    svg.classList.toggle("zoomed", k > 1.01);
     svg.style.touchAction = k > 1.01 ? "none" : "pan-y";
     const lv = el.querySelector(".mapzoom .zlv"); if (lv) lv.textContent = Math.round(k * 100) + "%";
   };
@@ -55,17 +52,18 @@ function mapZoomAttach(el, opts){
     S.cx = px + (S.cx - px) * f; S.cy = py + (S.cy - py) * f; S.k = k2; apply(animate); };
   const step = dir => zoomAround(S.k * (dir > 0 ? 1.5 : 1 / 1.5), S.cx ?? W / 2, S.cy ?? H / 2, true);
   const pan = (dx, dy) => { S.cx -= dx; S.cy -= dy; apply(false); };
-  // botões (+, −, ⟲ e "Ir para Recife" na guerra por regiões)
-  const goal = g && g.reg && g.war && phaseOf(g).war ? (g.war.fronts || []).map(f => ({ f, r: REG_DATA.regs[regGoal(g, f, 1)] })).find(x => x.r && x.f.id === "resistencia") : null;
+  // botões (+, −, ⟲ e "Ir para Recife" na guerra de 2022, enquanto Recife for do inimigo)
+  const gf = g && g.war && frontMode(g) && phaseOf(g).war && opts.fronts ? (g.war.fronts || []).find(f => (frontCfg(g).frentes[f.id] || {}).vitoria) : null;
+  const gu = gf && frontCfg(g).frentes[gf.id].reduto, goal = gu && tpSide(g, gu) !== "player" ? { r: { lx: tpUfPt(gu)[0] - 20, ly: tpUfPt(gu)[1] }, n: frontFala(g, "mapa", "irRecife") } : null;
   el.insertAdjacentHTML("beforeend", `<div class="mapzoom" role="group" aria-label="Zoom do mapa">
     <button type="button" data-z="in" title="Aproximar o mapa" aria-label="Aproximar o mapa">+</button><span class="zlv" aria-hidden="true">100%</span>
     <button type="button" data-z="out" title="Afastar o mapa" aria-label="Afastar o mapa">−</button>
     <button type="button" data-z="reset" title="Centralizar o mapa" aria-label="Centralizar o mapa">⟲</button>
-    ${goal ? `<button type="button" class="zgo" data-z="goal" title="Ir para ${esc(goal.r.n)}" aria-label="Ir para ${esc(goal.r.n)}">🎯 <span>Ir para ${esc(goal.r.n)}</span></button>` : ""}</div>`);
+    ${goal ? `<button type="button" class="zgo" data-z="goal" title="${esc(goal.n)}" aria-label="${esc(goal.n)}">🎯 <span>${esc(goal.n)}</span></button>` : ""}</div>`);
   el.querySelectorAll(".mapzoom [data-z]").forEach(b => b.onclick = e => { e.stopPropagation(); const z = b.dataset.z;
     if (z === "in") step(1); else if (z === "out") step(-1);
     else if (z === "reset"){ S.from = { k: S.k, cx: S.cx, cy: S.cy }; S.k = 1; S.cx = W / 2; S.cy = H / 2; apply(true); }
-    else if (z === "goal" && goal){ S.from = { k: S.k, cx: S.cx, cy: S.cy }; S.k = Math.max(S.k, 2.6); S.cx = goal.r.lx; S.cy = goal.r.ly; apply(true); } });
+    else if (z === "goal" && goal){ S.from = { k: S.k, cx: S.cx, cy: S.cy }; S.k = Math.max(S.k, 2.2); S.cx = goal.r.lx; S.cy = goal.r.ly; apply(true); } });
   // roda do mouse: zoom rumo ao cursor
   svg.addEventListener("wheel", e => { e.preventDefault(); const [px, py] = at(e.clientX, e.clientY);
     zoomAround(S.k * Math.exp(-Math.max(-120, Math.min(120, e.deltaY * (e.deltaMode === 1 ? 33 : 1))) * 0.0022), px, py, false); }, { passive: false });

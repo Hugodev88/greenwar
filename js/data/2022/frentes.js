@@ -1,26 +1,38 @@
-// js/data/2022/frentes.js — Dados (2022): guerra com EXÉRCITOS nas regiões do IBGE: números, generais, inimigos e falas.
+// js/data/2022/frentes.js — Dados (2022): guerra com EXÉRCITOS nos estados: números, generais, táticas, inimigos e falas.
 /* Como funciona (regras em js/core/tropas.js e js/core/frentes.js; tela em js/ui/frentes.js e js/ui/mapa-frentes.js):
-   - Na guerra o mapa se divide nas 133 regiões intermediárias do IBGE (js/data/mapa-regioes.js). Um estado é de quem tem a
-     maioria das regiões dele (empate: quem tem a região da capital). Não existe "em disputa". Política e agitação: por estado.
-   - Cada lado tem alguns EXÉRCITOS (fichas no mapa, com a força escrita). Todo mês: toque num exército e numa região
-     destacada — mover/juntar (até "passos" regiões pelo seu território) ou atacar uma região inimiga vizinha. Ordens não gastam PA.
-   - Batalha no fim do mês: chance = A^k / (A^k + D^k) — atacantes × (defensores entrincheirados + guarnição) × terreno × reduto.
+   - Cada estado é de um lado só (não existe "em disputa"). Cada lado tem alguns EXÉRCITOS (fichas no mapa, com a força escrita).
+   - Todo mês: toque num exército e num estado destacado — mover/juntar (até "passos" estados pelo seu território) ou atacar
+     um estado inimigo vizinho. Ordens não gastam PA. Atacar o mesmo estado vindo de 2 ou 3 estados dá bônus de FLANCO.
+   - Batalha no fim do mês: chance = A^k / (A^k + D^k) — atacantes × flanco × (defensores entrincheirados + guarnição) × terreno × reduto.
+   - CERCO: exército sem caminho pelo próprio território até a capital dele perde força todo mês e acaba se rendendo.
+   - ÍMPETO: vitórias seguidas dão bônus às suas tropas (até +3); derrotas seguidas, o contrário.
    - O inimigo também move e ataca (setas vermelhas: o plano dele fica visível um mês antes).
    - Se a Liga do Sul se rebelar, abre a segunda frente (Sul), com exércitos próprios.
-   - Vitória: tomar a região de Recife (capital da resistência). Derrota: perder Brasília (DF). Porto Alegre derruba a Liga do Sul.
+   - Vitória: tomar Recife (PE, capital da Resistência) na Batalha de Recife. Derrota: perder Brasília (DF). Porto Alegre (RS) derruba a Liga.
    Generais e rostos: só personagens fictícios (os retratos já existem em js/data/2022/retratos.js). */
 const FRENTES_2022 = {
   capital: "DF", capitalNome: "Brasília",
   poderBase: 1.05,            // enemyPower do Normal: Fácil/Difícil escalam as tropas inimigas em relação a ele
-  reduto: 1.35,              // defesa extra na região de Brasília, de Recife e de Porto Alegre
+  reduto: 1.35,              // defesa extra em Brasília (DF), Recife (PE) e Porto Alegre (RS)
   // exércitos: inicio = quantos você recebe quando a guerra começa (porExercito de força cada, no máximo);
-  // max por lado; passos = regiões por mês andando pelo seu território; guarnição local (região comum, capital de estado,
-  // capital do lado); cavar = defesa de quem ficou parado; expoente da chance; autoChance = chance mínima do comando
-  // automático para atacar (alvoChance: na capital inimiga); novo = reforço inimigo acumulado que forma um exército novo; perdas (fração da força) e moral
-  tropas: { inicio: 4, porExercito: 22, max: 8, passos: 2, guarnicao: 8, guarnicaoCapEstado: 12, guarnicaoCapital: 20, cavar: 1.2,
-    expoente: 2.4, autoChance: 0.6, alvoChance: 0.45, novo: 20,
+  // max por lado; passos = estados por mês andando pelo seu território; guarnição local (base + peso do estado × guarnicaoPeso;
+  // capital do lado: guarnicaoCapital); cavar = defesa de quem ficou parado; expoente da chance; autoChance = chance mínima do
+  // comando automático para atacar (alvoChance: na capital inimiga); novo = reforço inimigo acumulado que forma um exército novo;
+  // flanco = bônus por estado de origem extra (até +2 estados); cerco: poder de quem está cercado, perda de força e moral por mês,
+  // rendição (força/moral mínimas, meses); impeto.passo = bônus por ponto de ímpeto (−3 a +3); perdas (fração da força) e moral;
+  // recife: última resistência dos defensores e as 3 táticas (ataque = multiplicador; flanco = multiplica o bônus de flanco;
+  // semReduto = ignora a fortificação; semCavar = ignora o entrincheiramento; perdas = multiplica as baixas se o ataque falhar)
+  tropas: { inicio: 4, porExercito: 22, max: 8, passos: 2, guarnicao: 6, guarnicaoPeso: 1, guarnicaoCapital: 20, cavar: 1.2,
+    expoente: 2.4, autoChance: 0.6, alvoChance: 0.45, novo: 20, flanco: 0.2,
+    cerco: { poder: 0.75, perda: 0.2, moral: 15, rende: 10, moralRende: 15, meses: 3 },
+    impeto: { passo: 0.07 },
     perdas: { venceu: 0.1, perdeu: 0.25, defVenceu: 0.08, defPerdeu: 0.22 },
-    moral: { ataque: -4, vitoria: 4, derrota: -12, descanso: 6 } },
+    moral: { ataque: -4, vitoria: 4, derrota: -12, descanso: 6 },
+    recife: { ultima: 1.15, taticas: {
+      assalto: { ataque: 1.25, perdas: 1.8 },
+      cerco: { ataque: 1, flanco: 2.5 },
+      porto: { ataque: 0.85, semReduto: true }
+    } } },
   recruta: { forca: 20, custo: 10, porMes: 2, moral: 50 },
   poolMin: 10,
   moralMax: { base: 55, lealdade: 0.3, militar: 0.3, min: 40 },
@@ -38,7 +50,7 @@ const FRENTES_2022 = {
   // frentes possíveis (uma por facção inimiga). tropas = base + porEstado × estados que o inimigo controla ao abrir;
   // reforco por mês; ataca = chance mínima para a IA atacar; exercitos = máximo de exércitos; moral inicial/teto; teto de força
   frentes: {
-    resistencia: { tropas: 56, porEstado: 4, reforco: 9, ataca: 0.6, exercitos: 6, moral: 65, teto: 260, retrato: "gen_barreto", traco: "agressivo", reduto: "PE", vitoria: "fim_regime", capitalFlag: "recife_capital", capitalNews: "capitalRecife" },
+    resistencia: { tropas: 68, porEstado: 4, reforco: 11, ataca: 0.6, exercitos: 6, moral: 65, teto: 260, retrato: "gen_barreto", traco: "agressivo", reduto: "PE", vitoria: "fim_regime", capitalFlag: "recife_capital", capitalNews: "capitalRecife", portasFlag: "recife_portas" },
     separatista: { tropas: 14, porEstado: 6, reforco: 2.5, ataca: 0.72, exercitos: 3, moral: 60, teto: 120, retrato: "gen_kessler", traco: "defensivo", reduto: "RS" }
   },
   // ofensiva especial: um exército com ordem de ataque ganha ×mult neste mês; se falhar, perde mais tropa e moral
@@ -56,56 +68,103 @@ const FRENTES_2022 = {
     },
     fatores: {
       tropas: "Tropas", guarnicao: "Guarnição local", moral: "Moral", general: "General",
-      comando: "Comando e lealdade militar", apoio: "Apoio popular", armas: "Armas estrangeiras", cofres: "Cofres vazios",
+      comando: "Comando e lealdade militar", apoio: "Apoio popular", armas: "Armas estrangeiras", impeto: "Ímpeto",
       dificuldade: "Dificuldade (força do inimigo)", estrangeiro: "Apoio estrangeiro ao inimigo", sancoes: "Sanções contra o inimigo",
-      cavar: "Entrincheirado (ficou parado)", terreno: "Terreno", reduto: "Reduto / capital", ofensiva: "Ofensiva especial", poder: "Poder final"
+      cavar: "Entrincheirado (ficou parado)", terreno: "Terreno", reduto: "Reduto / capital", ofensiva: "Ofensiva especial", poder: "Poder final",
+      flanco: "Flanco (ataque de vários lados)", cercado: "Cercado (sem ligação com a capital)", tatica: "Tática", ultima: "Última resistência"
     },
     porque: {
-      ocupou: "Não havia exército inimigo: a guarnição local não segurou a região.",
-      venceuForte: "Você atacou com vantagem clara de força e tomou a região.",
-      venceuApertado: "A batalha foi equilibrada, mas você venceu e tomou a região.",
-      venceuSorte: "Você estava mais fraco, mas teve sorte e tomou a região.",
+      ocupou: "Não havia exército inimigo: a guarnição local não segurou o estado.",
+      venceuForte: "Você atacou com vantagem clara de força e tomou o estado.",
+      venceuApertado: "A batalha foi equilibrada, mas você venceu e tomou o estado.",
+      venceuSorte: "Você estava mais fraco, mas teve sorte e tomou o estado.",
       perdeuFraco: "Você atacou sem força suficiente: o ataque foi repelido.",
       perdeuApertado: "A batalha foi equilibrada e o ataque foi repelido.",
       perdeuAzar: "Você era o favorito, mas o ataque deu errado (azar).",
-      caiuForte: "O inimigo atacou com força bem maior: a região caiu.",
-      caiuAzar: "A sua defesa era boa, mas o inimigo teve sorte: a região caiu.",
+      caiuForte: "O inimigo atacou com força bem maior: o estado caiu.",
+      caiuAzar: "A sua defesa era boa, mas o inimigo teve sorte: o estado caiu.",
       segurouForte: "A sua defesa era mais forte: o ataque inimigo não passou.",
       segurouSorte: "O inimigo era o favorito, mas a sua defesa aguentou."
     },
     dicasTropas: {
-      juntar: "Ataque com dois exércitos vizinhos no mesmo alvo: as forças se somam.",
+      juntar: "Ataque o mesmo estado vindo de dois estados diferentes: as forças se somam e ainda ganham bônus de flanco.",
       azar: "A chance era boa: tente de novo no próximo mês.",
-      defender: "Deixe um exército parado na região ameaçada: entrincheirado ele defende +20%.",
+      defender: "Deixe um exército parado no estado ameaçado: entrincheirado ele defende +20%.",
       terreno: "Terreno difícil e capitais defendem mais: leve mais força.",
       ofensiva: "A ofensiva especial dá +50% de poder a um exército por um mês.",
-      recrutar: "Recrute numa capital de estado sua ou reforce um exército que já existe."
+      recrutar: "Recrute num estado seu ou reforce um exército que já existe.",
+      flanco: "Ataque de dois lados ao mesmo tempo: o bônus de flanco pode virar a batalha.",
+      cerco: "Cerque: tome os estados por trás de um exército inimigo e ele fica sem ligação com a capital — perde força e se rende."
     },
-    regioes: {
-      listaGanhou: "Regiões tomadas: {0}.",
-      listaPerdeu: "Regiões perdidas: {1}.",
-      placar: "Você {0} regiões × Inimigo {1}",
-      placarCurto: "Você {0} × {1}",
-      tendencia: "Território nos últimos meses (suas regiões)",
-      semHistorico: "A tendência aparece depois do primeiro mês de guerra.",
-      maioria: "Cada estado é de quem tem a maioria das regiões dele.",
-      legTomada: "Região tomada neste mês",
-      legPerdida: "Região perdida neste mês",
-      revolta: "Revolta! {1} regiões passaram para o inimigo: {0}.",
-      acc: "Regiões que mudaram de lado no último mês: {0}.",
-      accNada: "Nenhuma região mudou de lado no último mês.",
-      tomadaPor: "tomada: {0}",
-      perdidaPara: "perdida: {0}",
-      territorio: "Território",
-      legPlacar: "suas regiões × regiões do inimigo da frente",
-      suas: "Suas regiões",
-      inimigas: "Regiões inimigas",
+    mapa: {
+      listaGanhou: "Estados tomados: {0}.",
+      listaPerdeu: "Estados perdidos: {0}.",
+      revolta: "Revolta! {0} passou para o inimigo.",
+      acc: "Estados que mudaram de lado no último mês: {0}.",
+      accNada: "Nenhum estado mudou de lado no último mês.",
       capitalSua: "Brasília — sua capital",
-      faltam: "Faltam {0} regiões até {1}",
-      faltaUma: "Falta 1 região até {0}",
-      faltamInimigo: "O inimigo está a {0} regiões de {1}",
-      faltaUmaInimigo: "O inimigo está a 1 região de {0}",
-      rota: "Caminho mais curto até {0}"
+      faltam: "Recife a {0} estados",
+      faltaUma: "Recife a 1 estado: ataque!",
+      faltamInimigo: "O inimigo está a {0} estados de Brasília",
+      faltaUmaInimigo: "O inimigo está encostado em Brasília!",
+      rota: "Caminho mais curto até Recife",
+      irRecife: "Ir para Recife"
+    },
+    // ímpeto (−3 a +3) e cerco
+    impeto: {
+      titulo: "Ímpeto",
+      m3: "Imparáveis! +21% de força",
+      m2: "Em alta: +14% de força",
+      m1: "Confiantes: +7% de força",
+      z: "Equilíbrio",
+      n1: "Abalados: −7% de força",
+      n2: "Em crise: −14% de força",
+      n3: "Desmoronando: −21% de força",
+      sobe: "O ímpeto está com você!",
+      desce: "Suas tropas perderam o ímpeto."
+    },
+    cerco: {
+      chip: "Cercado",
+      aviso: "{0} está cercado em {1}: perde força todo mês e pode se render. Abra caminho até ele!",
+      inimigo: "{0} está cercada em {1}: vai enfraquecer e se render.",
+      rendeuSeu: "{0} se rendeu em {1}: estava cercado.",
+      rendeuInimigo: "{0} se rendeu em {1}: estava cercada!",
+      dica: "Cerque: tome os estados por trás de um exército inimigo e ele fica sem ligação com a capital — perde força e se rende."
+    },
+    // frases curtas da animação de batalha
+    drama: {
+      flanco: "Ataque pelos dois lados! O inimigo não aguentou.",
+      flancoInimigo: "Fomos atacados por dois lados!",
+      aniquilou: "Inimigo aniquilado!",
+      aniquilado: "Um exército nosso foi aniquilado!",
+      zebra: "Contra todas as chances: vitória!",
+      avanco: "Avanço! O estado é nosso.",
+      repelido: "O ataque foi repelido.",
+      perdemos: "Linha rompida: o estado caiu.",
+      segurou: "A defesa aguentou firme!",
+      capitalCaiu: "Brasília caiu!",
+      capitalResiste: "Brasília resiste!",
+      recifeCaiu: "RECIFE CAIU! A Resistência se rendeu.",
+      recifeResiste: "Recife resistiu. Reagrupe e tente de novo!"
+    },
+    // a Batalha de Recife (clímax)
+    taticas: { assalto: "Assalto frontal", cerco: "Cerco por dois lados", porto: "Desembarque no porto" },
+    taticaDesc: {
+      assalto: "+25% de força. Se falhar, as baixas são muito maiores.",
+      cerco: "O bônus de flanco fica 2,5× maior. Ataque de 2 ou 3 estados vizinhos.",
+      porto: "Desembarca pelo porto e evita as fortificações (sem bônus de reduto), mas com −15% de força."
+    },
+    recife: {
+      titulo: "Batalha de Recife",
+      escolha: "Escolha a tática do ataque final",
+      ultima: "A Resistência fará a última resistência: +15% na defesa.",
+      portas: "Seus exércitos chegaram às portas de Recife!",
+      vitoriaTit: "Recife caiu!",
+      vitoriaSub: "Pernambuco é seu. A Resistência se rendeu e a guerra acabou.",
+      vitoriaBtn: "Ver o final",
+      fase1: "Os canhões abrem fogo sobre Recife…",
+      fase2: "As tropas avançam pelas pontes do Capibaribe…",
+      fase3: "Luta casa a casa no Recife Antigo…"
     },
     tropas: {
       nomeSeu: "{0}º Exército",
@@ -113,7 +172,7 @@ const FRENTES_2022 = {
       nome_separatista: "{0}ª Brigada da Liga",
       titulo: "Seus exércitos",
       inimigos: "Exércitos inimigos",
-      comoJogar: "Toque num exército azul e depois numa região destacada. Veja a chance, confirme e encerre o mês.",
+      comoJogar: "Toque num exército azul e depois num estado destacado. Veja a chance, confirme e encerre o mês.",
       passo1: "Toque num exército",
       passo2: "Escolha o destino",
       passo3: "Veja a chance e confirme",
@@ -122,11 +181,11 @@ const FRENTES_2022 = {
       moral: "Moral",
       general: "General",
       semGeneral: "Sem general",
-      semOrdem: "Sem ordem: fica e defende a região (entrincheirado, +20%).",
+      semOrdem: "Sem ordem: fica e defende o estado (entrincheirado, +20%).",
       semOrdemCurta: "defende",
       ordemAtaca: "ataca",
       ordemVai: "vai para",
-      escolha: "Escolha o destino no mapa (regiões destacadas) ou aqui:",
+      escolha: "Escolha o destino no mapa (estados destacados) ou aqui:",
       mover: "Mover",
       juntar: "Juntar",
       atacar: "Atacar",
@@ -143,7 +202,7 @@ const FRENTES_2022 = {
       semAmeaca: "O inimigo não prepara ataques para este mês.",
       recrutar: "Recrutar",
       recrutarEm: "Recrutar em",
-      recrutaAjuda: "Novo exército numa capital de estado sua, ou reforço onde já há um exército seu.",
+      recrutaAjuda: "Novo exército num estado seu, ou reforço onde já há um exército seu.",
       reserva: "Reserva em Brasília: {0}",
       totais: "Força total",
       voce: "Você",
@@ -176,17 +235,23 @@ const FRENTES_2022 = {
       relBaixas: "Baixas: suas {0}, inimigas {1}",
       relRecuo: "{0} recuou para {1}.",
       relDestruido: "{0} foi destruído.",
-      relV: "Vitória: a região é sua.",
-      relD: "Derrota: a região continua com o inimigo.",
-      relCaiu: "A região caiu.",
-      relSegurou: "Você segurou a região.",
+      relV: "Vitória: o estado é seu.",
+      relD: "Derrota: o estado continua com o inimigo.",
+      relCaiu: "O estado caiu.",
+      relSegurou: "Você segurou o estado.",
       erroExercito: "Exército não encontrado.",
       erroGeneral: "General indisponível.",
       generalAssume: "{0} assume o {1}.",
       semGuerra: "Sem guerra: não há ordens a dar.",
       ordemDesfeita: "{0}: ordem desfeita.",
-      alvoInvalido: "Destino inválido: só regiões vizinhas do inimigo ou até 2 regiões pelo seu território.",
+      alvoInvalido: "Destino inválido: só estados inimigos vizinhos ou até 2 estados pelo seu território.",
       msgAtaque: "{0}: ataque a {1} (chance {2}%).",
+      msgAtaqueRecife: "{0}: ataque a {1} na Batalha de Recife (chance {2}%).",
+      taticaEscolhida: "Tática: {0}.",
+      flancoChip: "Flanco",
+      flancoAjuda: "Ataque de {0} estados: +{1}% de força (flanco).",
+      flancoDica: "Mande outro exército atacar o mesmo estado por outro lado: bônus de flanco.",
+      cercoAlvo: "Defensor cercado: −25% de força.",
       msgMover: "{0}: vai para {1}.",
       msgJuntar: "{0}: vai se juntar em {1}.",
       autoUma: "{0} ordem dada automaticamente.",
@@ -194,14 +259,14 @@ const FRENTES_2022 = {
       autoNada: "Todos os exércitos já têm ordem.",
       autoLogUma: "Comando automático: {0} exército recebeu ordem.",
       autoLog: "Comando automático: {0} exércitos receberam ordem.",
-      recrutaOnde: "Recrute numa capital de estado sua ou onde já há um exército seu.",
+      recrutaOnde: "Recrute num estado seu.",
       limite: "Limite de {0} exércitos: reforce os que já existem.",
       msgReforca: "{0}: +{1} de tropas (−{2}).",
       msgNovo: "{0} formado em {1} (−{2}).",
       ofensivaJa: "Já há uma ofensiva especial marcada para este mês.",
       ofensivaSemAtaque: "Dê antes uma ordem de ataque a este exército.",
       cansaco: "Cansaço da guerra ({0} meses de combate): Apoio Popular −1 e as batalhas ficam mais sangrentas.",
-      resumoMes: "Batalhas no mês: {0} (regiões tomadas {1}, perdidas {2}).",
+      resumoMes: "Batalhas no mês: {0} (estados tomados {1}, perdidos {2}).",
       logSegurou: "Você segurou: {0}.",
       logFalhou: "Ataques repelidos: {0}.",
       logDestruido: "{0} foi destruído.",
@@ -211,7 +276,7 @@ const FRENTES_2022 = {
       autoMsgDef: "Comando automático: exércitos sem ordem só defendem e vão para a linha.",
       dicaAtaqueTit: "Ataque com boa chance",
       dicaAtaque: "{0} pode atacar {1}: chance {2}%.",
-      dicaDefTit: "Região ameaçada",
+      dicaDefTit: "Estado ameaçado",
       dicaDef: "O inimigo vai atacar {0} (chance dele {1}%). Mande o {2} para lá.",
       dicaAutoTit: "Exércitos parados",
       dicaAuto: "{0} exércitos estão sem ordem. O comando automático ataca onde a chance é boa e leva a retaguarda até a linha.",
@@ -219,20 +284,23 @@ const FRENTES_2022 = {
       dicaOfTit: "Ofensiva especial",
       dicaOf: "{0} ataca {1} com {2}% de chance. Uma ofensiva especial ({3} Recursos) dá +50% de poder a este exército.",
       dicaRecTit: "Mais tropas",
-      dicaRec: "Você tem {0} de tropas e o inimigo {1}. Recrutar +{2} custa {3} Recursos."
+      dicaRec: "Você tem {0} de tropas e o inimigo {1}. Recrutar +{2} custa {3} Recursos.",
+      dicaFlancoTit: "Ataque de flanco",
+      dicaFlanco: "{0} e {1} podem atacar {2} juntos, de lados diferentes: chance {3}%."
     },
     eventos: {
       abriu: "Abriu a {0}: a guerra contra {1} começou.",
       fechou: "A {0} foi fechada.",
-      tomou: "{0}: você tem a maioria das regiões e o estado agora é {1}.",
-      perdeu: "{0}: o inimigo tem a maioria das regiões e o estado agora é {1}.",
+      tomou: "{0}: você tomou o estado, que agora é {1}.",
+      perdeu: "{0}: o inimigo tomou o estado, que agora é {1}.",
       capitalRisco: "⚠ Há exército inimigo encostado em Brasília! Se a capital cair, o regime cai.",
       vitoria: "Recife caiu: o governo provisório da resistência se rendeu.",
       derrota: "Brasília caiu: a resistência tomou a capital.",
       ligaCaiu: "Porto Alegre caiu: a Liga do Sul se rendeu e a Frente Sul foi fechada.",
       mobiliza: "Alistamento: +{0} de tropas para os seus exércitos.",
       ofensiva: "{0}: ofensiva especial contra {1}.",
-      capitalRecife: "Recife é a capital da Resistência: o governo constitucional se instalou no Palácio do Campo das Princesas."
+      capitalRecife: "Recife é a capital da Resistência: o governo constitucional se instalou no Palácio do Campo das Princesas.",
+      portasRecife: "Às portas de Recife: a Resistência convoca a última resistência."
     }
   }
 };

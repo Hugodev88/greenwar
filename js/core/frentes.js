@@ -1,19 +1,19 @@
-// js/core/frentes.js — Núcleo: guerra de 2022 por EXÉRCITOS nas regiões do IBGE — frentes abertas, reforços, recrutamento, ofensiva, mês de guerra. Sem DOM.
+// js/core/frentes.js — Núcleo: guerra de 2022 por EXÉRCITOS nos estados — frentes abertas, reforços, recrutamento, ofensiva, mês de guerra. Sem DOM.
 /* Só vale quando o cenário tem "frentes" (js/data/2022/frentes.js). O 1964 segue com exércitos por estado (js/core/ordens.js).
-   Estado salvo em g.war (save v12):
+   Estado salvo em g.war (save v13):
      reserve  tropas fora da guerra (antes de ela começar ficam em Brasília; viram exércitos quando a primeira frente abre)
-     armies   exércitos nas regiões (js/core/tropas.js)      seq  contador de ids      epool  { facção: reforço acumulado }
+     armies   exércitos nos estados (js/core/tropas.js)      seq  contador de ids      epool  { facção: reforço acumulado }
      fronts   [{ id (facção inimiga), opened, n (estados dela) }] — uma "frente" por inimigo com território
      gens     { idDoGeneral: idDoExército }      offAt  mês a partir do qual a ofensiva especial está liberada
-     log      batalhas dos últimos meses (relatórios)      hist  território mês a mês (tendência)      months  meses de combate
-   Política e agitação continuam por estado; o dono de um estado é quem tem a maioria das regiões dele (js/core/regioes.js).
-   Em modo frentes, g.armies fica vazio e as funções antigas (sideStr, addPlayerStrength, recruitArmy, syncMilitary, planEnemy…)
-   desviam para cá. Vitória: tomar a região de Recife. Derrota: perder a de Brasília. Porto Alegre derruba a Liga do Sul. */
+     mom      ímpeto (−3 a +3)      log  batalhas dos últimos meses (relatórios)      months  meses de combate
+   Cada estado é de um lado só (g.control). Em modo frentes, g.armies fica vazio e as funções antigas (sideStr, addPlayerStrength,
+   recruitArmy, syncMilitary, planEnemy…) desviam para cá. Vitória: tomar Recife (PE). Derrota: perder Brasília (DF).
+   Porto Alegre (RS) derruba a Liga do Sul. */
 function frontCfg(g){ const sc = g && scOf(g); return (sc && sc.frentes) || null; }
 function frontMode(g){ return !!(g && g.war && frontCfg(g)); }
 function frontFala(g, grp, k){ const F = frontCfg(g).falas; return (F[grp] && F[grp][k]) || k; }
 function frontName(g, f){ return frontFala(g, "nome", f.id || f); }
-function frontNew(g, reserve){ return { reserve: Math.max(0, Math.round(reserve || 0)), armies: [], seq: 0, epool: {}, fronts: [], gens: {}, offAt: null, log: [] }; }
+function frontNew(g, reserve){ return { reserve: Math.max(0, Math.round(reserve || 0)), armies: [], seq: 0, epool: {}, fronts: [], gens: {}, offAt: null, mom: 0, log: [] }; }
 function frontPool(g){ const W = g.war; return W ? W.reserve + tpTotal(g, "player") : 0; }
 function frontById(g, id){ return (g.war && g.war.fronts.find(f => f.id === id)) || null; }
 function frontEnemyScale(g){ const K = frontCfg(g), C = scOf(g).campaign; return (C.enemyPower ?? K.poderBase) / K.poderBase; }
@@ -26,13 +26,12 @@ function syncFronts(g){
   if (!W || !K) return;
   W.armies ||= []; W.epool ||= {};
   if (ph.noArmies){ W.reserve = 0; W.fronts = []; W.gens = {}; W.armies = []; return; }
-  if (!ph.war){ regSync(g); if (W.armies.length || W.fronts.length){ W.reserve += tpTotal(g, "player"); W.armies = []; W.fronts = []; W.gens = {}; } return; }
-  regSync(g);
+  if (!ph.war){ if (W.armies.length || W.fronts.length){ W.reserve += tpTotal(g, "player"); W.armies = []; W.fronts = []; W.gens = {}; } return; }
   for (const fac of Object.keys(K.frentes)){
     if (!(ph.enemy || []).includes(fac)) continue;
-    const n = Object.values(g.control).filter(x => x === fac).length, nr = regCount(g, fac), f = frontById(g, fac);
-    if (nr && !f) frontOpen(g, fac, Math.max(1, n));
-    else if (!nr && f) frontClose(g, f);
+    const n = Object.values(g.control).filter(x => x === fac).length, f = frontById(g, fac);
+    if (n && !f) frontOpen(g, fac, Math.max(1, n));
+    else if (!n && f) frontClose(g, f);
     else if (f && n > f.n){ W.epool[fac] = (W.epool[fac] || 0) + (n - f.n) * K.frentes[fac].porEstado * frontEnemyScale(g); f.n = n; }
     else if (f) f.n = n;
   }
@@ -41,20 +40,26 @@ function syncFronts(g){
   if (W.fronts.length && !tpArmies(g, "player").length && W.reserve > 0) frontDeploy(g);
   tpFix(g);
 }
+// Estados na linha entre você e uma facção inimiga: mine (seus, encostados nela) e theirs (dela, encostados em você)
+function frontBorder(g, fac){
+  const ph = phaseOf(g), mine = uf => sideOf(g, g.control[uf], ph) === "player";
+  return { mine: TP_UFS.filter(uf => mine(uf) && ADJ[uf].some(n => g.control[n] === fac)),
+    theirs: TP_UFS.filter(uf => g.control[uf] === fac && ADJ[uf].some(mine)) };
+}
 // Primeira frente: a reserva vira K.tropas.inicio exércitos na linha (um no caminho até a capital inimiga, os outros perto de Brasília)
 function frontDeploy(g){
   const W = g.war, T = tpK(g), f = W.fronts[0]; if (!f) return;
   const total = W.reserve, n = clamp(Math.floor(total / 12), 1, T.inicio);
-  const B = regBorder(g, f).mine, cap = tpCapReg(g), DC = regDist(cap), P = regPath(g, f, 1);
-  const first = P ? B.filter(id => REG_DATA.regs[id].adj.includes(P[0])).sort((a, b) => (DC[a] ?? 40) - (DC[b] ?? 40))[0] : null;
+  const B = frontBorder(g, f.id).mine, cap = tpCap(g), DC = ufDist(cap), P = tpGoalPath(g, f.id);
+  const first = P ? B.filter(uf => ADJ[uf].includes(P[0])).sort((a, b) => (DC[a] ?? 40) - (DC[b] ?? 40))[0] : null;
   const picks = first ? [first] : [];
-  for (const id of B.slice().sort((a, b) => (DC[a] ?? 40) - (DC[b] ?? 40) || (a < b ? -1 : 1))){
+  for (const uf of B.slice().sort((a, b) => (DC[a] ?? 40) - (DC[b] ?? 40) || (a < b ? -1 : 1))){
     if (picks.length >= n) break;
-    if (!picks.includes(id) && !picks.some(p => REG_DATA.regs[p].adj.includes(id))) picks.push(id);
+    if (!picks.includes(uf)) picks.push(uf);
   }
   if (!picks.length) picks.push(cap);
   const each = total / picks.length, mor = Math.min(70, frontMaxMorale(g));
-  picks.forEach(id => tpNew(g, "player", null, id, each, mor));
+  picks.forEach(uf => tpNew(g, "player", null, uf, each, mor));
   W.reserve = 0;
   // generais: o agressivo no exército do caminho, os outros nos seguintes
   const order = ["agressivo", "defensivo", "logistico"];
@@ -62,17 +67,20 @@ function frontDeploy(g){
 }
 // Exércitos inimigos de uma frente nova: um guarda a capital deles, os outros na linha, mais perto de Brasília
 function frontSpawn(g, fac, total){
-  const T = tpK(g), D = frontCfg(g).frentes[fac], f = frontById(g, fac);
+  const T = tpK(g), D = frontCfg(g).frentes[fac];
   const n = clamp(Math.round(total / T.porExercito), 2, D.exercitos);
-  const home = tpHome(g, "enemy", fac), DC = regDist(tpCapReg(g));
-  const B = regBorder(g, f).theirs.sort((a, b) => (DC[a] ?? 40) - (DC[b] ?? 40) || (a < b ? -1 : 1));
+  const home = tpHome(g, "enemy", fac), DC = ufDist(tpCap(g));
+  const B = frontBorder(g, fac).theirs.sort((a, b) => (DC[a] ?? 40) - (DC[b] ?? 40) || (a < b ? -1 : 1));
   const picks = [];
-  if (g.reg[home] === fac && n >= 3 && !B.includes(home)) picks.push(home);
-  for (const id of B){ if (picks.length >= n) break; if (!picks.includes(id) && !picks.some(p => REG_DATA.regs[p].adj.includes(id))) picks.push(id); }
-  for (const id of B){ if (picks.length >= n) break; if (!picks.includes(id)) picks.push(id); }
-  if (!picks.length){ const any = REG_IDS.find(id => g.reg[id] === fac); if (any) picks.push(any); }
-  const w = picks.map(id => id === home ? 0.6 : 1), sw = w.reduce((s, x) => s + x, 0);
-  picks.forEach((id, i) => tpNew(g, "enemy", fac, id, total * w[i] / sw, D.moral));
+  if (g.control[home] === fac && n >= 3 && !B.includes(home)) picks.push(home);
+  for (const uf of B){ if (picks.length >= n) break; if (!picks.includes(uf)) picks.push(uf); }
+  if (picks.length < Math.min(n, 2)){ // linha curta: o resto fica nos estados logo atrás
+    const back = TP_UFS.filter(uf => g.control[uf] === fac && !picks.includes(uf) && ADJ[uf].some(x => B.includes(x))).sort((a, b) => (DC[a] ?? 40) - (DC[b] ?? 40));
+    for (const uf of back){ if (picks.length >= n) break; picks.push(uf); }
+  }
+  if (!picks.length){ const any = TP_UFS.find(uf => g.control[uf] === fac); if (any) picks.push(any); }
+  const w = picks.map(uf => uf === home ? 0.6 : 1), sw = w.reduce((s, x) => s + x, 0);
+  picks.forEach((uf, i) => tpNew(g, "enemy", fac, uf, total * w[i] / sw, D.moral));
 }
 function frontOpen(g, fac, n){
   const W = g.war, K = frontCfg(g), D = K.frentes[fac];
@@ -125,23 +133,21 @@ function frontEnemyAdd(g, fac, add){
   list.slice().sort((a, b) => a.str - b.str).forEach((a, i, L) => tpAddTo(a, now / L.length, D.moral));
   if (!list.length) W.epool[fac] += now;
   if (W.epool[fac] >= T.novo && !full){
-    const reg = frontSpawnReg(g, "enemy", fac);
-    if (reg){ const at = tpAt(g, "enemy", reg); if (at) tpAddTo(at, W.epool[fac], D.moral); else tpNew(g, "enemy", fac, reg, W.epool[fac], D.moral); W.epool[fac] = 0; }
+    const uf = frontSpawnUF(g, "enemy", fac);
+    if (uf){ const at = tpAt(g, "enemy", uf); if (at) tpAddTo(at, W.epool[fac], D.moral); else tpNew(g, "enemy", fac, uf, W.epool[fac], D.moral); W.epool[fac] = 0; }
   }
 }
-// Lugar para um exército novo do jogador: região sua na linha, sem exército seu nem vizinho, a mais perto de Brasília
+// Lugar para um exército novo do jogador: estado seu na linha, sem exército seu, o mais perto de Brasília
 function frontNewSpot(g){
-  const mine = tpArmies(g, "player"), DC = regDist(tpCapReg(g)), L = tpLineDist(g, "player");
-  const c = REG_IDS.filter(id => L[id] === 0 && !tpAt(g, "player", id));
-  const far = c.filter(id => !mine.some(a => REG_DATA.regs[a.reg].adj.includes(id)));
-  return (far.length ? far : c).sort((a, b) => (DC[a] ?? 40) - (DC[b] ?? 40) || (a < b ? -1 : 1))[0] || frontSpawnReg(g, "player");
+  const DC = ufDist(tpCap(g)), L = tpLineDist(g, "player");
+  const c = TP_UFS.filter(uf => L[uf] === 0 && !tpAt(g, "player", uf));
+  return c.sort((a, b) => (DC[a] ?? 40) - (DC[b] ?? 40) || (a < b ? -1 : 1))[0] || frontSpawnUF(g, "player");
 }
-// Onde nasce um exército novo: capital de estado (ou a capital do lado) sob controle, sem exército, a mais perto da linha
-function frontSpawnReg(g, side, fac){
-  const L = tpLineDist(g, side, fac), own = id => side === "player" ? tpRegSide(g, id) === "player" : g.reg[id] === fac;
-  const caps = [...new Set(Object.values(REG_DATA.cap).concat([tpHome(g, side, fac)]))].filter(id => REG_DATA.regs[id] && own(id));
-  const free = caps.filter(id => !tpAt(g, side, id)), pool = free.length ? free : caps;
-  return pool.sort((a, b) => (L[a] ?? 50) - (L[b] ?? 50) || (a < b ? -1 : 1))[0] || null;
+// Onde nasce um exército novo: estado do lado ligado à capital, sem exército, o mais perto da linha (empate: o maior)
+function frontSpawnUF(g, side, fac){
+  const L = tpLineDist(g, side, fac), K = tpLinked(g, side, fac), own = uf => side === "player" ? tpSide(g, uf) === "player" : g.control[uf] === fac;
+  const all = TP_UFS.filter(uf => own(uf) && (!K || K.has(uf))), free = all.filter(uf => !tpAt(g, side, uf)), pool = free.length ? free : all;
+  return pool.sort((a, b) => (L[a] ?? 50) - (L[b] ?? 50) || (UF_WEIGHT[b] || 1) - (UF_WEIGHT[a] || 1) || (a < b ? -1 : 1))[0] || null;
 }
 /* ---------- Comando automático e plano inimigo ---------- */
 function frontPlan(g){ if (frontMode(g) && g.war.armies) tpEnemyPlan(g); }
@@ -152,45 +158,46 @@ function frontAuto(g, mode){
   return { ok: true, n, msg: n ? gfmt(frontFala(g, "tropas", n === 1 ? "autoUma" : "autoVarias"), n) : frontFala(g, "tropas", "autoNada") };
 }
 /* ---------- Recrutar e ofensiva especial ---------- */
-// Recruta numa região sua que seja capital de estado (ou Brasília) ou que já tenha um exército seu
-function frontRecruitRegs(g){
-  if (!g.reg) return [];
-  const caps = new Set(Object.values(REG_DATA.cap));
-  return REG_IDS.filter(id => tpRegSide(g, id) === "player" && (caps.has(id) || tpAt(g, "player", id)));
+// Recruta em qualquer estado seu ligado a Brasília (forma um exército novo ou reforça o que já está lá)
+function frontRecruitUFs(g){
+  if (!g.war) return [];
+  const K = tpLinked(g, "player");
+  return TP_UFS.filter(uf => tpSide(g, uf) === "player" && (!K || K.has(uf)));
 }
-function frontRecruitState(g, reg){
+function frontRecruitState(g, uf){
   const K = frontCfg(g).recruta, ph = phaseOf(g), T = tpK(g);
   if (g.ended) return { ok: false, msg: "Partida encerrada." };
   if (g.queue.length) return { ok: false, msg: "Resolva os eventos pendentes na aba História." };
   if (ph.noArmies) return { ok: false, msg: "Nesta fase você não comanda tropas." };
   if ((+g.used._recruit || 0) >= K.porMes) return { ok: false, msg: `Já recrutou ${K.porMes} vezes neste mês. Encerre o mês para recrutar de novo.` };
   if (g.money < K.custo) return { ok: false, msg: `Faltam recursos: precisa de ${K.custo} (tem ${Math.floor(g.money)}).` };
-  if (reg && (!ph.war || !g.war.fronts.length)) reg = null;
-  if (reg){
-    if (!frontRecruitRegs(g).includes(reg)) return { ok: false, msg: frontFala(g, "tropas", "recrutaOnde") };
-    if (!tpAt(g, "player", reg) && tpArmies(g, "player").length >= T.max) return { ok: false, msg: gfmt(frontFala(g, "tropas", "limite"), T.max) };
+  if (uf && (!ph.war || !g.war.fronts.length)) uf = null;
+  if (uf){
+    if (!frontRecruitUFs(g).includes(uf)) return { ok: false, msg: frontFala(g, "tropas", "recrutaOnde") };
+    if (!tpAt(g, "player", uf) && tpArmies(g, "player").length >= T.max) return { ok: false, msg: gfmt(frontFala(g, "tropas", "limite"), T.max) };
   }
-  return { ok: true, cost: K.custo, reg };
+  return { ok: true, cost: K.custo, uf };
 }
-// Região sugerida para recrutar: o seu exército mais ameaçado (ou o mais fraco na linha); sem exército, Brasília
+// Estado sugerido para recrutar: o seu exército mais ameaçado (ou o mais fraco na linha); sem exército, Brasília
 function frontRecruitPick(g){
-  const mine = tpArmies(g, "player"); if (!mine.length) return tpCapReg(g);
-  if (mine.length <= tpK(g).inicio){ const r = frontSpawnReg(g, "player"); if (r && !tpAt(g, "player", r)) return r; }
-  const L = tpLineDist(g, "player"), foe = tpArmies(g, "enemy");
-  const threat = a => foe.filter(e => e.order && e.order.type === "atacar" && e.order.to === a.reg).reduce((s, e) => s + e.str, 0);
-  return mine.slice().sort((a, b) => threat(b) - threat(a) || (L[a.reg] ?? 9) - (L[b.reg] ?? 9) || a.str - b.str)[0].reg;
+  const mine = tpArmies(g, "player"); if (!mine.length) return tpCap(g);
+  if (mine.length <= tpK(g).inicio){ const r = frontNewSpot(g); if (r && !tpAt(g, "player", r)) return r; }
+  const L = tpLineDist(g, "player"), foe = tpArmies(g, "enemy"), K = tpLinked(g, "player");
+  const threat = a => foe.filter(e => e.order && e.order.type === "atacar" && e.order.to === a.uf).reduce((s, e) => s + e.str, 0);
+  const ok = mine.filter(a => !K || K.has(a.uf));
+  return (ok.length ? ok : mine).slice().sort((a, b) => threat(b) - threat(a) || (L[a.uf] ?? 9) - (L[b.uf] ?? 9) || a.str - b.str)[0].uf;
 }
-function frontRecruit(g, reg){
+function frontRecruit(g, uf){
   const ph = phaseOf(g), war = ph.war && g.war.fronts.length;
-  if (war && !reg) reg = frontRecruitPick(g);
-  const st = frontRecruitState(g, reg); if (!st.ok) return st;
+  if (war && !uf) uf = frontRecruitPick(g);
+  const st = frontRecruitState(g, uf); if (!st.ok) return st;
   const K = frontCfg(g).recruta;
   g.money -= st.cost; g.used._recruit = (+g.used._recruit || 0) + 1;
-  if (!st.reg){ frontAdd(g, K.forca, K.moral); return { ok: true, msg: `+${K.forca} de tropas recrutadas (−${st.cost}).` }; }
-  const at = tpAt(g, "player", st.reg);
+  if (!st.uf){ frontAdd(g, K.forca, K.moral); return { ok: true, msg: `+${K.forca} de tropas recrutadas (−${st.cost}).` }; }
+  const at = tpAt(g, "player", st.uf);
   if (at){ tpAddTo(at, K.forca, K.moral); return { ok: true, msg: gfmt(frontFala(g, "tropas", "msgReforca"), tpName(g, at), K.forca, st.cost) }; }
-  const a = tpNew(g, "player", null, st.reg, K.forca, K.moral);
-  return { ok: true, msg: gfmt(frontFala(g, "tropas", "msgNovo"), tpName(g, a), regName(st.reg), st.cost), id: a.id };
+  const a = tpNew(g, "player", null, st.uf, K.forca, K.moral);
+  return { ok: true, msg: gfmt(frontFala(g, "tropas", "msgNovo"), tpName(g, a), ufName(st.uf), st.cost), id: a.id };
 }
 // Ofensiva especial: UM exército com ordem de ataque ganha ×mult de poder neste mês (custa recursos; intervalo entre usos)
 function offensiveState(g, id){
@@ -208,7 +215,7 @@ function launchOffensive(g, id){
   const st = offensiveState(g, id); if (!st.ok) return st;
   const a = tpById(g, id); if (!a) return { ok: false, msg: frontFala(g, "tropas", "ofensivaSemAtaque") };
   g.money -= st.cost; a.special = true;
-  return { ok: true, msg: gfmt(frontFala(g, "eventos", "ofensiva"), tpName(g, a), regName(a.order.to)) };
+  return { ok: true, msg: gfmt(frontFala(g, "eventos", "ofensiva"), tpName(g, a), ufName(a.order.to)) };
 }
 function cancelOffensive(g, id){
   const a = tpById(g, id); if (!a || !a.special) return { ok: false };
@@ -221,13 +228,14 @@ function frontWeary(g){ const m = (g.war && g.war.months) || 0; return Math.min(
 function frontWarMonth(g, R){
   const K = frontCfg(g), T = tpK(g), C = scOf(g).campaign, KK = C.keys, ph = phaseOf(g), W = g.war;
   syncFronts(g);
-  const ev = { month: g.month, war: !!ph.war, control0: Object.assign({}, g.control), reg0: g.reg ? Object.assign({}, g.reg) : null,
-    battles: [], flips: [], regs: [], moves: [], merges: [], start: [], orders: [] };
-  g.mil = ev; if (g.regPend){ ev.regs.push(...g.regPend); delete g.regPend; }
+  const ev = { month: g.month, war: !!ph.war, control0: Object.assign({}, g.control),
+    battles: [], flips: [], moves: [], merges: [], sieges: [], start: [], orders: [], mom0: W.mom || 0, mom: W.mom || 0 };
+  g.mil = ev;
   if (!ph.war || !W.fronts.length){ g.warNews = []; return ev; }
   if (g.autoOrders && g.autoOrders !== "off"){ const r = frontAuto(g, g.autoOrders); if (r.n) R(gfmt(frontFala(g, "tropas", r.n === 1 ? "autoLogUma" : "autoLog"), r.n)); }
-  ev.start = W.armies.map(a => ({ id: a.id, n: a.n, side: a.side, fac: a.fac, reg: a.reg, str: a.str }));
-  ev.orders = W.armies.filter(a => a.order).map(a => ({ id: a.id, side: a.side, from: a.reg, type: a.order.type, to: a.order.to, path: [a.reg].concat(a.order.path || []), special: !!a.special }));
+  const LK = {}, cutOf = a => { const k = a.side + a.fac; if (!(k in LK)) LK[k] = tpLinked(g, a.side, a.fac); return tpCut(g, a, LK[k]); };
+  ev.start = W.armies.map(a => ({ id: a.id, n: a.n, side: a.side, fac: a.fac, uf: a.uf, str: a.str, morale: Math.round(a.morale), cut: cutOf(a) }));
+  ev.orders = W.armies.filter(a => a.order).map(a => ({ id: a.id, side: a.side, from: a.uf, type: a.order.type, to: a.order.to, path: [a.uf].concat(a.order.path || []), special: !!a.special, tatica: a.order.tatica || null }));
   const cf = g.ceasefire > 0;
   if (cf){ g.ceasefire--; R("Trégua em vigor: sem combates neste mês. As tropas descansam.", "good");
     for (const a of W.armies) if (a.special){ a.special = false; g.money += K.ofensiva.custo; } }
@@ -238,8 +246,9 @@ function frontWarMonth(g, R){
   }
   MIL_QUIET = true;
   tpResolve(g, ev);
+  if (!cf) tpSiege(g, ev);
   MIL_QUIET = false;
-  for (const b of ev.battles){ if (b.took){ ev.regs.push(b.took); if (b.took.state) ev.flips.push(b.took.state); } }
+  for (const b of ev.battles) if (b.took) ev.flips.push(b.took);
   syncFronts(g);
   if (ev.battles.length) g.stat.battles = (g.stat.battles || 0) + 1;
   W.log = (W.log || []).concat(ev.battles).slice(-40);
@@ -248,21 +257,32 @@ function frontWarMonth(g, R){
   const won = ev.battles.filter(b => b.took && b.side === "player"), lost = ev.battles.filter(b => b.took && b.side === "enemy");
   const held = ev.battles.filter(b => !b.win && b.side === "enemy"), fail = ev.battles.filter(b => !b.win && b.side === "player");
   if (ev.battles.length) R(gfmt(frontFala(g, "tropas", "resumoMes"), ev.battles.length, won.length, lost.length), won.length > lost.length ? "good" : lost.length > won.length ? "bad" : "info");
-  if (won.length) R(gfmt(frontFala(g, "regioes", "listaGanhou"), won.map(b => regName(b.reg)).join(", ")), "good");
-  if (lost.length) R(gfmt(frontFala(g, "regioes", "listaPerdeu"), "", lost.map(b => regName(b.reg)).join(", ")), "bad");
-  if (held.length) R(gfmt(frontFala(g, "tropas", "logSegurou"), held.map(b => regName(b.reg)).join(", ")), "good");
-  if (fail.length) R(gfmt(frontFala(g, "tropas", "logFalhou"), fail.map(b => regName(b.reg)).join(", ")), "bad");
+  for (const b of ev.battles) if (b.origins >= 2 || b.final || (b.uf === b.cap)) R(frontFala(g, "drama", b.drama), (b.side === "player") === b.win ? "good" : "bad");
+  if (won.length) R(gfmt(frontFala(g, "mapa", "listaGanhou"), won.map(b => ufName(b.uf)).join(", ")), "good");
+  if (lost.length) R(gfmt(frontFala(g, "mapa", "listaPerdeu"), lost.map(b => ufName(b.uf)).join(", ")), "bad");
+  if (held.length) R(gfmt(frontFala(g, "tropas", "logSegurou"), held.map(b => ufName(b.uf)).join(", ")), "good");
+  if (fail.length) R(gfmt(frontFala(g, "tropas", "logFalhou"), fail.map(b => ufName(b.uf)).join(", ")), "bad");
   for (const b of ev.battles) for (const x of b.lost) R(gfmt(frontFala(g, "tropas", x.side === "player" ? "logDestruido" : "logDestruiuInimigo"), tpName(g, x)), x.side === "player" ? "bad" : "good");
-  for (const m of ev.flips) R(gfmt(frontFala(g, "eventos", m.side === "player" ? "tomou" : "perdeu"), MAP_DATA.states[m.uf].name, (scOf(g).story.factions[m.to] || {}).label || m.to), m.side === "player" ? "good" : "bad");
-  if (lost.length >= 2 || ev.flips.some(m => m.side === "enemy")) W.lostAt = g.month;
-  // fim da guerra: região da sua capital perdida / região-capital do reduto inimigo tomada
-  const capR = tpCapReg(g);
-  if (tpRegSide(g, capR) === "enemy"){ W.end = { to: "fim_restauracao", why: frontFala(g, "eventos", "derrota") }; R(W.end.why, "bad"); }
-  else if (tpArmies(g, "enemy").some(e => REG_DATA.regs[capR].adj.includes(e.reg))) R(frontFala(g, "eventos", "capitalRisco"), "bad");
+  for (const s of ev.sieges) if (s.surrender) R(gfmt(frontFala(g, "cerco", s.side === "player" ? "rendeuSeu" : "rendeuInimigo"), tpName(g, s), ufName(s.uf)), s.side === "player" ? "bad" : "good");
+  for (const a of W.armies) if (a.cut === 1) R(gfmt(frontFala(g, "cerco", a.side === "player" ? "aviso" : "inimigo"), tpName(g, a), ufName(a.uf)), a.side === "player" ? "bad" : "good");
+  if (lost.length >= 2) W.lostAt = g.month;
+  // ímpeto: vitórias e derrotas do mês
+  if (!cf){ const d = tpMomentumMonth(g, ev); ev.mom = W.mom;
+    if (d > 0 && W.mom >= 2) R(frontFala(g, "impeto", "sobe"), "good"); else if (d < 0 && W.mom <= -2) R(frontFala(g, "impeto", "desce"), "bad"); }
+  // fim da guerra: Brasília perdida / capital (reduto) inimiga tomada
+  const cap = tpCap(g);
+  if (tpSide(g, cap) === "enemy"){ W.end = { to: "fim_restauracao", why: frontFala(g, "eventos", "derrota") }; R(W.end.why, "bad"); }
+  else if (tpArmies(g, "enemy").some(e => ADJ[cap].includes(e.uf))) R(frontFala(g, "eventos", "capitalRisco"), "bad");
   for (const fac in K.frentes){
-    const D = K.frentes[fac]; if (!ev.regs.some(m => m.id === REG_DATA.cap[D.reduto] && m.side === "player")) continue;
+    const D = K.frentes[fac]; if (!ev.flips.some(m => m.uf === D.reduto && m.side === "player")) continue;
     if (D.vitoria && !W.end){ W.end = { to: D.vitoria, why: frontFala(g, "eventos", "vitoria") }; R(W.end.why, "good"); }
     else if (!D.vitoria) frontCrush(g, fac, R);
+  }
+  // às portas de Recife: primeiro exército seu vizinho de Recife (grande evento; a Resistência faz a última resistência)
+  if (!W.end) for (const fac in K.frentes){
+    const D = K.frentes[fac]; if (!D.vitoria || !D.portasFlag || g.flags.includes(D.portasFlag) || g.control[D.reduto] !== fac) continue;
+    if (tpArmies(g, "player").some(a => ADJ[D.reduto].includes(a.uf))){ g.flags.push(D.portasFlag); R(frontFala(g, "eventos", "portasRecife"), "info");
+      for (const e of tpArmies(g, "enemy")) if (e.fac === fac) e.morale = Math.min(100, e.morale + 10); }
   }
   if (!cf){
     // reforços dos dois lados
@@ -275,7 +295,7 @@ function frontWarMonth(g, R){
       const add = Math.min(Math.max(0, cap - have), Math.max(0, ((D.reforco + 0.25 * n) * sc + (f.id === ph.enemyMain ? foreignFoes(g) * 1.5 + (g.enemyBoost || 0) : 0)) * tired - malusNow(g) * 2));
       if (add > 0) frontEnemyAdd(g, f.id, add);
     }
-    const share = regShare(g);
+    const share = frontShare(g);
     if (share > 0.65) applyStats(g, { [KK.mil]: 1 }); else if (share < 0.35){ applyStats(g, { [KK.mil]: -2 }); R("Você controla pouco território: o moral das tropas cai.", "bad"); }
   }
   // moral: quem não lutou descansa
@@ -284,21 +304,25 @@ function frontWarMonth(g, R){
     if (a.fought) continue;
     const gen = tpGen(g, a), extra = gen && K.tracos[gen.traco] ? (K.tracos[gen.traco].moral || 0) : 0;
     const top = a.side === "player" ? mx : (K.frentes[a.fac] || {}).moral || 65;
-    if (a.morale < top) a.morale = Math.min(top, a.morale + M.descanso + extra);
+    if (a.morale < top && !a.cut) a.morale = Math.min(top, a.morale + M.descanso + extra);
   }
   for (const a of W.armies){ delete a.moved; delete a.fought; }
-  regHistPush(g);
   g.enemyBoost = Math.max(0, (g.enemyBoost || 0) - 0.25);
   if (!W.end) frontPlan(g);
   for (const t of (g.warNews || [])) R(t, "bad"); g.warNews = [];
   return ev;
+}
+// Parte do território em guerra que é sua (peso dos estados), entre você e os inimigos com frente aberta
+function frontShare(g){
+  let p = 0, e = 0; for (const uf of TP_UFS){ const s = tpSide(g, uf), w = UF_WEIGHT[uf] || 1; if (s === "player") p += w; else if (s === "enemy" && frontById(g, g.control[uf])) e += w; }
+  return p + e ? p / (p + e) : 1;
 }
 // Reduto da Liga tomado: os estados separatistas voltam para você e a frente fecha
 function frontCrush(g, fac, R){
   const ph = phaseOf(g), before = Object.assign({}, g.control);
   const to = ph.playerMain || ph.player[0];
   for (const uf in g.control) if (g.control[uf] === fac) g.control[uf] = to;
-  if (g.reg) for (const id in g.reg) if (g.reg[id] === fac){ g.reg[id] = to; if (g.mil) (g.mil.regs ||= []).push({ id, uf: REG_DATA.regs[id].uf, from: fac, to, side: "player", front: fac }); }
+  if (g.mil) for (const uf in before) if (before[uf] === fac) (g.mil.flips ||= []).push({ uf, from: fac, to, side: "player", front: fac, crush: true });
   if (g.war) g.war.armies = g.war.armies.filter(a => !(a.side === "enemy" && a.fac === fac));
   noteChanges(g, before);
   if (southOn(g) && fac === southCfg(g).fac){ g.south.state = "esmagada"; if (!g.flags.includes("sul_esmagado")) g.flags.push("sul_esmagado"); }
@@ -313,15 +337,15 @@ function frontFx(g, fx){
   if (fx.org) for (const a of tpArmies(g, "player")) up(a, fx.org);
   if (fx.enemyLoss){ const a = tpArmies(g, "enemy").sort((x, y) => y.str - x.str)[0]; if (a){ a.str = Math.max(1, a.str - fx.enemyLoss); } }
 }
-// Força por estado (agitação, revoltas): soma dos exércitos nas regiões do estado (a reserva fica em Brasília)
+// Força por estado (agitação, revoltas): o exército do lado no estado (a reserva fica em Brasília)
 function frontStr(g, side, uf){
   const W = g.war; if (!W) return 0;
   if (uf === undefined) return (side === "player" ? W.reserve : 0) + tpTotal(g, side);
   let s = side === "player" && uf === frontCfg(g).capital ? W.reserve : 0;
-  for (const a of tpArmies(g, side)) if (REG_DATA.regs[a.reg] && REG_DATA.regs[a.reg].uf === uf) s += a.str;
+  for (const a of tpArmies(g, side)) if (a.uf === uf) s += a.str;
   return s;
 }
-// Save v7 → v8: exércitos viram tropas das frentes (formato antigo; o v12 converte de novo em exércitos por região)
+// Save v7 → v8: exércitos viram tropas das frentes (formato antigo; o v13 converte de novo em exércitos nos estados)
 function migrateFronts(g){
   if (!frontCfg(g) || !Array.isArray(g.armies)) return;
   const ph = phaseOf(g), mine = g.armies.filter(a => a.side === "player").reduce((s, a) => s + a.str, 0);
@@ -337,32 +361,59 @@ function migrateFronts(g){
   }
   g.warNews = [];
 }
-// Save v11 → v12: a força de cada frente vira exércitos nas regiões da linha (os seus do seu lado, os do inimigo do lado dele)
-function migrateV12(g){
-  if (!regOn(g) || !g.war) return;
-  const W = g.war, old = W.fronts || [], ph = phaseOf(g), K = frontCfg(g);
-  const gens = W.gens || {};
-  Object.assign(W, { armies: [], seq: 0, epool: {}, log: [], gens: {} });
-  delete W.siege;
-  regSync(g);
-  W.fronts = [];
-  if (ph.war && !ph.noArmies){
-    let mine = 0;
-    for (const f of old){
-      if (!regCount(g, f.id)) { mine += f.troops || 0; continue; }
-      const nf = { id: f.id, n: f.n || 1, opened: f.opened ?? g.month }; W.fronts.push(nf);
-      frontSpawn(g, f.id, Math.max(10, f.enemy || 0));
-      for (const a of tpArmies(g, "enemy").filter(a => a.fac === f.id)) a.morale = clamp(Math.round(f.emorale ?? 60), 20, 80);
-      mine += f.troops || 0;
-    }
-    W.reserve = (W.reserve || 0) + mine;
-    if (W.fronts.length) frontDeploy(g);
-    for (const a of tpArmies(g, "player")) a.morale = clamp(Math.round(old[0] && old[0].morale != null ? old[0].morale : 60), 20, 90);
-    // generais antigos (por frente) vão para exércitos, na ordem
-    const mineA = tpArmies(g, "player"); let i = 0;
-    for (const id in gens) if (gens[id] && mineA[i]) W.gens[id] = mineA[i++].id;
-    if (W.fronts.length) tpEnemyPlan(g);
-  } else W.reserve = (W.reserve || 0) + old.reduce((s, f) => s + (f.troops || 0), 0);
+// Save v8…v12 → v13: sem regiões do IBGE nem linha de frente. Cada estado volta a ser de um lado só, e os exércitos ficam nos estados:
+//   - v12 (exércitos nas regiões): cada exército vai para o estado da região (código IBGE: 2 primeiros dígitos = estado);
+//   - v8…v11 (força por frente): a força de cada frente vira exércitos na linha (os seus do seu lado, os do inimigo do lado dele).
+const IBGE_UF = { 11:"RO",12:"AC",13:"AM",14:"RR",15:"PA",16:"AP",17:"TO",21:"MA",22:"PI",23:"CE",24:"RN",25:"PB",26:"PE",27:"AL",28:"SE",29:"BA",
+  31:"MG",32:"ES",33:"RJ",35:"SP",41:"PR",42:"SC",43:"RS",50:"MS",51:"MT",52:"GO",53:"DF" };
+// "Em disputa" (saves antigos) vira o lado com mais vizinhos (empate: o seu)
+function dropContested(g){
+  const S = scOf(g).story, valid = k => !!S.factions[k];
+  const fix = ctl => { if (!ctl) return; for (const uf in ctl) if (!valid(ctl[uf])){
+    const n = {}; for (const x of ADJ[uf] || []) if (valid(ctl[x])) n[ctl[x]] = (n[ctl[x]] || 0) + 1;
+    const ph = phaseOf(g), pick = Object.keys(n).sort((a, b) => n[b] - n[a] || (sideOf(g, b, ph) === "player") - (sideOf(g, a, ph) === "player"))[0];
+    ctl[uf] = pick || (ph.playerMain || (ph.player || [])[0] || S.defaultFaction); } };
+  fix(g.control);
+  if (g.mil && g.mil.control0) fix(g.mil.control0);
+  g.lastMapChanges = (g.lastMapChanges || []).filter(c => valid(c.to));
+}
+function migrateV13(g){
+  if (!frontCfg(g)) return; // só o 2022 mudou
+  dropContested(g);
+  // regiões: o estado fica com quem tinha a maioria delas (já está em g.control); o mapa de regiões some
+  delete g.reg; delete g.regHist; delete g.regPend;
+  const W = g.war; if (!W){ if (g.mil) g.mil = null; return; }
+  delete W.siege; delete W.hist; delete W.axis; W.mom = W.mom || 0; W.epool ||= {}; W.gens ||= {};
+  const ph = phaseOf(g);
+  if (Array.isArray(W.armies) && W.armies.some(a => a.reg)){ // v12
+    for (const a of W.armies){ a.uf = IBGE_UF[String(a.reg).slice(0, 2)] || a.uf || tpCap(g); delete a.reg; if (a.order) a.order = null; }
+    W.fronts = (W.fronts || []).map(f => ({ id: f.id, n: f.n || 1, opened: f.opened ?? g.month }));
+    tpFix(g);
+  } else if (!Array.isArray(W.armies) || !W.armies.length){ // v8…v11
+    const old = W.fronts || [], gens = W.gens || {};
+    Object.assign(W, { armies: [], seq: 0, epool: {}, log: [], gens: {}, fronts: [] });
+    if (ph.war && !ph.noArmies){
+      let mine = 0;
+      for (const f of old){
+        mine += f.troops || 0;
+        if (!Object.values(g.control).includes(f.id) || !frontCfg(g).frentes[f.id]) continue;
+        W.fronts.push({ id: f.id, n: f.n || 1, opened: f.opened ?? g.month });
+        frontSpawn(g, f.id, Math.max(10, f.enemy || 0));
+        for (const a of tpArmies(g, "enemy").filter(a => a.fac === f.id)) a.morale = clamp(Math.round(f.emorale ?? 60), 20, 80);
+      }
+      W.reserve = (W.reserve || 0) + mine;
+      if (W.fronts.length) frontDeploy(g);
+      for (const a of tpArmies(g, "player")) a.morale = clamp(Math.round(old[0] && old[0].morale != null ? old[0].morale : 60), 20, 90);
+      // generais antigos (por frente) vão para exércitos, na ordem
+      const mineA = tpArmies(g, "player"); let i = 0;
+      for (const id in gens) if (gens[id] && mineA[i]) W.gens[id] = mineA[i++].id;
+    } else W.reserve = (W.reserve || 0) + old.reduce((s, f) => s + (f.troops || 0), 0);
+  }
+  for (const a of W.armies || []){ delete a.cut; a.order = null; }
+  for (const id in W.gens) if (W.gens[id] && !tpById(g, W.gens[id])) W.gens[id] = null;
+  // Recife: capital da Resistência anunciada (o grande evento já passou ou vem agora)
+  if (ph.war) for (const fac in frontCfg(g).frentes){ const D = frontCfg(g).frentes[fac]; if (D.capitalFlag && Object.values(g.control).includes(fac) && !g.flags.includes(D.capitalFlag)) g.flags.push(D.capitalFlag); }
+  if (ph.war && W.fronts.length) tpEnemyPlan(g);
   if (g.mil) g.mil = null;
   g.warNews = [];
 }
@@ -378,7 +429,9 @@ function frontReport(g, rec){
   const D = frontCfg(g).falas.dicasTropas, tips = [];
   const mineWon = rec.side === "player" ? rec.win : !rec.win;
   if (!mineWon) tips.push(rec.side === "player" ? (rec.chance < 50 ? "juntar" : "azar") : "defender");
+  if (rec.side === "player" && !mineWon && rec.origins < 2) tips.push("flanco");
   if (rec.rows.some(r => r.k === "terreno" || r.k === "reduto")) tips.push("terreno");
+  if (rec.rows.some(r => r.k === "cercado") || mineWon) tips.push("cerco");
   if (rec.side === "player" && !rec.special) tips.push("ofensiva");
   tips.push("recrutar");
   const pPow = rec.side === "player" ? rec.A : rec.D, ePow = rec.side === "player" ? rec.D : rec.A;

@@ -43,7 +43,7 @@ function setOrder(g, id, type, to){
 const RECRUIT_STR = 20, RECRUIT_PER_MONTH = 2;
 function recruitsLeft(g){ return Math.max(0, RECRUIT_PER_MONTH - (+g.used._recruit || 0)); }
 function recruitState(g, uf){
-  if (frontMode(g)) return frontRecruitState(g, uf); // 2022: uf = região (js/core/frentes.js)
+  if (frontMode(g)) return frontRecruitState(g, uf); // 2022: uf = estado (js/core/frentes.js)
   const ph = phaseOf(g), cost = recruitCost(g);
   if (g.ended) return { ok: false, msg: "Partida encerrada." };
   if (g.queue.length) return { ok: false, msg: "Resolva os eventos pendentes na aba História." };
