@@ -152,5 +152,5 @@ function tabDecisoes(el){
   if (UI.ffull && !tabDecisoes._esc){ tabDecisoes._esc = e => { if (e.key === "Escape" && UI.ffull && UI.tab === "decisoes" && !coachBusy()){ UI.ffull = false; document.body.classList.remove("noscroll"); document.removeEventListener("keydown", tabDecisoes._esc); tabDecisoes._esc = null; const b = $("#tabBody"); if (b) tabDecisoes(b); } }; document.addEventListener("keydown", tabDecisoes._esc); }
   if ($("#fClose")) $("#fClose").onclick = () => { UI.selFocus = null; tabDecisoes(el); };
   if ($("#fStart")) $("#fStart").onclick = () => afterAct(startFocus(G, sel.id));
-  if ($("#fCancel")) $("#fCancel").onclick = () => { if (confirm("Cancelar o foco atual? O progresso será perdido.")) afterAct(cancelFocus(G)); };
+  if ($("#fCancel")) $("#fCancel").onclick = () => { if (confirm(trText(focusCancelPrompt(G)))) afterAct(cancelFocus(G)); };
 }

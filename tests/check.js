@@ -277,6 +277,59 @@ for (const sc of SCENARIOS) {
   console.log("  Finais em 40.000 partidas aleatórias:", JSON.stringify(endings));
   for (const [e, set] of Object.entries(endMaps)) console.log(`    mapa final ${e}: ${[...set].slice(0,3).join("  |  ")}${set.size>3?` (+${set.size-3})`:""}`);
 }
+// ---- regressão: cancelar um foco devolve o ponto de ação e os Recursos só no mesmo turno ----
+{
+  const API = new Function(JOGO.codigo + "; return { SCENARIOS, newCampaign, endTurn, choose, queueChoices, focusTree, focusStatus, focusCheck, startFocus, cancelFocus, focusCancelPrompt, apFor, convertMoney };")();
+  const fs = require("fs"), path = require("path");
+  const EN = new Function(fs.readFileSync(path.join(JOGO.RAIZ, "js/i18n/en.js"), "utf8") + "; return I18N_EN;")();
+  const trSrc = fs.readFileSync(path.join(JOGO.RAIZ, "js/i18n/traducao.js"), "utf8").split("\ndocument.__ptTitle")[0];
+  const tr = new Function("I18N_EN", "SET", "document", trSrc + "; return trCore;")(EN, { lang: "en" }, {});
+  const sc = API.SCENARIOS.find(s => s.id === "brasil2022"); let casos = 0;
+  const drain = g => { while (g.queue.length && !g.ended){ const ch = API.queueChoices(g); const ok = ch.findIndex(c => c.ok); API.choose(g, ok < 0 ? 0 : ok); } };
+  const pick = g => API.focusTree(g).nodes.find(F => !API.focusCheck(g, F.id));
+  for (let seed = 1; seed <= 12; seed++){
+    const g = API.newCampaign(sc, seed); drain(g);
+    // avança alguns meses concluindo focos até aparecer um com custo em Recursos
+    for (let t = 0; t < seed % 5 && !g.ended; t++){ const P = pick(g); if (P && !g.focus.active) API.startFocus(g, P.id); API.endTurn(g); drain(g); }
+    if (g.ended) continue;
+    if (g.focus.active) API.cancelFocus(g);
+    g.money = Math.max(g.money, 40);
+    const F = pick(g); if (!F){ err(`foco/cancelar #${seed}: nenhum foco disponível`); continue; }
+    const cost0 = F.cost; F.cost = 5; // os focos de 2022 só custam PA; um custo de teste confere o reembolso de Recursos
+    const ap0 = g.ap, m0 = g.money, act0 = g.stat.actions;
+    // mesmo turno: começar e cancelar várias vezes não perde nem gera pontos
+    for (let i = 0; i < 5; i++){
+      if (!API.startFocus(g, F.id).ok){ err(`foco/cancelar #${seed}: não reiniciou ${F.id}`); break; }
+      if (!/devolvidos\.$/.test(API.focusCancelPrompt(g))) err(`foco/cancelar #${seed}: confirmação do mesmo turno não fala do reembolso`);
+      const r = API.cancelFocus(g);
+      if (!r.ok || !/devolvidos/.test(r.msg)) err(`foco/cancelar #${seed}: mensagem sem reembolso: ${r.msg}`);
+      if (g.ap !== ap0 || g.money !== m0) err(`foco/cancelar #${seed}: cancelar no mesmo turno deixou PA ${ap0}→${g.ap}, Recursos ${m0}→${g.money}`);
+    }
+    F.cost = cost0;
+    if (g.stat.actions !== act0) err(`foco/cancelar #${seed}: contagem de ações mudou (${act0}→${g.stat.actions})`);
+    // converter Recursos em ação depois de começar não faz perder o reembolso
+    if (API.convertMoney){ g.money += 50; const apA = g.ap; API.startFocus(g, F.id); const cv = API.convertMoney(g); API.cancelFocus(g); if (cv.ok && g.ap !== apA + 1) err(`foco/cancelar #${seed}: conversão + cancelar deixou PA ${apA}→${g.ap}`); }
+    // reembolso nunca passa do máximo do turno
+    API.startFocus(g, F.id); const tot = API.apFor(g).total + (g.used.convert ? 1 : 0); g.ap = tot; g.focus.paid.before = Math.min(g.focus.paid.before, tot); API.cancelFocus(g);
+    if (g.ap > tot) err(`foco/cancelar #${seed}: reembolso passou do máximo (${g.ap} > ${tot})`);
+    // turno anterior: não devolve, e a confirmação avisa
+    g.ap = ap0; const F2 = pick(g); API.startFocus(g, F2.id); drain(g); API.endTurn(g); drain(g);
+    if (g.ended) continue;
+    // se o foco já terminou no turno, começa outro e simula a virada do turno
+    if (g.focus.active !== F2.id){ const F4 = pick(g); if (!F4) continue; API.startFocus(g, F4.id); g.turn++; }
+    if (!/turno anterior/.test(API.focusCancelPrompt(g))) err(`foco/cancelar #${seed}: confirmação de turno anterior não avisa que não há reembolso`);
+    const ap1 = g.ap, m1 = g.money, r2 = API.cancelFocus(g);
+    if (g.ap !== ap1 || g.money !== m1) err(`foco/cancelar #${seed}: devolveu PA/Recursos de um foco de turno anterior`);
+    if (!/nada foi devolvido/.test(r2.msg)) err(`foco/cancelar #${seed}: mensagem de turno anterior sem aviso`);
+    // save antigo sem "paid": cancela sem devolver e sem quebrar
+    const F3 = pick(g); if (F3){ API.startFocus(g, F3.id); delete g.focus.paid; const a3 = g.ap; API.cancelFocus(g); if (g.ap !== a3) err(`foco/cancelar #${seed}: save sem registro de pagamento devolveu PA`); }
+    casos++;
+  }
+  for (const s of ["Cancelar o foco atual? Ele começou neste turno, então o ponto de ação e os Recursos gastos para iniciá-lo serão devolvidos.", "Cancelar o foco atual? O progresso será perdido e, como ele começou num turno anterior, o ponto de ação e os Recursos gastos não serão devolvidos.", "Foco cancelado: Reunir o núcleo político. Ponto de ação e Recursos devolvidos.", "Foco cancelado: Reunir o núcleo político. O progresso foi perdido (começou num turno anterior, nada foi devolvido)."]){
+    const r = tr(s); if (!r || /[ãçõé]/.test(r)) err(`foco/cancelar: sem inglês: ${s} → ${r}`);
+  }
+  console.log(`\nFoco cancelado: reembolso no mesmo turno, sem reembolso em turno anterior e sem passar do máximo — ${casos} casos OK`);
+}
 // ---- saves: migração v2 → v4 e v3 → v4, e um combate de teste ----
 {
   const API = new Function(JOGO.codigo + "; return { SCENARIOS, scOf, newCampaign, migrateSave, SAVE_VERSION, endTurn, sideStr, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices, battleReport, advisorTips, advisorDo, advisorFrontTips, frontMode, frontReport, frontPool, frontCfg, southRevolt, setFrontPosture, launchOffensive, offensiveState, coupState, coupStoryTip, coupReadiness, golpeCfg, endingGrade, earnedAchievements, achMerge, CONQUISTAS };")();

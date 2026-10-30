@@ -53,13 +53,34 @@ function focusCheck(g, id){
 function startFocus(g, id){
   const bad = focusCheck(g, id); if (bad) return { ok: false, msg: bad };
   const T = focusTree(g), F = focusDef(g, id);
-  g.ap -= (T.ap ?? 1); g.money -= (F.cost || 0); g.focus.active = id; g.focus.prog = 0; g.focus.started = g.month; g.stat.actions++;
+  const ap = T.ap ?? 1, money = F.cost || 0;
+  // guarda o que foi pago neste turno: cancelar no mesmo turno devolve tudo (ver cancelFocus)
+  g.focus.paid = { turn: g.turn, ap, money, before: g.ap };
+  g.ap -= ap; g.money -= money; g.focus.active = id; g.focus.prog = 0; g.focus.started = g.month; g.stat.actions++;
   return { ok: true, msg: `Foco iniciado: ${F.name} (${F.months} ${F.months === 1 ? "mês" : "meses"}).` };
+}
+// Reembolso ao cancelar: só no mesmo turno em que o foco começou (começar e cancelar de novo nunca gera pontos).
+function focusCancelRefund(g){
+  const f = g.focus, p = f && f.active && f.paid;
+  return p && p.turn === g.turn ? p : null;
+}
+function focusCancelPrompt(g){
+  return focusCancelRefund(g)
+    ? "Cancelar o foco atual? Ele começou neste turno, então o ponto de ação e os Recursos gastos para iniciá-lo serão devolvidos."
+    : "Cancelar o foco atual? O progresso será perdido e, como ele começou num turno anterior, o ponto de ação e os Recursos gastos não serão devolvidos.";
 }
 function cancelFocus(g){
   if (!g.focus || !g.focus.active || g.ended) return { ok: false, msg: "Nenhum foco em andamento" };
-  const n = focusName(g, g.focus.active); g.focus.active = null; g.focus.prog = 0;
-  return { ok: true, msg: `Foco cancelado: ${n}. O progresso foi perdido.` };
+  const p = focusCancelRefund(g), n = focusName(g, g.focus.active);
+  g.focus.active = null; g.focus.prog = 0; g.focus.paid = null;
+  if (p){
+    // nunca passa do máximo do turno (base + bônus + conversão de Recursos já feita), nem do que havia antes de começar
+    const K = scOf(g).campaign.convert, conv = g.used && g.used.convert && K ? K.ap : 0;
+    const max = Math.max(Math.max(1, (g.apParts || []).reduce((s, x) => s + (x.v || 0), 0)) + conv, p.before ?? 0);
+    g.ap = Math.min(g.ap + p.ap, max); g.money += p.money; g.stat.actions = Math.max(0, (g.stat.actions || 0) - 1);
+    return { ok: true, msg: `Foco cancelado: ${n}. Ponto de ação e Recursos devolvidos.` };
+  }
+  return { ok: true, msg: `Foco cancelado: ${n}. O progresso foi perdido (começou num turno anterior, nada foi devolvido).` };
 }
 function focusUnlocks(g, F){
   const C = scOf(g).campaign, flag = "fo_" + F.id, out = [], L = dipLabels(g);

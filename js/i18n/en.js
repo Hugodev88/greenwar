@@ -1615,7 +1615,14 @@ const I18N_EN = {
   "Detalhes do foco": "Focus details",
   "● Disponível": "● Available",
   "Exclusivo com": "Exclusive with",
-  "No national focus in progress —": "No national focus in progress —"
+  "No national focus in progress —": "No national focus in progress —",
+  "Cancelar o foco atual? Ele começou neste turno, então o ponto de ação e os Recursos gastos para iniciá-lo serão devolvidos.": "Cancel the current focus? It started this turn, so the action point and Resources spent to start it will be refunded.",
+  "Cancelar o foco atual? O progresso será perdido e, como ele começou num turno anterior, o ponto de ação e os Recursos gastos não serão devolvidos.": "Cancel the current focus? Progress will be lost and, since it started in an earlier turn, the action point and Resources spent will not be refunded.",
+  "Foco cancelado": "Focus cancelled",
+  "Ponto de ação e Recursos devolvidos.": "Action point and Resources refunded.",
+  "Ponto de ação e Recursos devolvidos": "Action point and Resources refunded",
+  "O progresso foi perdido (começou num turno anterior, nada foi devolvido).": "Progress lost (it started in an earlier turn, nothing was refunded).",
+  "O progresso foi perdido (começou num turno anterior, nada foi devolvido)": "Progress lost (it started in an earlier turn, nothing was refunded)"
 
  },
  "tpl": {
