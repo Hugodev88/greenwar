@@ -1044,7 +1044,29 @@ const I18N_EN = {
   "No Fácil, a interface é simples: os exércitos agem sozinhos e Diplomacia e Facções ficam no botão “Mais”. Dá para mudar isso em Configurações.": "On Easy the interface is simple: armies act on their own and Diplomacy and Factions sit behind the “More” button. You can change this in Settings.",
   "Exércitos no automático": "Armies on automatic",
   "No modo simples, seus exércitos agem sozinhos todo mês: atacam onde a chance é boa e defendem o resto. Você só precisa recrutar quando quiser mais tropas.": "In simple mode your armies act on their own every month: they attack where the odds are good and defend elsewhere. You only need to recruit when you want more troops.",
-  "Quer controlar cada exército? Clique em “Comandar manualmente”.": "Want to control each army? Click “Command manually”."
+  "Quer controlar cada exército? Clique em “Comandar manualmente”.": "Want to control each army? Click “Command manually”.",
+  "Chefe de gabinete": "Chief of staff",
+  "Conselheira": "Advisor",
+  "Fazer isso": "Do it",
+  "Ver agora": "See now",
+  "Decisão esperando": "Decision waiting",
+  "Exércitos parados": "Idle armies",
+  "Mais tropas": "More troops",
+  "Recursos quase no limite": "Resources near the cap",
+  "Decisões nacionais": "National decisions",
+  "Ações sobrando": "Actions left",
+  "Tudo em ordem": "All in order",
+  "Esconder até o próximo mês": "Hide until next month",
+  "Retrato de Marta Siqueira (personagem fictícia)": "Portrait of Marta Siqueira (fictional character)",
+  "Automática (Fácil e Normal)": "Automatic (Easy and Normal)",
+  "Sempre ligada": "Always on",
+  "Desligada": "Off",
+  "Tem um acontecimento esperando sua resposta na aba História. O mês só avança depois que você escolher.": "An event is waiting for your answer in the Story tab. The month only moves on after you choose.",
+  "Um exército está sem ordem neste mês. Deixe as tropas agirem sozinhas: elas atacam onde a chance é boa e defendem o resto.": "One army has no order this month. Let the troops act on their own: they attack where the odds are good and defend elsewhere.",
+  "Já fizemos o que dava neste mês. Quando estiver pronto, encerre o mês.": "We've done what we could this month. When you're ready, end the month.",
+  "Ordens automáticas ligadas: as tropas agem sozinhas todo mês.": "Automatic orders on: troops act on their own every month.",
+  "Sua conselheira": "Your advisor",
+  "Não precisa seguir: o × esconde as dicas até o próximo mês, e em Configurações dá para desligar.": "You don't have to follow them: the × hides the tips until next month, and you can turn them off in Settings."
 
  },
  "tpl": {
@@ -1337,6 +1359,20 @@ const I18N_EN = {
   "força {0} (local)": "strength {0} (local)",
   "Alistamento: +{0} de força para exércitos descansando em território seu.": "Enlistment: +{0} strength for armies resting in your territory.",
   "Aumenta a simpatia pela sua causa (rumo a {0} = adesão).": "Raises sympathy for your cause ({0} = the state joins you).",
-  "contra {0} exército e guarnição — força {1}.": "against {0} army and garrison — strength {1}."
+  "contra {0} exército e guarnição — força {1}.": "against {0} army and garrison — strength {1}.",
+  "Este grupo está quase em crise com você (lealdade {0}). Agradar custa {1} Recursos e evita problemas maiores.": "This group is close to a crisis with you (loyalty {0}). Pleasing them costs {1} Resources and avoids bigger trouble.",
+  "Este grupo está quase em crise com você (lealdade {0}). Vale agradar antes que ele cause problemas.": "This group is close to a crisis with you (loyalty {0}). Worth pleasing them before they cause trouble.",
+  "Está baixo ({0}). Se cair demais, a campanha pode acabar. Esta ação ajuda:": "It's low ({0}). If it drops too far, the campaign can end. This action helps:",
+  "A tensão está em {0} de {1}. Em {2} o Sul se rebela. Esta ação ajuda a acalmar:": "Tension is at {0} of {1}. At {2} the South rebels. This action helps calm it:",
+  "{0} exércitos estão sem ordem neste mês. Deixe as tropas agirem sozinhas: elas atacam onde a chance é boa e defendem o resto.": "{0} armies have no order this month. Let the troops act on their own: they attack where the odds are good and defend elsewhere.",
+  "Seu lado tem {0} de força e o inimigo {1}. Um exército novo custa {2} Recursos.": "Your side has {0} strength and the enemy {1}. A new army costs {2} Resources.",
+  "Você tem {0} de {1}. O que passar do limite se perde no fim do mês, então vale gastar agora:": "You have {0} of {1}. Anything above the cap is lost at the end of the month, so it's worth spending now:",
+  "Nenhuma decisão nacional está em andamento. Sugiro esta, que leva {0} mês:": "No national decision is in progress. I suggest this one, which takes {0} month:",
+  "Nenhuma decisão nacional está em andamento. Sugiro esta, que leva {0} meses:": "No national decision is in progress. I suggest this one, which takes {0} months:",
+  "Você ainda tem {0} ação neste mês. Uma boa opção:": "You still have {0} action this month. A good option:",
+  "Você ainda tem {0} ações neste mês. Uma boa opção:": "You still have {0} actions this month. A good option:",
+  "Marta Siqueira, sua chefe de gabinete, dá {0} ou {1} dicas por mês com o botão “Fazer isso”.": "Marta Siqueira, your chief of staff, gives {0} or {1} tips a month with a “Do it” button.",
+  "Marta Siqueira, sua chefe de gabinete, sugere {0} ou {1} coisas por mês. O botão “Fazer isso” faz a sugestão por você.": "Marta Siqueira, your chief of staff, suggests {0} or {1} things a month. The “Do it” button does it for you."
+
  }
 };

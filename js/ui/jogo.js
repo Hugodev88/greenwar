@@ -38,11 +38,13 @@ function renderGame(){
     ${southBarHTML()}
     <nav class="tabs" role="tablist">${shown.map(([id, l]) => `<button class="tab${UI.tab===id?" on":""}" data-tab="${id}" role="tab" aria-selected="${UI.tab===id}" tabindex="${UI.tab===id ? 0 : -1}">${l}</button>`).join("")}${G.simple ? `<button class="tab more" data-more aria-expanded="${!hideExtra}">${hideExtra ? "Mais ▾" : "Menos ▴"}</button>` : ""}</nav>
     ${pend && UI.tab !== "historia" ? `<div class="pendbar">Há ${pend} evento(s) aguardando decisão. <button class="linkbtn" data-tab="historia">Ir para História</button></div>` : ""}
+    ${advisorHTML()}
     <div id="tabBody"></div>
     <div id="toast" class="toast"></div>`;
   document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { UI.tab = b.dataset.tab; renderGame(); });
   document.querySelectorAll("[data-more]").forEach(b => b.onclick = () => { UI.moreTabs = hideExtra; if (!UI.moreTabs && extra.includes(UI.tab)) UI.tab = "historia"; renderGame(); });
   if ($("#btnSouth")) $("#btnSouth").onclick = openSouth;
+  bindAdvisor();
   $("#btnEnd").onclick = () => {
     const snap = majorSnap();
     if (!endTurn(G)) return;

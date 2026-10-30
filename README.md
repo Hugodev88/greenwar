@@ -73,6 +73,11 @@ npx serve .        # ou: python3 -m http.server 8000
 - **Duração:** **Campanha completa** ou **Partida rápida** (≈ 8 a 11 turnos, 20–30 minutos). Na rápida, depois de março de 2023 cada turno vale 6 meses (12 a partir de março de 2024), o racha militar e a guerra chegam antes, e a vitória militar do regime pede 21 estados e Apoio Militar 50 (em vez de 24 e 55).
 - Saves antigos continuam abrindo: viram Normal, campanha completa.
 
+### Conselheira (novo, fase 5)
+- **Marta Siqueira, chefe de gabinete** (personagem fictícia), aparece num cartão acima das abas com **1 ou 2 dicas por mês** em linguagem simples, cada uma com o botão **Fazer isso**: responder um evento pendente, agradar uma facção quase em crise, subir um atributo perigosamente baixo, acalmar o Sul, ligar as ordens automáticas, recrutar quando o inimigo é bem mais forte, gastar Recursos perto do teto, começar uma decisão nacional ou usar as ações que sobraram. Sem nada urgente, ela sugere encerrar o mês.
+- Ela nunca empurra para a ruptura: fora do regime, os focos do ramo "Ruptura" não são sugeridos.
+- O **×** esconde as dicas até o próximo mês. Em **⚙ Configurações → Conselheira**: Automática (ligada no Fácil e no Normal, desligada no Difícil), Sempre ligada ou Desligada.
+
 ## Contas e saves na nuvem (Supabase)
 O login é **opcional**. Sem conta, offline ou se o Supabase estiver fora do ar, o jogo continua igual, com os saves no `localStorage`.
 
@@ -115,6 +120,7 @@ node tests/sim.js 300 brasil2022   # só um cenário
 node tests/sim.js 40 brasil1964    # cenário bloqueado: só roda se pedido pelo id
 node tests/sim.js 300 brasil2022 --dif=facil      # dificuldade Fácil (também: --dif=dificil)
 node tests/sim.js 300 brasil2022 --rapida         # partida rápida (combina com --dif)
+node tests/sim.js 300 brasil2022 --conselheira    # acrescenta as IAs "iniciante" e "conselheira" (que só segue as dicas)
 ```
 Com `--dif` ou `--rapida` o sim imprime também a linha **resultado** (vitória / intermediário / derrota, pelo campo `outcome` dos finais) e, no Fácil, roda a IA **iniciante** (aleatória que lê os avisos de derrota do modo simples). O `tests/check.js` roda esses modos com 80 partidas e falha se o Fácil não vencer bem mais que o Difícil.
 A simulação imprime uma linha **economia** por IA (AP médio, Recursos médio, pico, turnos com 60+, saldo final, ações de facção, conversões) e falha se os Recursos passarem do teto.

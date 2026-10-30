@@ -269,7 +269,7 @@ for (const sc of SCENARIOS) {
 }
 // ---- saves: migração v2 → v4 e v3 → v4, e um combate de teste ----
 {
-  const API = new Function(JOGO.codigo + "; return { SCENARIOS, scOf, newCampaign, migrateSave, SAVE_VERSION, endTurn, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices, battleReport };")();
+  const API = new Function(JOGO.codigo + "; return { SCENARIOS, scOf, newCampaign, migrateSave, SAVE_VERSION, endTurn, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices, battleReport, advisorTips, advisorDo };")();
   let n = 0;
   for (const sc of API.SCENARIOS){ if (sc.soon || !sc.campaign) continue;
     for (let seed = 1; seed <= 25; seed++){
@@ -336,6 +336,19 @@ for (const sc of SCENARIOS) {
     }
     if (API.scOf(API.newCampaign(sc22, 3)) !== sc22) err("Normal precisa usar o cenário original");
     if (JSON.stringify(sc22.campaign.money) + sc22.campaign.enemyPower + JSON.stringify(sc22.campaign.pace) !== C0) err("os modos alteraram o cenário original");
+    // conselheira: no máximo 2 dicas, com título, texto e ação; "Fazer isso" funciona e não quebra a partida
+    for (let seed = 1; seed <= 12; seed++){
+      const g = API.newCampaign(sc22, seed, { diff: seed % 2 ? "facil" : "normal" });
+      for (let t = 0; t < 14 && !g.ended; t++){
+        while (g.queue.length && !g.ended){ const ch = API.queueChoices(g); const ok = ch.findIndex(c => c.ok); API.choose(g, ok < 0 ? 0 : ok); }
+        if (g.ended) break;
+        const tips = API.advisorTips(g, { tab: "mapa" });
+        if (!tips.length || tips.length > 2 || tips.some(x => !x.head || !x.text || !x.act || !x.act.k)) { err(`conselheira#${seed}: dicas inválidas`); break; }
+        const tp = tips.find(x => x.act.k !== "tab" && x.act.k !== "end");
+        if (tp && API.advisorDo(g, tp).ok === false) err(`conselheira#${seed}: "Fazer isso" falhou (${tp.id})`);
+        API.endTurn(g);
+      }
+    }
   }
   // desdobramento: escolher "n_acampamentos" agenda "n_acampamentos_radical", que precisa aparecer em poucos meses
   {

@@ -4,7 +4,7 @@
    Tudo fora do CORE. Preferências em localStorage "gw_settings_v1".
    ===================================================================== */
 const SET_KEY = "gw_settings_v1";
-const SET_DEF = { lang: "pt", cb: false, hc: false, fs: 100, motion: false, music: 0.45, sfx: 0.7, muted: false };
+const SET_DEF = { lang: "pt", cb: false, hc: false, fs: 100, motion: false, music: 0.45, sfx: 0.7, muted: false, advisor: "auto" };
 let SET = (() => { try { return Object.assign({}, SET_DEF, JSON.parse(localStorage.getItem(SET_KEY)) || {}); } catch(e){ return Object.assign({}, SET_DEF); } })();
 function saveSet(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(SET)); }catch(e){} applySet(); }
 function reduceMotion(){ return SET.motion || !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); }
@@ -42,6 +42,7 @@ function openSettings(){
     <fieldset><legend>Idioma / Language</legend><div class="opts">${rad("lang", "pt", SET.lang, "Português (Brasil)")}${rad("lang", "en", SET.lang, "English")}</div>
       <p class="muted sm">Em inglês: interface, tutorial e grandes eventos estão traduzidos; os demais eventos da história ainda aparecem em português.</p></fieldset>
     ${settingsCampaignHTML()}
+    ${settingsAdvisorHTML()}
     <fieldset><legend>Acessibilidade</legend>
       <label class="tgl"><input type="checkbox" id="sCb" ${SET.cb ? "checked" : ""}> <span><b>Modo daltônico</b> — texturas (listras, pontos, xadrez) em cada facção do mapa, além da cor</span></label>
       <label class="tgl"><input type="checkbox" id="sHc" ${SET.hc ? "checked" : ""}> <span><b>Alto contraste</b> — textos mais claros, bordas fortes e foco bem visível</span></label>
@@ -70,7 +71,7 @@ function openSettings(){
   const rerender = () => { if (G && !G.ended) renderGame(); else if (G && G.ended) renderGame(); else if (SCEN) renderTitle(); else renderMenu(); };
   m.querySelectorAll("input[name=lang]").forEach(i => i.onchange = () => { SET.lang = i.value; saveSet(); i18nSwitch(); rerender(); });
   m.querySelectorAll("input[name=fs]").forEach(i => i.onchange = () => { SET.fs = +i.value; saveSet(); });
-  bindSettingsCampaign(rerender);
+  bindSettingsCampaign(rerender); bindSettingsAdvisor(rerender);
   $("#sCb").onchange = e => { SET.cb = e.target.checked; saveSet(); rerender(); };
   $("#sHc").onchange = e => { SET.hc = e.target.checked; saveSet(); };
   $("#sRm").onchange = e => { SET.motion = e.target.checked; saveSet(); };

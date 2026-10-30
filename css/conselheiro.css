@@ -1,0 +1,15 @@
+/* css/conselheiro.css — Cartão da conselheira (Marta Siqueira): retrato, dicas do mês e botão "Fazer isso". */
+  .advisor{position:relative;display:flex;gap:12px;align-items:flex-start;margin:10px 0 4px;padding:10px 38px 10px 10px;background:linear-gradient(90deg,#2a2418,#1d1a14);border:1px solid #6b5a33;border-left:4px solid var(--gold);border-radius:8px}
+  .advisor .advpic{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);flex:none;background:#111}
+  .advisor .advbody{flex:1;min-width:0}
+  .advisor .advwho{font-size:.82rem;color:var(--muted);margin-bottom:4px}
+  .advisor .advwho b{color:var(--gold);font-family:Georgia,serif;font-size:.98rem;margin-right:4px}
+  .advisor .advtip{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px dashed #4a4030}
+  .advisor .advwho + .advtip{border-top:0}
+  .advisor .advtxt{font-size:.9rem;line-height:1.4}
+  .advisor .advh{color:#f0e2bd;margin-right:2px}
+  .advisor .advsub{color:var(--gold)}
+  .advisor .advtip button{flex:none;white-space:nowrap;font-family:inherit}
+  .advisor .advx{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer;line-height:1;padding:2px 6px}
+  .advisor .advx:hover{color:var(--gold)}
+  @media (max-width:700px){ .advisor{gap:9px;padding:8px 32px 8px 8px} .advisor .advpic{width:44px;height:44px} .advisor .advtip{flex-direction:column;align-items:flex-start;gap:6px} .advisor .advtxt{font-size:.86rem} }
