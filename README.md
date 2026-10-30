@@ -84,6 +84,11 @@ npx serve .        # ou: python3 -m http.server 8000
 - **13 conquistas** (primeira campanha, vitória, nota S, vencer no Difícil, partida rápida, pelas urnas, sem batalhas, pacto com o Sul, veterano, planejador, boa equipe com a conselheira, 5 finais, todos os finais). Ficam no aparelho (`gw_conquistas_v1`) e, com login, na nuvem.
 - Botões: **Jogar de novo** (mesma dificuldade e duração), **Tentar outro final** (lista os finais que faltam, com uma dica de como chegar em cada um; campo `dica` dos finais em `historia.js`) e **Compartilhar** (menu de compartilhar do celular; no computador copia o texto, com o link do jogo).
 
+### Rostos dos personagens (novo, fase 5)
+- Os personagens **fictícios** do cenário 2022 têm rosto (retratos ilustrados, inventados): a conselheira, os porta-vozes das facções, os embaixadores e enviados da aba Diplomacia, os generais dos exércitos e quem aparece nos cartões da história e dos eventos.
+- **Pessoas reais nunca têm rosto.** Quando um texto fala de alguém real ou de uma instituição (TSE, Planalto, governo eleito, governo argentino, Mercosul…), o cartão mostra um **ícone da instituição**; personagens genéricos (o herdeiro político, um governador, um influenciador) aparecem como **silhueta**.
+- Imagens em `assets/retratos/` (webp 256×256, até 60 KB cada). Quem aparece onde fica em `js/data/2022/retratos.js` (`RETRATOS_2022`: `pessoas`, `faccoes`, `atores`, `generais`, `historia`, `eventos`). Para trocar um rosto, substitua o arquivo webp com o mesmo nome; para pôr rosto num evento novo, acrescente `id_do_evento: "chave_da_pessoa"` em `eventos`. O `check.js` confere arquivos, ids e a regra de pessoas reais.
+
 ## Contas e saves na nuvem (Supabase)
 O login é **opcional**. Sem conta, offline ou se o Supabase estiver fora do ar, o jogo continua igual, com os saves no `localStorage`.
 
@@ -152,7 +157,7 @@ css/                    estilos por área: base, menu, mapa, campanha, mapa-guer
 js/
   data/                 DADOS PUROS (o que mais se edita)
     ajudantes.js          act() e ev(), atalhos para escrever ações e eventos
-    2022/                 historia.js · acoes.js · eventos.js · campanha.js (facções, atores, fases, Sul) · focos.js
+    2022/                 historia.js · acoes.js · eventos.js · campanha.js (facções, atores, fases, Sul) · focos.js · retratos.js (rostos, fase 5)
     1964/                 historia.js · campanha.js (cenário BLOQUEADO, não editar)
     cenarios.js           lista do menu (SCENARIOS)
     estados.js            fronteiras (ADJ) e terreno das UFs
@@ -163,11 +168,12 @@ js/
                         modos, conselheiro, conquistas (nota e conquistas do final)
   ui/                   TELA: menu, jogo, abas (aba-*.js), mapa, exércitos, batalha, resolução, tutorial,
                         grandes-eventos, ajuda, economia, janelas, configurações, acessibilidade, modos, conselheiro,
-                        conquistas, final (tela de final), iniciar.js (último)
+                        conquistas, final (tela de final), retratos (rostos/ícones/silhuetas), iniciar.js (último)
   i18n/                 traducao.js (camada PT→EN) e en.js (dicionário)
   audio/                audio.js (trilha e efeitos gerados no navegador)
   nuvem/                cloud.js e config.js (contas e saves na nuvem, opcional)
 tests/                  check.js (validação), sim.js (simulação), carregar.js (carrega o jogo no Node)
+assets/retratos/        rostos dos personagens fictícios (webp)
 supabase/  tools/       SQL do banco · gerador do mapa
 ```
 Cada arquivo começa com um comentário curto dizendo o que faz. Os testes leem a lista de `<script>` do `index.html`, então um arquivo novo entra no jogo e nos testes no mesmo lugar.

@@ -1,0 +1,19 @@
+/* css/retratos.css — Retratos dos personagens fictícios, ícones de instituição e silhuetas (eventos, facções, diplomacia, exércitos). */
+.ptr{flex:none;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;object-fit:cover;border:2px solid #4a443c;background:#14120f;box-sizing:border-box}
+img.ptr{display:block}
+.ptr.inst{line-height:1}
+.ptr.sil svg{width:70%;height:70%;fill:#5d554b}
+.who{display:flex;align-items:center;gap:10px;margin:2px 0 12px}
+.who .whot{display:flex;flex-direction:column;font-family:system-ui,sans-serif;line-height:1.25}
+.who b{font-size:.88rem;font-weight:600;color:var(--ink)}
+.who small{font-size:.74rem;color:var(--muted)}
+.card .who{margin-top:-4px}
+.fac .fh{align-items:center}
+.fac .fwho{display:flex;align-items:center;gap:8px;margin:4px 0 2px;font-family:system-ui,sans-serif;font-size:.75rem;color:var(--muted)}
+.fac .fwho b{color:var(--ink);font-weight:600}
+.actor .an{display:flex;align-items:center;gap:8px}
+.actor .an > div{display:flex;flex-direction:column;min-width:0}
+.ufinfo .gen{display:flex;align-items:center;gap:8px}
+@media (max-width:640px){
+  .who{gap:8px}
+}

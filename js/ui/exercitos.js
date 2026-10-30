@@ -65,7 +65,7 @@ function armyPanel(a){
   const plan = !mine ? (G.enemyPlans || []).find(p => p.id === a.id && p.to && intentKnown(G, p)) : null;
   let html = `<h3 class="armyh"><i class="nato ${mine ? "p" : "e"}"></i>${esc(a.name)}</h3>
     <div class="ufinfo">
-      <div><span>General</span><b>${esc(a.gen || "—")}</b></div>
+      <div><span>General</span><b class="gen">${portraitImg(portraitOf("generais", a.gen), 32)}${esc(a.gen || "—")}</b></div>
       <div><span>Local</span><b>${esc(a.uf)} · ${esc(MAP_DATA.states[a.uf].name)}</b></div>
       ${!mine && a.fac && STORY.factions[a.fac] ? `<div><span>Lado</span><b>${esc(STORY.factions[a.fac].label)}</b></div>` : ""}
       <div><span>Força</span><div class="bar"><i style="width:${a.str / ARMY_MAX * 100}%;background:${mine ? "#5d8fc4" : "#c2563f"}"></i></div><b>${Math.round(a.str)}</b></div>

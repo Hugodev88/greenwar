@@ -373,6 +373,31 @@ for (const sc of SCENARIOS) {
     if (m.got.primeira.at !== 3 || !m.got.vitoria || m.got.xyz || m.best.brasil2022 !== "A" || m.best.outro) err("achMerge: união das conquistas errada");
     if (Object.keys(API.achMerge(null, "lixo").got).length) err("achMerge: dados inválidos deveriam virar registro vazio");
   }
+  // retratos: só personagens fictícios têm rosto; todo id mapeado existe; todo arquivo é usado e todo rosto tem arquivo webp
+  {
+    const fs = require("fs"), path = require("path"), sc22 = API.SCENARIOS.find(s => s.id === "brasil2022"), R = sc22.retratos;
+    if (!R) err("brasil2022 sem retratos");
+    else {
+      const dir = path.join(JOGO.RAIZ, "assets", "retratos"), files = new Set(fs.readdirSync(dir).filter(f => f.endsWith(".webp")).map(f => f.slice(0, -5)));
+      const used = new Set();
+      for (const [k, p] of Object.entries(R.pessoas)){
+        if (!p.nome || !p.cargo) err(`retrato ${k} sem nome/cargo`);
+        if (p.img){ used.add(p.img); if (!files.has(p.img)) err(`retrato ${k}: falta assets/retratos/${p.img}.webp`); else if (fs.statSync(path.join(dir, p.img + ".webp")).size > 60000) err(`retrato ${p.img}.webp grande demais`); }
+        else if (!p.icone && !p.silhueta) err(`retrato ${k}: precisa de img, icone ou silhueta`);
+      }
+      for (const f of files) if (!used.has(f)) err(`assets/retratos/${f}.webp não é usado em retratos.js`);
+      const ids = { faccoes: sc22.campaign.factions.map(f => f.id), atores: sc22.campaign.actors.map(a => a.id), eventos: sc22.campaign.events.map(e => e.id),
+        historia: Object.keys(sc22.story.nodes), generais: Object.values(sc22.campaign.army && sc22.campaign.army.gens || {}).flat() };
+      for (const kind of Object.keys(ids)) for (const [id, key] of Object.entries(R[kind] || {})){
+        if (!ids[kind].includes(id)) err(`retratos.${kind}: "${id}" não existe no cenário`);
+        if (!R.pessoas[key]) err(`retratos.${kind}.${id}: personagem "${key}" não existe`);
+      }
+      for (const id of ids.faccoes) if (!R.faccoes[id]) err(`facção ${id} sem porta-voz em retratos.js`);
+      for (const id of ids.atores) if (!R.atores[id]) err(`ator ${id} sem retrato em retratos.js`);
+      for (const n of ids.generais) if (!R.generais[n]) err(`general "${n}" sem retrato`);
+      for (const id of ["n_transicao_dados", "r_argentina", "n_mercosul", "n_governador_desponta", "f_herdeiro"]) if (R.eventos[id] && R.pessoas[R.eventos[id]].img) err(`evento ${id} envolve pessoa real: use ícone ou silhueta`);
+    }
+  }
   // desdobramento: escolher "n_acampamentos" agenda "n_acampamentos_radical", que precisa aparecer em poucos meses
   {
     let okChain = 0;

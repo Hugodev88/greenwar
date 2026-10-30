@@ -1,0 +1,82 @@
+// js/data/2022/retratos.js — Dados (2022): rostos dos personagens FICTÍCIOS e quem aparece em cada evento, facção, país e general.
+/* Regras: só personagens inventados têm rosto (webp 256px em assets/retratos/<img>.webp).
+   Pessoas reais (o presidente eleito, chefes de Estado, o próprio jogador) NUNCA ganham rosto: aparecem como
+   instituição (campo icone) ou silhueta (silhueta: true). A tela fica em js/ui/retratos.js. */
+const RETRATOS_2022 = {
+  pessoas: {
+    conselheira:     { img: "conselheira",     nome: "Marta Siqueira",        cargo: "Chefe de gabinete" },
+    gen_becker:      { img: "gen_becker",      nome: "Gen. Otto Becker",      cargo: "Porta-voz do Alto Comando" },
+    lider_centrao:   { img: "lider_centrao",   nome: "Dep. Valdir Moura",     cargo: "Líder do Centrão na Câmara" },
+    lider_agro:      { img: "lider_agro",      nome: "Odair Brandt",          cargo: "Presidente de uma federação do agronegócio" },
+    pastor:          { img: "pastor",          nome: "Pr. Josué Amaral",      cargo: "Líder de uma grande igreja evangélica" },
+    sindicalista:    { img: "sindicalista",    nome: "Rosa Ferreira",         cargo: "Presidente de uma central sindical" },
+    ministra_stf:    { img: "ministra_stf",    nome: "Min. Lúcia Fontes",     cargo: "Ministra do Supremo (personagem fictícia)" },
+    delegado_pf:     { img: "delegado_pf",     nome: "Del. Caio Rezende",     cargo: "Delegado da Polícia Federal" },
+    jornalista:      { img: "jornalista",      nome: "Bia Lacerda",           cargo: "Repórter de política" },
+    min_economia:    { img: "min_economia",    nome: "Ricardo Saldanha",      cargo: "Economista e ex-ministro" },
+    gov_sul:         { img: "gov_sul",         nome: "Gov. Eduardo Kunz",     cargo: "Governador de um estado do Sul" },
+    gov_nordeste:    { img: "gov_nordeste",    nome: "Gov. Antônia Queiroz",  cargo: "Governadora de um estado do Nordeste" },
+    emb_eua:         { img: "emb_eua",         nome: "Thomas Whitaker",       cargo: "Embaixador dos Estados Unidos" },
+    emb_china:       { img: "emb_china",       nome: "Li Wen",                cargo: "Embaixadora da China" },
+    emb_russia:      { img: "emb_russia",      nome: "Pavel Orlov",           cargo: "Embaixador da Rússia" },
+    com_ue:          { img: "com_ue",          nome: "Ingrid Vos",            cargo: "Comissária da União Europeia" },
+    chanc_argentina: { img: "chanc_argentina", nome: "Martín Ibarra",         cargo: "Chanceler da Argentina" },
+    chanc_vizinhos:  { img: "chanc_vizinhos",  nome: "Carmen Rojas",          cargo: "Enviada dos vizinhos sul-americanos" },
+    enviado_onu:     { img: "enviado_onu",     nome: "Kwame Mensah",          cargo: "Enviado especial da ONU" },
+    gen_valadares:   { img: "gen_valadares",   nome: "Gen. Augusto Valadares", cargo: "Comandante leal a você" },
+    gen_pessanha:    { img: "gen_pessanha",    nome: "Gen. Ronaldo Pessanha", cargo: "Comandante leal a você" },
+    brig_tavares:    { img: "brig_tavares",    nome: "Brig. Márcio Tavares",  cargo: "Comandante da Aeronáutica leal a você" },
+    gen_barreto:     { img: "gen_barreto",     nome: "Gen. Heloísa Barreto",  cargo: "Comandante da resistência" },
+    gen_arruda:      { img: "gen_arruda",      nome: "Gen. Joaquim Arruda",   cargo: "Comandante da resistência" },
+    cel_nogueira:    { img: "cel_nogueira",    nome: "Cel. Iara Nogueira",    cargo: "Comandante da resistência" },
+    cel_wendt:       { img: "cel_wendt",       nome: "Cel. Gustavo Wendt",    cargo: "Comandante da Liga do Sul" },
+    gen_kessler:     { img: "gen_kessler",     nome: "Gen. Arno Kessler",     cargo: "Comandante da Liga do Sul" },
+    // instituições e silhuetas (pessoas reais ou sem rosto definido)
+    tse:        { icone: "🗳️", nome: "Tribunal Superior Eleitoral", cargo: "Instituição" },
+    planalto:   { icone: "🏛️", nome: "Palácio do Planalto",          cargo: "Instituição" },
+    tres_poderes: { icone: "🏛️", nome: "Praça dos Três Poderes",     cargo: "Instituição" },
+    decreto:    { icone: "📜", nome: "Decreto de exceção",            cargo: "Documento" },
+    transicao:  { icone: "🏛️", nome: "Equipe de transição",          cargo: "Governo eleito" },
+    casa_rosada:{ icone: "🇦🇷", nome: "Casa Rosada",                  cargo: "Governo da Argentina" },
+    mercosul:   { icone: "🌎", nome: "Mercosul",                      cargo: "Bloco regional" },
+    bancos:     { icone: "🏦", nome: "Bancos estrangeiros",           cargo: "Sistema financeiro" },
+    redes:      { icone: "📱", nome: "Redes sociais",                 cargo: "Plataformas digitais" },
+    inpe:       { icone: "🛰️", nome: "Monitoramento por satélite",   cargo: "Instituição" },
+    estradas:   { icone: "🛣️", nome: "Rodovias federais",            cargo: "Infraestrutura" },
+    herdeiro:   { silhueta: true, nome: "O herdeiro político",        cargo: "Seu sucessor" },
+    governador: { silhueta: true, nome: "Governador do seu campo",    cargo: "Possível candidato em 2026" },
+    influenciador: { silhueta: true, nome: "Influenciador da direita", cargo: "Redes sociais" },
+    mercenario: { silhueta: true, nome: "Representante da empresa",   cargo: "Empresa militar privada" }
+  },
+  faccoes: { militares: "gen_becker", centrao: "lider_centrao", agro: "lider_agro", evangelicos: "pastor", movimentos: "sindicalista", stf: "ministra_stf" },
+  atores: { eua: "emb_eua", china: "emb_china", russia: "emb_russia", ue: "com_ue", argentina: "chanc_argentina", vizinhos: "chanc_vizinhos", onu: "enviado_onu" },
+  generais: {
+    "Gen. Augusto Valadares": "gen_valadares", "Gen. Ronaldo Pessanha": "gen_pessanha", "Brig. Márcio Tavares": "brig_tavares",
+    "Gen. Heloísa Barreto": "gen_barreto", "Gen. Joaquim Arruda": "gen_arruda", "Cel. Iara Nogueira": "cel_nogueira",
+    "Cel. Gustavo Wendt": "cel_wendt", "Gen. Arno Kessler": "gen_kessler"
+  },
+  historia: {
+    apuracao: "tse", transicao: "planalto", silencio: "conselheira", contestacao: "tse", sondagem: "gen_valadares",
+    crise_janeiro: "tres_poderes", oposicao: "lider_centrao", justica: "ministra_stf", inelegivel: "tse", campanha2026: "conselheira",
+    expurgo: "gen_pessanha", decreto: "decreto", golpe_fracassa: "gen_becker", golpe_inicial: "gen_valadares",
+    reacao_internacional: "enviado_onu", racha_militar: "gen_barreto", guerra: "gen_valadares"
+  },
+  eventos: {
+    c_mil_regime: "gen_barreto", c_mil: "gen_becker", c_centrao: "lider_centrao", c_agro: "lider_agro", c_evangelicos: "pastor",
+    c_movimentos_regime: "sindicalista", c_movimentos: "sindicalista", c_stf_regime: "ministra_stf", c_stf: "ministra_stf",
+    r_bloqueios: "estradas", r_inflacao: "min_economia", r_chuvas: "gov_nordeste", r_vazamento: "jornalista", r_pf: "delegado_pf",
+    r_argentina: "casa_rosada", r_commodities: "lider_agro", r_sancoes: "bancos", r_corredor: "enviado_onu",
+    n_dolar: "min_economia", n_acampamentos: "gen_becker", n_acampamentos_radical: "delegado_pf", n_transicao_dados: "transicao",
+    n_caminhoneiros: "estradas", n_boatos: "jornalista", n_inquerito_redes: "ministra_stf", n_juros: "min_economia",
+    n_petroleiros: "sindicalista", n_queimadas: "inpe", n_seca: "inpe", n_enchentes: "gov_sul", n_china_carne: "emb_china",
+    n_mercosul: "mercosul", n_influenciador: "influenciador", n_cpmi: "lider_centrao", n_reforma_tributaria: "lider_centrao",
+    n_municipais: "tse", n_passaporte: "ministra_stf", n_governador_desponta: "governador", n_pregador: "pastor",
+    n_entrevista: "jornalista", n_plataforma: "redes", n_buenos_aires: "chanc_argentina", n_delacao: "delegado_pf",
+    n_desercao: "gen_arruda", n_sabotagem: "cel_nogueira", n_rede_sabotadores: "cel_nogueira", n_espiao: "gen_pessanha",
+    n_contraespionagem: "gen_pessanha", n_governador_lado: "gov_nordeste", n_mercenarios: "mercenario", n_onu_votacao: "enviado_onu",
+    n_tregua_igrejas: "pastor", n_voluntarios: "gen_valadares", n_hackers: "redes", n_drones: "brig_tavares",
+    n_refugiados: "enviado_onu", n_trigo: "min_economia", n_vitoria: "gen_valadares", n_panico: "gen_pessanha",
+    n_liga_proposta: "cel_wendt", e_sul_cupula: "gov_sul", n_sancoes_eua: "emb_eua", f_vazamento_minuta: "jornalista",
+    f_anistia_votacao: "lider_centrao", f_herdeiro: "herdeiro", f_seguranca: "delegado_pf", f_liga_exige: "gen_kessler"
+  }
+};

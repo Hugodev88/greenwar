@@ -32,7 +32,7 @@ function tabFaccoes(el){
     const bad1 = used1 || busy || G.ap < c1.ap || G.money < c1.money, bad2 = used2 || busy || G.ap < c2.ap || G.money < c2.money;
     const why1 = used1 ? "já feito neste turno" : busy ? "resolva os eventos" : G.ap < c1.ap ? "sem AP" : G.money < c1.money ? `faltam ${esc(C.money.short)}` : `lealdade +14${(F.rivals || []).length ? ", rivais −5" : ""}`;
     const why2 = used2 ? "já feito neste turno" : busy ? "resolva os eventos" : G.ap < c2.ap ? "sem AP" : G.money < c2.money ? `faltam ${esc(C.money.short)}` : "influência −10, lealdade −12";
-    return `<div class="fac ${cls}"><div class="fh"><strong>${esc(F.name)}</strong><em class="chip ${cls}">${stt}</em></div><p>${esc(F.desc)}</p>
+    return `<div class="fac ${cls}"><div class="fh"><strong>${esc(F.name)}</strong><em class="chip ${cls}">${stt}</em></div>${(fp => fp ? `<div class="fwho">${portraitImg(fp, 36)}<span>Porta-voz: <b>${esc(fp.nome)}</b></span></div>` : "")(portraitOf("faccoes", F.id))}<p>${esc(F.desc)}</p>
       <div class="fbar"><span>Lealdade</span><div class="bar" title="Linhas: 15 crise · 35 neutra · 65 leal"><i style="width:${f.loyalty}%;background:${f.loyalty < 15 ? "#c2563f" : f.loyalty < 35 ? "#d0902a" : "#6fae6a"}"></i><u style="left:15%"></u><u class="t35" style="left:35%"></u><u class="t65" style="left:65%"></u></div><b>${Math.round(f.loyalty)}</b></div>
       <div class="fbar"><span>Influência</span><div class="bar"><i style="width:${f.influence}%;background:#7d8fb3"></i></div><b>${Math.round(f.influence)}</b></div>
       <div class="fnow"><b>Agora:</b> ${facNow(F, f)}</div>

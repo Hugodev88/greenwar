@@ -11,7 +11,7 @@ function tabDiplomacia(el){
     if (st.dependence >= 20) chips.push(`<em class="chip mid">Dependência ${Math.round(st.dependence)}</em>`);
     const debt = G.debts.filter(d => d.aid === A.id).reduce((s, d) => s + d.amount, 0);
     if (debt) chips.push(`<em class="chip mid">Dívida ${debt}</em>`);
-    return `<button class="actor${UI.selActor===A.id?" on":""}" data-a="${A.id}"><div class="an"><strong>${esc(A.name)}</strong><small>${esc(A.tag)}</small></div>
+    return `<button class="actor${UI.selActor===A.id?" on":""}" data-a="${A.id}"><div class="an">${portraitImg(portraitOf("atores", A.id), 40)}<div><strong>${esc(A.name)}</strong><small>${esc(A.tag)}</small></div></div>
       <div class="aop"><span>Opinião</span>${opinionBar(st.opinion)}<b>${sgn(st.opinion)}</b></div><div class="chips">${chips.join("")}</div></button>`;
   }).join("");
   let panel = `<p class="muted">Escolha um governo ou organismo para ver interesses e propor um acordo. Cada proposta custa 1 ponto de ação; a resposta depende da opinião, dos interesses deles, da sua legitimidade e da sua força.</p>`;
@@ -23,7 +23,7 @@ function tabDiplomacia(el){
     const rels = Object.entries(A.rel || {}).map(([o, v]) => { const B = actorDef(G, o); return B ? `<span class="${v > 0 ? "good" : "bad"}">${esc(B.short || B.name)} ${v > 0 ? "▲" : "▼"}</span>` : ""; }).join(" ");
     const wants = Object.entries(A.interests).filter(([, v]) => v >= 0.8).map(([k]) => L.off[k]);
     const pct = clamp(Math.round(50 + sc.score * 1.6), 3, 97);
-    panel = `<h3>${esc(A.name)}</h3><p class="ideo">${esc(A.ideology)}</p>
+    panel = `<h3>${esc(A.name)}</h3>${whoHTML(portraitOf("atores", aid), 48)}<p class="ideo">${esc(A.ideology)}</p>
       <div class="ufinfo"><div><span>Opinião</span>${opinionBar(st.opinion)}<b>${sgn(st.opinion)}</b></div>
       <div><span>Valoriza</span><b>${esc(wants.join(", ") || "pouco do que você pode oferecer")}</b></div>
       <div><span>Relações</span><b class="rels">${rels || "—"}</b></div>

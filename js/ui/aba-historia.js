@@ -6,13 +6,13 @@ function tabHistoria(el, nextStory){
     const choices = queueChoices(G);
     if (q.type === "story"){
       const node = nodeView(G, STORY.nodes[q.node]);
-      html += `<div class="card story"><div class="chap">${esc(chapterKicker(node))} · Evento-chave</div><h2>${esc(node.title)}</h2>
+      html += `<div class="card story"><div class="chap">${esc(chapterKicker(node))} · Evento-chave</div><h2>${esc(node.title)}</h2>${whoHTML(portraitOf("historia", q.node))}
         ${node.text.map(p => `<p>${esc(p)}</p>`).join("")}
         ${G.lastMapChanges.length ? `<div class="mapnotes">${changeNotes(G.lastMapChanges).map(t => `<div>Mapa: ${esc(t)}</div>`).join("")}</div>` : ""}
         <div class="choices">${choices.map((c, i) => `<button class="choice" data-i="${i}" ${c.ok?"":"disabled"}>${esc(c.text)}${c.ok ? endTagHTML(i) : `<small>${esc(describeReq(c.req))}</small>`}</button>`).join("")}</div></div>`;
     } else {
       const ev = findEvent(G, q.id), crisis = !!ev.crisisOf;
-      html += `<div class="card event ${crisis ? "crisis" : ""}"><div class="chap">${esc(monthLabel(G.month))} · ${crisis ? "Crise de facção" : ev.chained ? "Desdobramento" : "Evento"}</div><h2>${esc(ev.title)}</h2>
+      html += `<div class="card event ${crisis ? "crisis" : ""}"><div class="chap">${esc(monthLabel(G.month))} · ${crisis ? "Crise de facção" : ev.chained ? "Desdobramento" : "Evento"}</div><h2>${esc(ev.title)}</h2>${whoHTML(portraitOf("eventos", ev.id) || (crisis ? portraitOf("faccoes", ev.crisisOf) : null))}
         ${eventText(G, q).map(p => `<p>${esc(p)}</p>`).join("")}
         <div class="choices">${choices.map((c, i) => `<button class="choice" data-i="${i}" ${c.ok?"":"disabled"}>${esc(c.text)}<small>${c.ok ? esc(fxSummary(G, c.fx) || (ev.generic ? (i === 0 ? "Opinião do parceiro +10, legitimidade −3, nacionalistas −10" : "Opinião −25, dependência −25, apoio +3") : "")) : esc(describeReq(c.req))}</small></button>`).join("")}</div></div>`;
     }
