@@ -16,3 +16,9 @@
   .sfac li.up{border-left-color:#c2563f}.sfac li.dn{border-left-color:#6fae6a}.sfac li b{white-space:nowrap}
   .sacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin:8px 0}
   .sthr{display:flex;gap:6px;flex-wrap:wrap;font-size:.78rem;margin:6px 0}.sthr span{padding:2px 8px;border-radius:12px;border:1px solid var(--line)}
+  /* ---- Fase 15: Contestação das urnas (mesma base da barra do Sul) ---- */
+  .urnabar{border-left-color:#c9a45c}
+  .urnabar .ugrid{display:grid;grid-template-columns:auto minmax(80px,1fr) auto;gap:3px 8px;align-items:center;flex:1 1 260px;max-width:460px}
+  .urnabar .ubk{font-size:.74rem;color:var(--muted);white-space:nowrap}.urnabar .uv{font-size:.86rem;text-align:right;min-width:24px}
+  .urnabar .ubar{height:8px;min-width:80px;max-width:none}
+  .pendbar.mensal{border-color:#c9a45c;background:#1c1810}

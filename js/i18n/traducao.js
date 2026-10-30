@@ -26,7 +26,13 @@ function i18nMonth(L, i, y){ return L === "zh" ? `${y}年${i + 1}月` : L === "r
 const I18N_ATTRS = ["title", "aria-label", "placeholder", "alt"];
 // [padrão, inglês, chinês, russo]: f() traduz a parte variável (com a mesma cadeia de idiomas)
 // regras tentadas ANTES de dividir a frase (frases inteiras com partes variáveis: registro do turno, economia, focos)
+const I18N_MES_PT = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+const I18N_MES_CURTO = { en: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"], ru: ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"] };
 const I18N_PRE = [
+  // fase 15: abertura em quinzenas — "1ª quinzena de nov/2022" (js/core/quinzenas.js)
+  [/^([12])ª quinzena de (jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\/(\d{4})$/, (m) => (m[1] === "1" ? "1st" : "2nd") + " half of " + I18N_MES_CURTO.en[I18N_MES_PT.indexOf(m[2])] + " " + m[3], (m) => m[3] + "年" + (I18N_MES_PT.indexOf(m[2]) + 1) + "月" + (m[1] === "1" ? "上半月" : "下半月"), (m) => (m[1] === "1" ? "1-я" : "2-я") + " половина " + I18N_MES_CURTO.ru[I18N_MES_PT.indexOf(m[2])] + " " + m[3]],
+  [/^Nova quinzena: (.+)\.$/, (m, f) => "New fortnight: " + f(m[1]) + ".", (m, f) => "新的半月：" + f(m[1]) + "。", (m, f) => "Новые полмесяца: " + f(m[1]) + "."],
+  [/^Foco em andamento: (.+) \((\d+)\/(\d+) quinzenas?\)\.$/, (m, f) => "Focus in progress: " + f(m[1]) + " (" + m[2] + "/" + m[3] + " fortnights).", (m, f) => "国策进行中：" + f(m[1]) + "（" + m[2] + "/" + m[3] + " 个半月）。", (m, f) => "Фокус в процессе: " + f(m[1]) + " (" + m[2] + "/" + m[3] + " полумес.)."],
   [/^Passaram-se (\d+) meses \((.+) → (.+)\)\.$/, (m, f) => m[1] + " months passed (" + f(m[2]) + " → " + f(m[3]) + ").", (m, f) => "过去了 " + m[1] + " 个月（" + f(m[2]) + " → " + f(m[3]) + "）。", (m, f) => "Прошло месяцев: " + m[1] + " (" + f(m[2]) + " → " + f(m[3]) + ")."],
   [/^Novo mês: (.+)\.$/, (m, f) => "New month: " + f(m[1]) + ".", (m, f) => "新的月份：" + f(m[1]) + "。", (m, f) => "Новый месяц: " + f(m[1]) + "."],
   [/^Foco em andamento: (.+) \((\d+)\/(\d+) meses\)\.$/, (m, f) => "Focus in progress: " + f(m[1]) + " (" + m[2] + "/" + m[3] + " months).", (m, f) => "国策进行中：" + f(m[1]) + "（" + m[2] + "/" + m[3] + " 个月）。", (m, f) => "Фокус в процессе: " + f(m[1]) + " (" + m[2] + "/" + m[3] + " мес.)."],

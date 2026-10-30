@@ -45,6 +45,11 @@ Se preferir um servidor local:
 npx serve .        # ou: python3 -m http.server 8000
 ```
 
+### Quinzenas e vitória pelas urnas (2022, fase 15)
+- **Quinzenas:** no começo da campanha cada turno vale 15 dias (até março de 2023, ou janeiro na partida rápida): mais decisões nacionais antes da posse. Receita e eventos são pela metade em cada quinzena. Quando a guerra começa (ou a abertura termina), aparece o aviso "Fim das quinzenas" e cada turno vira um mês.
+- **Vencer sem guerra:** na cena "A Ação no TSE", escolha montar a frente legal. Leve o **progresso** a 100 com auditorias, ações no TSE, o Congresso, as ruas e os focos do ramo "Contestação institucional". Cuidado com a **credibilidade** (em 0 o TSE declara você inelegível — derrota) e com a **escalada** (em 100 a crise vai para os quartéis e vira guerra). Precisa de 43 no julgamento do TSE (janeiro) e de 100 no veredito (março). A barra no topo e o link "como vencer?" mostram tudo.
+- **Saves:** v14. Saves antigos continuam funcionando, mês a mês.
+
 ### Frentes (2022) — exércitos nos estados (fase 14)
 - **Como jogar a guerra:** 1) na aba Mapa, toque num exército azul; 2) os estados possíveis acendem com a **chance de vitória** em %; 3) toque num deles, confira o cartão (sua força × defesa, fatores) e confirme — a seta grande aparece no mapa; 4) encerre o mês. Ordens **não gastam AP**. Mover anda até 2 estados pelo seu território; atacar é só em estado inimigo vizinho. Dois exércitos seus no mesmo estado se juntam. Cada estado é de um lado só (não existe "em disputa").
 - **Batalhas no fim do mês:** animação curta com mensagens ("Ataque pelos dois lados!", "Contra todas as chances: vitória!"). Quem vence fica com o estado; estado inimigo vazio é ocupado. Chance = A^2,4 / (A^2,4 + D^2,4); a defesa soma o exército parado (×1,2 se não se moveu), a guarnição local, o terreno e o bônus de capital. O relatório explica as forças, os fatores e por que ganhou ou perdeu.
@@ -56,7 +61,7 @@ npx serve .        # ou: python3 -m http.server 8000
 - **Força do exército** = tropas × moral × general (agressivo, defensivo ou logístico) × apoio × ímpeto (e a dificuldade). A **ofensiva especial** reforça UM exército com ordem de ataque neste mês.
 - **Mapa:** zoom com roda do mouse, pinça ou + / − / ⟲, arrastar para mover, "Ir para Recife"; o topo mostra "🎯 Recife a N estados" e o caminho mais curto tracejado. Nos estados pequenos do Nordeste as fichas ficam no mar, ao lado do nome.
 - **Recrutar:** +20 de tropas por 10 Recursos, até 2 vezes por mês, sem AP, num estado seu (se já houver um exército seu lá, ele é reforçado). **Comando automático** e o **modo simples** (Fácil) deixam os generais darem as ordens.
-- **Saves:** v13. Saves antigos são migrados: v7 (tropas das frentes), v9 ("em disputa" vira um dos lados), v10/v11 (eixos e rompimento descartados) e v12 (os exércitos das regiões do IBGE voltam para o estado de cada região). As regiões do IBGE (fases 11–13) foram removidas.
+- **Saves:** v13 (hoje v14, veja acima). Saves antigos são migrados: v7 (tropas das frentes), v9 ("em disputa" vira um dos lados), v10/v11 (eixos e rompimento descartados) e v12 (os exércitos das regiões do IBGE voltam para o estado de cada região). As regiões do IBGE (fases 11–13) foram removidas.
 
 ### Exércitos e ordens (1964)
 - **Selecionar:** toque numa ficha azul (seu exército; o número é a força total no estado e o selo "×n" indica vários exércitos — toque de novo para alternar). Os estados alcançáveis ficam destacados: borda vermelha = atacar, azul = mover/recuar. Ao escolher um, aparece a **previsão** e o botão **Confirmar ordem**.

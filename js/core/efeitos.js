@@ -46,6 +46,7 @@ function applyFx(g, fx, rep){
   // desdobramento: o evento encadeado chega alguns meses depois (se a condição dele ainda valer)
   if (fx.chain) for (const c of [].concat(fx.chain)) (g.chains ||= []).push({ id: c.id, due: g.month + (c.in || 1) });
   if (fx.south) southAdd(g, fx.south);
+  if (fx.urna) urnaAdd(g, fx.urna);
   if (fx.opp && typeof focusOpenOpp === "function") focusOpenOpp(g, focusDef(g, fx.opp), rep ? (t, k) => rep.push({ t, k: k || "info" }) : null, "aberta por um evento");
   if (fx.southAlly) southAlly(g, rep ? (t, k) => rep.push({ t, k: k || "info" }) : null);
   syncActorStats(g);
@@ -54,6 +55,7 @@ function fxSummary(g, fx){
   if (!fx) return "";
   const sc = scOf(g), S = sc.story, C = sc.campaign, out = [], sg = v => (v > 0 ? "+" : "") + v;
   if (fx.south && g.south && ["calmo", "revolta"].includes(g.south.state)) out.push(`Tensão no Sul ${sg(fx.south)}`);
+  if (fx.urna){ const u = fx.urna; if (u.prog) out.push(`Contestação ${sg(u.prog)}`); if (u.cred) out.push(`Credibilidade ${sg(u.cred)}`); if (u.esc) out.push(`Escalada ${sg(u.esc)}`); }
   if (fx.southAlly) out.push(`O Sul vira aliado (+1 exército de ${C.south ? C.south.allyStr : 20})`);
   if (fx.s) for (const k in fx.s) out.push(`${S.stats[k] ? S.stats[k].label : k} ${sg(fx.s[k])}`);
   if (fx.money) out.push(`${C.money.short} ${sg(fx.money)}`);

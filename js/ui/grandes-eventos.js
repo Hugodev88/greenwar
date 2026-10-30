@@ -86,7 +86,7 @@ function showMajor(m, done){
   coachClose(); AUDIO.sfx("sting");
   const o = document.createElement("div"); o.className = "major " + (m.tone === "gold" ? "gold" : "");
   o.setAttribute("role", "alertdialog"); o.setAttribute("aria-modal", "true"); o.setAttribute("aria-labelledby", "majorH"); o.setAttribute("aria-describedby", "majorS");
-  o.innerHTML = `<div class="mstripe t"></div><div class="mbox"><div class="mkick">⚠ Última hora ⚠</div><div class="mdate">${esc(monthLabel(G.month))}</div>
+  o.innerHTML = `<div class="mstripe t"></div><div class="mbox"><div class="mkick">⚠ Última hora ⚠</div><div class="mdate">${esc(dateLabel(G))}</div>
     <h2 id="majorH">${esc(m.head)}</h2><p class="msub" id="majorS">${esc(m.sub)}</p>
     ${m.cons.length ? `<div class="mcons"><h3>O que muda para você</h3><ul>${m.cons.map(c => `<li class="${c.k}">${esc(c.t)}</li>`).join("")}</ul></div>` : ""}
     <button class="primary mgo">Continuar ▸</button></div><div class="mstripe b"></div>`;

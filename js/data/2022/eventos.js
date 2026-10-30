@@ -226,5 +226,21 @@ const EVENTOS_2022 = [
       { text: "Ameaçar com intervenção federal.", fx: { south: 15, s: { militar: 3 }, fac: { militares: 3 } } } ], { if: { phase: "regime", south: { min: 55, state: ["calmo"] } }, once: true, chained: true }),
     ev("n_sancoes_eua", "Washington congela ativos", "O Tesouro americano congela bens de generais e empresários ligados ao regime.", [
       { text: "Contratar lobistas e negociar.", fx: { money: -5, act: { eua: 10 }, fac: { agro: 3 } } },
-      { text: "Denunciar o imperialismo em rede nacional.", fx: { s: { apoio: 3, internacional: -4 }, act: { eua: -10, russia: 4 }, fac: { agro: -5 } } } ], { if: { phase: "regime", actor: { eua: { max: 10 } } }, once: true })
+      { text: "Denunciar o imperialismo em rede nacional.", fx: { s: { apoio: 3, internacional: -4 }, act: { eua: -10, russia: 4 }, fac: { agro: -5 } } } ], { if: { phase: "regime", actor: { eua: { max: 10 } } }, once: true }),
+    // ---- Contestação das urnas (só com a frente legal montada) ----
+    ev("u_laudo", "O laudo dos militares", "O relatório técnico das Forças Armadas sobre as urnas não aponta fraude, mas diz que \"não é possível excluir\" falhas de programação.", [
+      { text: "Explorar a ambiguidade nas entrevistas.", fx: { urna: { prog: 6, cred: -5, esc: 6 } } },
+      { text: "Citar só os trechos técnicos e pedir mais testes.", fx: { urna: { prog: 3, cred: 4 } } } ], { if: { urna: { on: true } }, once: true, weight: 4 }),
+    ev("u_bloqueios", "Rodovias bloqueadas", "Caminhoneiros fecham estradas em dez estados em apoio à contestação. Faltam combustível e alimentos em algumas cidades.", [
+      { text: "Endossar os bloqueios.", fx: { urna: { prog: 4, esc: 16 }, s: { apoio: 2 }, fac: { agro: -5 } } },
+      { text: "Pedir a liberação das estradas.", fx: { urna: { esc: -12, cred: 4 }, s: { apoio: -3 } } } ], { if: { urna: { on: true } }, once: true, weight: 4 }),
+    ev("u_multa", "Multa por litigância de má-fé", "O relator multa a sua coligação e bloqueia o fundo partidário até o pagamento.", [
+      { text: "Pagar e seguir pelos autos.", fx: { money: -6, urna: { cred: 3 } } },
+      { text: "Atacar o ministro relator em rede nacional.", fx: { urna: { cred: -8, esc: 8 }, s: { apoio: 2 }, fac: { stf: -8 } } } ], { if: { urna: { on: true } }, once: true, weight: 3 }),
+    ev("u_centrao", "O Centrão faz as contas", "Líderes partidários perguntam o que ganham assinando o pedido de auditoria no Congresso.", [
+      { text: "Prometer cargos e verbas.", fx: { money: -6, urna: { prog: 6 }, fac: { centrao: 8 } } },
+      { text: "Recusar o balcão de negócios.", fx: { urna: { cred: 3 }, s: { base: -3 } } } ], { if: { urna: { on: true } }, once: true, weight: 3 }),
+    ev("u_oea", "Missão da OEA divulga relatório", "Os observadores internacionais dizem que a eleição foi limpa, mas recomendam ampliar a auditoria pública das urnas.", [
+      { text: "Contestar o relatório.", fx: { urna: { prog: 3, cred: -6 }, act: { onu: -10 } } },
+      { text: "Abraçar as recomendações de auditoria.", fx: { urna: { prog: 4, cred: 6 }, s: { internacional: 3 } } } ], { if: { urna: { on: true } }, once: true, weight: 3 })
 ];

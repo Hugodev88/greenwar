@@ -117,7 +117,7 @@ for (const sc of SCENARIOS) {
     for (const ck of C.checks||[]){ if (!nodes[ck.to] || !nodes[ck.to].ending) err(`check -> ${ck.to} não é final`); checkC("check " + ck.to, ck.if); }
     const aids = new Set();
     for (const a of C.actions){ if (aids.has(a.id)) err("ação duplicada " + a.id); aids.add(a.id);
-      if (!["eco","mil","pol","dip","sul"].includes(a.cat)) err(`ação ${a.id}: categoria ${a.cat}`); checkFx("ação " + a.id, a.fx); checkC("ação " + a.id, a.show); checkC("ação " + a.id, a.req); if (a.risk) checkFx("risco " + a.id, a.risk.fx); }
+      if (!["eco","mil","pol","dip","sul","urna"].includes(a.cat)) err(`ação ${a.id}: categoria ${a.cat}`); checkFx("ação " + a.id, a.fx); checkC("ação " + a.id, a.show); checkC("ação " + a.id, a.req); if (a.risk) checkFx("risco " + a.id, a.risk.fx); }
     const eids = new Set();
     for (const e of C.events){ if (eids.has(e.id)) err("evento duplicado " + e.id); eids.add(e.id); checkC("evento " + e.id, e.if);
       if (e.crisisOf && !FCS.includes(e.crisisOf)) err(`evento ${e.id}: crisisOf ${e.crisisOf}`);
@@ -240,18 +240,22 @@ for (const sc of SCENARIOS) {
     for (const f of c.noFlags||[]) if (s.flags.includes(f)) return false;
     for (const n of c.visited||[]) if (!s.visited.includes(n)) return false;
     if (c.quick !== undefined && !!s.quick !== c.quick) return false;
-    if (c.diff && !c.diff.includes(s.diff)) return false; return true; };
+    if (c.diff && !c.diff.includes(s.diff)) return false;
+    if (c.urna){ const u = c.urna; if (u.min !== undefined && s.urna.prog < u.min) return false; if (u.credMax !== undefined && s.urna.cred > u.credMax) return false; } // contestação das urnas: números sorteados por partida
+    return true; };
   const applyMap = (s, spec) => { if (!spec) return;
     if (spec.resolve) for (const uf in s.control) if (spec.resolve[s.control[uf]]) s.control[uf] = spec.resolve[s.control[uf]];
     if (spec.map) Object.assign(s.control, spec.map); };
   const visited = new Set(), endings = {}, used = new Set(), endMaps = {};
   for (let run = 0; run < 40000; run++) {
-    const s = { stats: {}, flags: [], control: {}, quick: run % 2 === 1, diff: ["facil", "normal", "dificil"][Math.floor(run / 2) % 3], visited: [] }; // metade das partidas no modo rápido (finais com prazo)
+    const s = { stats: {}, flags: [], control: {}, quick: run % 2 === 1, diff: ["facil", "normal", "dificil"][Math.floor(run / 2) % 3], visited: [], urna: { prog: Math.random() * 110, cred: Math.random() * 60 } }; // metade das partidas no modo rápido (finais com prazo)
     for (const k of STATS) s.stats[k] = STORY.stats[k].initial;
     for (const u of UFS) s.control[u] = STORY.defaultFaction || "federal";
     Object.assign(s.control, STORY.initialMap);
     let id = STORY.start, steps = 0; applyMap(s, nodes[id].onEnter);
     while (!nodes[id].ending) {
+      // contestação das urnas: a escalada a 100 (js/core/urnas.js) interrompe o caminho antes do julgamento ou do veredito
+      if (nodes.escalada && s.flags.includes("contesta_urna") && (id === "julgamento_tse" || id === "veredito") && !s.visited.includes("escalada") && Math.random() < 0.15) id = "escalada";
       visited.add(id); s.visited.push(id);
       const opts = nodes[id].choices.map((c,i)=>[c,i]).filter(([c]) => cond(c.req, s));
       if (!opts.length) { err("Beco sem saída em " + id); break; }
@@ -539,7 +543,7 @@ for (const sc of SCENARIOS) {
       // migração v9 → v13: estados "disputa" viram um lado
       const v9 = JSON.parse(JSON.stringify(gt)); v9.v = 9; v9.control.MG = "disputa"; v9.control.BA = "disputa";
       const m = RX.migrateSave(v9);
-      if (!m || m.v !== RX.SAVE_VERSION || m.v !== 13) err("2022: migração v9→v13 falhou");
+      if (!m || m.v !== RX.SAVE_VERSION || m.v !== 14 || m.halfDone !== true || !m.urna) err("2022: migração v9→v14 falhou");
       else {
         if (Object.values(m.control).includes("disputa")) err("2022: migração v9→v13 deixou estado em disputa");
         if ("reg" in m) err("2022: migração v9→v13 criou regiões");

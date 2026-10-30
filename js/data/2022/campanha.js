@@ -3,6 +3,7 @@
 /* ---------- Campanha 2022: A Faixa Presidencial ---------- */
 const CAMPAIGN_2022 = {
   start: "2022-10", ap: 3, eventChance: 0.5, eventPaceBoost: true,
+  quinzenas: QUINZENAS_2022, urna: URNAS_2022, // abertura em quinzenas e contestação das urnas (js/data/2022/urnas.js)
   money: { label: "Recursos políticos", short: "Recursos", initial: 15, comfort: 15, cap: 80 },
   // Ações por turno crescem com o Apoio Popular: 3 de base; +1 com 60 ou mais; +2 com 75 ou mais
   apScale: { stat: "apoio", tiers: [[60, 1], [75, 2]] },
@@ -23,8 +24,8 @@ const CAMPAIGN_2022 = {
   unrestBase: 35, unrest: { DF: 45 },
   pace: [{ from: "2022-10", months: 1 }, { from: "2023-03", months: 3 }],
   defaultDelay: 1,
-  storyDelay: { expurgo: 0, decreto: 1, golpe_fracassa: 0, reacao_internacional: 1, racha_militar: 2, guerra: 5, impasse: 8, nova_eleicao: 48, transicao: 1, silencio: 1, contestacao: 1 },
-  storyAt: { sondagem: "2022-12", golpe_inicial: "2023-01", crise_janeiro: "2023-01", oposicao: "2023-03", justica: "2023-09", inelegivel: "2024-03", campanha2026: "2026-08", eleicao_herdeiro: "2026-08" },
+  storyDelay: { expurgo: 0, decreto: 1, golpe_fracassa: 0, reacao_internacional: 1, racha_militar: 2, guerra: 5, impasse: 8, nova_eleicao: 48, transicao: 1, silencio: 1, contestacao: 1, posse_adiada: 0, contestacao_derrotada: 0 },
+  storyAt: { julgamento_tse: "2023-01", veredito: "2023-03", sondagem: "2022-12", golpe_inicial: "2023-01", crise_janeiro: "2023-01", oposicao: "2023-03", justica: "2023-09", inelegivel: "2024-03", campanha2026: "2026-08", eleicao_herdeiro: "2026-08" },
   phases: [
     { id: "regime", if: { visited: ["golpe_inicial"] }, label: "Regime de exceção", war: true,
       player: ["regime"], enemy: ["resistencia", "separatista"], playerMain: "regime", enemyMain: "resistencia",
@@ -98,7 +99,13 @@ const CAMPAIGN_2022 = {
     justica: [ { fac: { stf: 6 } }, { fac: { stf: -15 } }, { fac: { centrao: 8 } } ],
     golpe_inicial: [ { fac: { centrao: 6 }, south: -15 }, { fac: { militares: 6, movimentos: -10 }, south: 15 }, { fac: { movimentos: -8 }, south: 5 } ],
     reacao_internacional: [ { act: { eua: 10, ue: 10, onu: 10 }, south: -5 }, { act: { russia: 15, china: 5 } }, { fac: { agro: -10 }, south: 10 } ],
-    impasse: [ { fac: { militares: 3 } }, { ceasefire: 3, act: { onu: 10, ue: 5 } } ]
+    impasse: [ { fac: { militares: 3 } }, { ceasefire: 3, act: { onu: 10, ue: 5 } } ],
+    // contestação das urnas (js/core/urnas.js)
+    julgamento_tse: [ { urna: { cred: 6 } }, { urna: { prog: 6, esc: 18 } } ],
+    posse_adiada: [ { urna: { cred: 5, esc: -10 } }, { urna: { prog: 6, esc: 10 }, fac: { centrao: 5 } } ],
+    veredito: [ { urna: { cred: 4 } }, { urna: { prog: 6, esc: 25 } } ],
+    escalada: [ { urna: { esc: -45, cred: -5, prog: -5 } }, { fac: { militares: 6, stf: -10 } } ],
+    contestacao_derrotada: [ { fac: { stf: 6 } }, { fac: { stf: -10 } } ]
   },
   // Tensão no Sul: a Liga do Sul só se rebela se a tensão chegar a 100 (antes: rebelião garantida no racha nas Forças)
   south: { startNode: "golpe_inicial", ufs: ["RS", "SC", "PR"], rebel: ["RS", "SC"], fac: "separatista", start: 50, base: 5,

@@ -26,7 +26,9 @@ function collapseTo(g, k){ const t = scOf(g).story.collapse[k]; return typeof t 
 function queueChoices(g){
   const q = g.queue[0]; if (!q) return [];
   const sc = scOf(g);
-  if (q.type === "story") return sc.story.nodes[q.node].choices.map(c => ({ text: g.quick && c.textRapida ? c.textRapida : c.text, ok: cond(g, c.req), req: c.req, fx: c.effects ? { s: c.effects } : null }));
+  if (q.type === "story"){ const CF = (sc.campaign.choiceFx || {})[q.node] || [];
+    return sc.story.nodes[q.node].choices.map((c, i) => { const u = CF[i] && CF[i].urna, fx = c.effects || u ? Object.assign(c.effects ? { s: c.effects } : {}, u ? { urna: u } : {}) : null;
+      return { text: g.quick && c.textRapida ? c.textRapida : c.text, ok: cond(g, c.req), req: c.req, fx, urna: !!c.urna }; }); }
   const ev = findEvent(g, q.id);
   return ev.choices.map(c => ({ text: c.text, ok: cond(g, c.req), req: c.req, fx: c.fx }));
 }

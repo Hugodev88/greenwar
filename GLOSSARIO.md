@@ -54,3 +54,7 @@ Chinês usa pontuação de largura total (，。：（）“”) e —— para t
 | Os Anos Decisivos (1964) | The Decisive Years | 决定性的岁月 | Решающие годы |
 | Fácil / Normal / Difícil | Easy / Normal / Hard | 简单 / 普通 / 困难 | Лёгкий / Нормальный / Сложный |
 | Lula / Bolsonaro | Lula / Bolsonaro | 卢拉 / 博索纳罗 | Лула / Болсонару |
+| Quinzena | Fortnight / 1st (2nd) half of [month] | 半月（上半月/下半月） | полмесяца (1-я/2-я половина) |
+| Contestação das urnas | Ballot challenge | 选举结果质疑 | Оспаривание выборов |
+| Progresso / Credibilidade / Escalada | Progress / Credibility / Escalation | 进度 / 公信力 / 升级值 | Прогресс / Доверие / Эскалация |
+| Inelegível | Ineligible | 失去参选资格 | Лишён права избираться |

@@ -1,6 +1,7 @@
 // js/data/2022/acoes.js — Cenário 2022 — ações da aba Ações (custam pontos de ação/Recursos).
 // Cada linha: act(id, categoria, nome, descrição, { ap, cost, fx, req, reqText, show, risk }).
 // Categorias: eco, pol, mil, dip, sul… (as abas usam a categoria para agrupar).
+const URNA_ON = { urna: { on: true } }; // ações da contestação das urnas
 const ACOES_2022 = [
     act("e_beneficios", "eco", "Ampliar benefícios sociais", "Mais transferência de renda; pesa no orçamento.", { cost: 6, show: { phase: ["governo", "regime"] }, fx: { s: { apoio: 4 }, fac: { centrao: 3 } } }),
     act("e_combustivel", "eco", "Segurar preços de combustíveis", "Alívio imediato, desconfiança do mercado.", { cost: 4, show: { phase: ["governo", "regime"] }, fx: { s: { apoio: 3 }, fac: { agro: -3 } } }),
@@ -24,5 +25,13 @@ const ACOES_2022 = [
     act("s_investir", "sul", "Investimentos no Sul", "Obras e crédito agrícola em RS, SC e PR (−10 de agitação lá).", { cost: 8, show: { phase: "regime", south: { state: ["calmo", "revolta"] } }, fx: { south: -8, unrestUF: { RS: -10, SC: -10, PR: -10 }, fac: { agro: 4 } } }),
     act("s_autonomia", "sul", "Autonomia administrativa ao Sul", "Polícias e tributos sob comando estadual. Uma vez por partida; os quartéis não gostam.", { show: { phase: "regime", south: { state: ["calmo", "revolta"] } }, req: { noFlags: ["sul_autonomia"] }, reqText: "Já concedida nesta partida", fx: { south: -25, flag: "sul_autonomia", s: { militar: -3 }, fac: { militares: -8 } } }),
     act("s_pacto", "sul", "Pacto Federativo com o Sul", "Transforma a Liga do Sul em aliada: a tensão some e uma divisão sulista entra no seu lado.", { ap: 2, cost: 25, show: { phase: "regime", south: { state: ["calmo"] } }, req: { flags: ["sul_cupula"], south: { max: 25 } }, reqText: "Requer uma Cúpula com os governadores já feita e Tensão no Sul ≤ 25", fx: { southAlly: true, s: { internacional: -3 }, fac: { centrao: -4, militares: -3 } } }),
-    act("d_forum", "dip", "Discurso em fórum internacional", "Defende a sua posição diante do mundo.", { show: { phase: ["governo", "regime"] }, fx: { s: { internacional: 3 }, act: { onu: 6 } } })
+    act("d_forum", "dip", "Discurso em fórum internacional", "Defende a sua posição diante do mundo.", { show: { phase: ["governo", "regime"] }, fx: { s: { internacional: 3 }, act: { onu: 6 } } }),
+    // ---- Contestação das urnas (js/core/urnas.js): só aparecem com a frente legal montada ----
+    act("u_auditoria", "urna", "Auditoria independente das urnas", "Peritos contratados refazem os testes de segurança das seções contestadas.", { cost: 3, show: URNA_ON, fx: { urna: { prog: 4, cred: 2 } } }),
+    act("u_tse", "urna", "Nova ação no TSE e no STF", "Mais um pedido, mais um recurso: avança, mas cada derrota pesa na sua imagem.", { cost: 2, show: URNA_ON, fx: { urna: { prog: 5, cred: -5, esc: 4 } }, risk: { p: 0.25, msg: "O tribunal aplica nova multa por litigância de má-fé.", fx: { money: -5, urna: { cred: -4 } } } }),
+    act("u_ruas", "urna", "Atos nas capitais", "Domingo verde e amarelo nas grandes cidades: pressiona os tribunais e esquenta as ruas.", { cost: 2, show: URNA_ON, fx: { urna: { prog: 4, esc: 14 }, s: { apoio: 2 } } }),
+    act("u_congresso", "urna", "Frente no Congresso", "Cargos e emendas para deputados que assinem o pedido de auditoria.", { cost: 5, show: URNA_ON, fx: { urna: { prog: 4, cred: 2 }, fac: { centrao: 4 } } }),
+    act("u_redes", "urna", "Ofensiva nas redes", "Vídeos, lives e correntes sobre fraude: mobiliza rápido, mas os checadores desmontam metade.", { cost: 1, show: URNA_ON, fx: { urna: { prog: 4, cred: -7, esc: 6 }, s: { apoio: 1 } } }),
+    act("u_calma", "urna", "Baixar a temperatura", "Pede calma aos apoiadores e libera as estradas: perde um pouco de apoio, ganha seriedade.", { show: URNA_ON, fx: { urna: { esc: -20, cred: 5 }, s: { apoio: -2 } } }),
+    act("u_observadores", "urna", "Convidar observadores internacionais", "A OEA e peritos europeus acompanham a auditoria: credibilidade e paciência lá fora.", { cost: 3, show: URNA_ON, fx: { urna: { cred: 8, prog: 1 }, s: { internacional: 2 } } })
 ];

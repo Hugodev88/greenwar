@@ -30,8 +30,8 @@ function advisorTips(g, ctx){
   const C = scOf(g).campaign, ph = phaseOf(g), tips = [];
   const cs = coupState(g);
   if (g.queue.length){
-    const st = cs && coupStoryTip(g, cs);
-    if (st && ctx.tab === "historia") return [st];
+    const st = cs && coupStoryTip(g, cs), ut = urnaStoryTip(g);
+    if ((st || ut) && ctx.tab === "historia") return [ut, st].filter(Boolean);
     if (ctx.tab !== "historia") tips.push({ id: "fila", pri: 100, head: "Decisão esperando", text: "Tem um acontecimento esperando sua resposta na aba História. O mês só avança depois que você escolher.", act: { k: "tab", tab: "historia" }, btn: "Ver agora" });
     return tips;
   }
@@ -71,6 +71,7 @@ function advisorTips(g, ctx){
   }
   // caminho do golpe: dicas do plano (no "plano" substituem a sugestão genérica de decisão nacional)
   if (cs) tips.push(...coupTips(g, cs));
+  tips.push(...urnaTips(g)); // contestação das urnas (js/core/urnas.js)
   // oportunidade aberta (some se não for aproveitada)
   const T = focusTree(g);
   if (T && g.focus && !g.focus.active){

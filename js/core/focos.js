@@ -1,6 +1,6 @@
 // js/core/focos.js — Núcleo: árvore de decisões nacionais (focos): status, início, progresso, conclusão, oportunidades (aparecem e expiram) e aviso de focos novos.
 /* ---------- Árvore de decisões nacionais (focos) ---------- */
-const FOCUS_FX_KEYS = ["s","money","reserve","fac","infl","unrest","unrestAll","unrestUF","act","actAll","enemy","flag","map","ap","ceasefire","malus","south","southAlly","front","org","opp"];
+const FOCUS_FX_KEYS = ["s","money","reserve","fac","infl","unrest","unrestAll","unrestUF","act","actAll","enemy","flag","map","ap","ceasefire","malus","south","southAlly","front","org","opp","urna"];
 const EVENT_FX_KEYS = FOCUS_FX_KEYS.concat(["enemyLoss", "chain"]);
 function focusTree(g){ return scOf(g).campaign.focus || null; }
 function focusInit(g){
@@ -16,7 +16,7 @@ function focusStatus(g, F){
   if (!f) return { state: "unavailable", why: "" };
   const O = F.oport;
   if (f.done.includes(F.id)) return { state: "done", why: "Concluído" };
-  if (f.active === F.id) return { state: "active", why: `Em andamento: ${f.prog}/${F.months} ${F.months === 1 ? "mês" : "meses"}` };
+  if (f.active === F.id) return { state: "active", why: `Em andamento: ${f.prog}/${F.months} ${turnUnit(g, F.months)}` };
   const ex = (F.excl || []).find(x => f.done.includes(x) || f.active === x);
   if (ex) return { state: "excluded", why: `Bloqueado: exclusivo com “${focusName(g, ex)}”` };
   if (F.lockIf && cond(g, F.lockIf)) return { state: "locked", why: F.lockText || "Bloqueado pela história" };
@@ -57,7 +57,7 @@ function startFocus(g, id){
   // guarda o que foi pago neste turno: cancelar no mesmo turno devolve tudo (ver cancelFocus)
   g.focus.paid = { turn: g.turn, ap, money, before: g.ap };
   g.ap -= ap; g.money -= money; g.focus.active = id; g.focus.prog = 0; g.focus.started = g.month; g.stat.actions++;
-  return { ok: true, msg: `Foco iniciado: ${F.name} (${F.months} ${F.months === 1 ? "mês" : "meses"}).` };
+  return { ok: true, msg: `Foco iniciado: ${F.name} (${F.months} ${turnUnit(g, F.months)}).` };
 }
 // Reembolso ao cancelar: só no mesmo turno em que o foco começou (começar e cancelar de novo nunca gera pontos).
 function focusCancelRefund(g){
@@ -116,7 +116,7 @@ function focusTick(g, months, R){
   if (st.state === "locked" || st.state === "excluded" || phaseGone){ R(`Foco interrompido: ${F.name} — ${st.why}.`, "bad"); f.active = null; f.prog = 0; return; }
   f.prog += months;
   if (f.prog >= F.months) completeFocus(g, F, R);
-  else R(`Foco em andamento: ${F.name} (${f.prog}/${F.months} meses).`);
+  else R(`Foco em andamento: ${F.name} (${f.prog}/${F.months} ${turnUnit(g, F.months)}).`);
 }
 /* ---------- Oportunidades e focos novos (fim de cada turno) ---------- */
 // Oportunidades (F.oport = { if, text, dura, cooldown, chance, repeat }): abrem quando a condição vale, ficam abertas por "dura" meses e somem.

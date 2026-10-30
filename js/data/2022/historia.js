@@ -89,7 +89,8 @@ const STORY_2022 = {
       choices: [
         { text: "Quebrar o silêncio e autorizar formalmente a transição.", effects: { internacional: 10, apoio: -5 }, next: "transicao" },
         { text: "Viajar para o exterior antes da posse, sem passar a faixa.", effects: { apoio: -5, base: -5, internacional: -5 }, next: "crise_janeiro" },
-        { text: "Incentivar os acampamentos e sondar os militares.", effects: { militar: 10, internacional: -10 }, flag: "conspiracao", next: "sondagem" }
+        { text: "Incentivar os acampamentos e sondar os militares.", effects: { militar: 10, internacional: -10 }, flag: "conspiracao", next: "sondagem" },
+        { text: "Romper o silêncio e contestar o resultado no TSE.", effects: { base: 3, internacional: -5 }, next: "contestacao" }
       ]
     },
     contestacao: {
@@ -101,13 +102,79 @@ const STORY_2022 = {
       ],
       choices: [
         { text: "Acatar a decisão e liberar a transição.", effects: { base: 5, internacional: 5, apoio: -5 }, next: "transicao" },
-        { text: "Recorrer às ruas e às Forças Armadas.", effects: { militar: 5, base: -10 }, flag: "conspiracao", next: "sondagem" }
+        { text: "Recorrer às ruas e às Forças Armadas.", effects: { militar: 5, base: -10 }, flag: "conspiracao", next: "sondagem" },
+        { text: "Não desistir: montar uma frente legal (auditorias, tribunais, Congresso e ruas) para virar o resultado sem romper a lei.", effects: { base: 5, internacional: -3 }, flag: "contesta_urna", urna: true, next: "julgamento_tse" }
+      ]
+    },
+    // ---- Contestação das urnas: o caminho para vencer sem guerra (js/core/urnas.js) ----
+    julgamento_tse: {
+      chapter: "Janeiro de 2023",
+      title: "O Julgamento no TSE",
+      text: [
+        "Às vésperas da posse, o plenário do TSE julga o pedido da sua coligação: auditoria completa das seções contestadas e suspensão da diplomação até lá. Brasília inteira para diante da TV.",
+        "Seus advogados sabem que o placar depende do que você construiu nas últimas semanas: laudos, apoio no Congresso e a calma das ruas. Um voto muda tudo."
+      ],
+      choices: [
+        { text: "Fazer uma defesa técnica no plenário: só laudos e argumentos.", effects: { internacional: 3 }, next: [{ if: { urna: { min: 43 } }, to: "posse_adiada" }, { to: "contestacao_derrotada" }] },
+        { text: "Lotar a Esplanada durante o julgamento para pressionar os ministros.", effects: { apoio: 3, internacional: -5 }, next: [{ if: { urna: { min: 43 } }, to: "posse_adiada" }, { to: "contestacao_derrotada" }] }
+      ]
+    },
+    posse_adiada: {
+      chapter: "Janeiro de 2023",
+      title: "A Posse Suspensa",
+      text: [
+        "Por um voto, o TSE manda auditar as seções contestadas e suspende a diplomação do vencedor até o fim de março. Pela primeira vez na história, a posse presidencial é adiada; o presidente da Câmara assume interinamente.",
+        "Do lado de fora, metade do país comemora e metade fala em golpe de toga. Você tem dois meses para provar o que diz, sem perder a credibilidade nem deixar as ruas saírem do controle."
+      ],
+      choices: [
+        { text: "Manter a frente dentro da lei até o fim.", effects: { internacional: 3, base: 3 }, next: "veredito" },
+        { text: "Pressionar o Congresso por uma nova eleição.", effects: { base: 5, internacional: -3 }, next: "veredito" }
+      ]
+    },
+    veredito: {
+      chapter: "Março de 2023",
+      title: "O Veredito",
+      text: [
+        "A auditoria termina e o TSE marca a sessão final. Se a contestação convenceu, o tribunal anula o resultado e convoca uma nova votação. Se não, o vencedor toma posse e a sua frente se desfaz.",
+        "Seus advogados pedem silêncio; seus aliados mais radicais pedem as ruas cheias. É a última jogada."
+      ],
+      choices: [
+        { text: "Aguardar a decisão com serenidade.", effects: { internacional: 3 }, next: [{ if: { urna: { min: 100 } }, to: "fim_urnas" }, { if: { urna: { credMax: 15 } }, to: "fim_cassado" }, { to: "contestacao_derrotada" }] },
+        { text: "Convocar a base para as ruas no dia da decisão.", effects: { apoio: 3, internacional: -5 }, next: [{ if: { urna: { min: 100 } }, to: "fim_urnas" }, { if: { urna: { credMax: 15 } }, to: "fim_cassado" }, { to: "contestacao_derrotada" }] }
+      ]
+    },
+    escalada: {
+      chapter: "Contestação das urnas",
+      title: "As Ruas Passam do Limite",
+      text: [
+        "Caminhoneiros fecham as principais rodovias, um grupo tenta invadir a sede da Polícia Federal e, diante dos quartéis, os acampamentos pedem abertamente uma intervenção militar. A contestação legal virou outra coisa.",
+        "Um general liga para o Planalto: há oficiais dispostos a agir, se você der a ordem. Seus advogados avisam que, se você não puser freio agora, o TSE vai tratar a frente inteira como golpista."
+      ],
+      choices: [
+        { text: "Ir à TV pedir calma e desmobilizar os bloqueios.", effects: { apoio: -5, internacional: 5 }, next: [{ if: { visited: ["posse_adiada"] }, to: "veredito" }, { to: "julgamento_tse" }] },
+        { text: "Aproveitar a onda e convocar os comandantes.", effects: { militar: 5, internacional: -10 }, flag: "conspiracao", next: "sondagem" }
+      ]
+    },
+    contestacao_derrotada: {
+      chapter: "Contestação das urnas",
+      title: "O Fim da Contestação",
+      text: [
+        "O tribunal rejeita a contestação por ampla maioria e manda a Polícia Federal investigar quem financiou os bloqueios. Os aliados do Centrão que ainda estavam com você começam a negociar com o novo governo.",
+        "A frente legal acabou. Resta decidir como você sai dela."
+      ],
+      choices: [
+        { text: "Reconhecer a decisão e passar a faixa.", effects: { internacional: 8, apoio: -5, base: -5 }, next: "crise_janeiro" },
+        { text: "Não reconhecer: chamar as ruas e os quartéis.", effects: { militar: 5, internacional: -10, base: -5 }, flag: "conspiracao", req: { notVisited: ["posse_adiada"] }, next: "sondagem" }
       ]
     },
     crise_janeiro: {
       chapter: "Janeiro de 2023",
       title: "A Praça dos Três Poderes",
       onEnter: { resolve: { voto_lula: "legal", voto_bolso: "oposicao" } },
+      textAlt: [
+        { if: { visited: ["posse_adiada"] }, text: ["Com a contestação derrotada, a posse adiada finalmente acontece no fim de março. Uma semana depois, milhares de manifestantes invadem e depredam as sedes do Congresso, do Planalto e do STF. As imagens correm o mundo; líderes estrangeiros condenam o ataque em uníssono.", "Centenas são presos. Investigadores querem saber quem financiou, quem organizou e quem incentivou. Todos os olhares se voltam para você, que acompanha tudo à distância."] },
+        { if: { visited: ["contestacao_derrotada"] }, text: ["Com a contestação derrotada, a posse acontece em 1º de janeiro. Uma semana depois, milhares de manifestantes invadem e depredam as sedes do Congresso, do Planalto e do STF. As imagens correm o mundo; líderes estrangeiros condenam o ataque em uníssono.", "Centenas são presos. Investigadores querem saber quem financiou, quem organizou e quem incentivou. Todos os olhares se voltam para você, que acompanha tudo à distância."] }
+      ],
       text: [
         "A posse acontece em 1º de janeiro. Uma semana depois, milhares de manifestantes invadem e depredam as sedes do Congresso, do Planalto e do STF. As imagens correm o mundo; líderes estrangeiros condenam o ataque em uníssono.",
         "Centenas são presos. Investigadores querem saber quem financiou, quem organizou e quem incentivou. Todos os olhares se voltam para você, que acompanha tudo à distância."
@@ -359,6 +426,22 @@ const STORY_2022 = {
       text: [
         "Na madrugada da apuração, desta vez a margem estreita favorece você. O adversário reconhece o resultado, e a transição acontece sem tanques nem bloqueios.",
         "Você volta ao Planalto pelo caminho que a Constituição prevê. Os historiadores vão discutir por décadas se 2022 foi o fim de uma era ou apenas um intervalo."
+      ]
+    },
+    fim_urnas: {
+      ending: true, outcome: "vitoria", endingName: "A Virada nas Urnas", dica: "Na cena 'A Ação no TSE', monte a frente legal. Leve a contestação a 100 com auditorias, tribunais e o Congresso, sem deixar a credibilidade zerar nem a escalada chegar a 100.",
+      chapter: "Epílogo", title: "A Virada nas Urnas",
+      text: [
+        "Numa sessão de onze horas, o TSE anula o resultado em parte das seções e convoca uma nova votação. Sem um tiro, sem um tanque, sem um decreto: só papel timbrado, laudos e uma maioria apertada de ministros.",
+        "Meses depois, numa eleição que o mundo inteiro acompanha, você vence por menos de um ponto. Metade do país jamais vai aceitar essa vitória, mas não há como chamá-la de golpe: ela passou por todos os tribunais."
+      ]
+    },
+    fim_cassado: {
+      ending: true, outcome: "derrota", endingName: "Inelegível", dica: "Na contestação das urnas, deixe a credibilidade chegar a zero (ofensivas nas redes e ataques aos ministros) e o TSE declara você inelegível.",
+      chapter: "Epílogo", title: "Fora do Jogo",
+      text: [
+        "O TSE considera a sua contestação um ataque deliberado ao sistema eleitoral: abuso de poder político e uso indevido dos meios de comunicação. Por unanimidade, você fica inelegível por oito anos.",
+        "O vencedor toma posse sem incidentes. Seus aliados pedem distância, e o seu nome vira sinônimo de uma briga que não convenceu nem os tribunais, nem o país."
       ]
     },
     fim_oposicao: {

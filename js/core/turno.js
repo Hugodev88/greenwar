@@ -20,15 +20,18 @@ function endTurn(g){
   if (g.queue.length) return false;
   const sc = scOf(g), S = sc.story, C = sc.campaign, K = C.keys, rep = [];
   const R = (t, k) => rep.push({ t, k: k || "info" });
-  g.lastDelta = {}; g.lastMapChanges = []; g.counter = null;
-  let pace = paceFor(g);
+  const qz = halfOn(g); // abertura em quinzenas (js/core/quinzenas.js)
+  if (qz && !g.half) return halfTurn(g);
+  g.lastDelta = {}; g.lastMapChanges = []; g.counter = null; g.notice = null;
+  let pace = qz ? 1 : paceFor(g);
   if (g.story.pending) pace = Math.min(pace, Math.max(1, g.story.due - g.month));
   const from = g.month; g.month += pace; g.turn++;
-  R(pace > 1 ? `Passaram-se ${pace} meses (${monthLabel(from)} → ${monthLabel(g.month)}).` : `Novo mês: ${monthLabel(g.month)}.`);
-  // 1. Economia
-  const inc = incomeFor(g);
-  g.money += inc.total * pace;
-  R(`Receita líquida: ${inc.total >= 0 ? "+" : ""}${inc.total * pace} ${C.money.short} (base ${Math.round(inc.base)}, território +${Math.round(inc.terr)}, manutenção de tropas −${Math.round(inc.upkeep)}${inc.sanc ? `, sanções −${inc.sanc}` : ""}${inc.econ ? `, economia ${inc.econ > 0 ? "+" : ""}${Math.round(inc.econ)}` : ""}${inc.facBonus ? `, facções ${inc.facBonus > 0 ? "+" : ""}${inc.facBonus}` : ""}).`, inc.total >= 0 ? "good" : "bad");
+  if (qz) g.half = 0;
+  R(pace > 1 ? `Passaram-se ${pace} meses (${monthLabel(from)} → ${monthLabel(g.month)}).` : qz && halfOn(g) ? `Nova quinzena: ${dateLabel(g)}.` : `Novo mês: ${monthLabel(g.month)}.`);
+  // 1. Economia (na abertura em quinzenas, metade da receita do mês em cada quinzena)
+  const inc = incomeFor(g), gain = qz ? inc.total - Math.round(inc.total / 2) : inc.total * pace;
+  g.money += gain;
+  R(`Receita líquida: ${gain >= 0 ? "+" : ""}${gain} ${C.money.short} (base ${Math.round(inc.base)}, território +${Math.round(inc.terr)}, manutenção de tropas −${Math.round(inc.upkeep)}${inc.sanc ? `, sanções −${inc.sanc}` : ""}${inc.econ ? `, economia ${inc.econ > 0 ? "+" : ""}${Math.round(inc.econ)}` : ""}${inc.facBonus ? `, facções ${inc.facBonus > 0 ? "+" : ""}${inc.facBonus}` : ""}).`, gain >= 0 ? "good" : "bad");
   for (const d of g.drains) if (d.until > from){ const m = Math.min(pace, d.until - from); g.money -= d.amount * m; }
   g.drains = g.drains.filter(d => d.until > g.month);
   for (const d of g.debts.filter(d => d.due <= g.month)){
@@ -43,7 +46,9 @@ function endTurn(g){
   const dz = diffOf(g).desgaste;
   if (dz) for (const k of ["apoio", "base"]) if (g.stats[k] > dz) g.stats[k] -= 1;
   // 1b. Foco nacional (árvore de decisões)
-  if (C.focus) focusTick(g, pace, R);
+  if (C.focus) focusTick(g, qz ? (halfCfg(g).foco ?? 1) : pace, R);
+  // 1c. Contestação das urnas (js/core/urnas.js): um turno de mês vale duas quinzenas
+  urnaTick(g, qz ? 1 : 2 * pace, R);
   // 2. Mapa: agitação, simpatia, combates, inimigo
   const ph = phaseOf(g);
   const pop = g.stats[K.pop] ?? 50, econ = K.econ ? g.stats[K.econ] : 50, mil = g.stats[K.mil] ?? 50;
@@ -122,6 +127,7 @@ function endTurn(g){
   // 5. Fim por colapso / estado da campanha
   for (const k in S.collapse) if (g.stats[k] <= 0){ g.report = rep; finishLog(g, rep); enterStory(g, collapseTo(g, k)); g.ended.why = `${S.stats[k].label} chegou a zero.`; return true; }
   for (const chk of (C.checks || [])) if (cond(g, chk.if)){ g.report = rep; finishLog(g, rep); endCampaign(g, chk.to, chk.why); return true; }
+  if (urnaCheck(g, rep) && g.ended){ g.report = rep; finishLog(g, rep); return true; }
   // 6. Eventos: história > crise de facção > dependência > aleatório
   if (g.story.pending && g.month >= g.story.due) enterStory(g, g.story.node, rep);
   let crisis = null;
@@ -150,6 +156,7 @@ function endTurn(g){
   const capInfo = applyMoneyCap(g); if (capInfo) R(`Teto de ${C.money.short}: ${capInfo} acima de ${C.money.cap} foram perdidos (caixa parado não rende).`, "bad");
   { const A = apFor(g); g.ap = A.total; g.apParts = A.parts; if (C.apScale) R(`Ações neste turno: ${A.total} (${A.parts.filter((p, i) => i === 0 || p.v).map((p, i) => i === 0 ? `base ${p.v}` : `${p.label} ${p.v > 0 ? "+" : "−"}${Math.abs(p.v)}`).join(" · ")}).`); }
   g.used = {}; g.dealtWith = {};
+  halfSync(g, R);
   g.report = rep; finishLog(g, rep);
   return true;
 }

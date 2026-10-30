@@ -38,6 +38,11 @@ function cond(g, c, slack){ // slack: folga da dificuldade nos mínimos (só nos
   if (c.south){ const st = g.south; if (!st || !scOf(g).campaign.south) return false;
     if (c.south.min !== undefined && st.t < c.south.min) return false; if (c.south.max !== undefined && st.t > c.south.max) return false;
     if (c.south.state && !c.south.state.includes(st.state)) return false; }
+  if (c.urna){ const U = g.urna, u = c.urna; if (!U) return false; // contestação das urnas (js/core/urnas.js)
+    if (u.on && !urnaOn(g)) return false;
+    if (u.min !== undefined && U.prog + (slack || 0) < u.min) return false; if (u.max !== undefined && U.prog > u.max) return false;
+    if (u.credMin !== undefined && U.cred < u.credMin) return false; if (u.credMax !== undefined && U.cred > u.credMax) return false;
+    if (u.escMin !== undefined && U.esc < u.escMin) return false; if (u.escMax !== undefined && U.esc > u.escMax) return false; }
   if (c.recognized && Object.values(g.actors).filter(a => a.recognized).length < c.recognized.min) return false;
   if (c.phase || c.notPhase || c.war !== undefined || c.sideCount){
     const ph = phaseOf(g);
@@ -68,13 +73,15 @@ function newCampaign(sc, seed, opts){
     money: C.money.initial, ap: C.ap,
     uf: {}, actors: {}, fac: {}, debts: [], drains: [], queue: [], report: [], log: [], used: {}, dealtWith: {},
     eventSeen: {}, chains: [], ended: null, enemyMalus: 0, malusUntil: 0, ceasefire: 0, enemyBoost: 0, counter: null,
-    story: { node: null, due: 0 }, stat: { deals: 0, actions: 0, battles: 0 }, south: null, autoOrders: D.ordensAuto || "off" };
+    story: { node: null, due: 0 }, stat: { deals: 0, actions: 0, battles: 0 }, south: null, urna: null, half: 0, halfDone: true, autoOrders: D.ordensAuto || "off" };
   for (const k in S.stats) g.stats[k] = clamp(S.stats[k].initial + ((D.status || {})[k] || 0), 0, 100);
   for (const uf in MAP_DATA.states) g.control[uf] = S.defaultFaction || "federal";
   Object.assign(g.control, S.initialMap || {});
   for (const uf in MAP_DATA.states) g.uf[uf] = { unrest: (C.unrest && C.unrest[uf] !== undefined) ? C.unrest[uf] : (C.unrestBase ?? 25), enemy: 0, progress: 0, sway: 0 };
   for (const a of C.actors) g.actors[a.id] = { opinion: a.opinion, recognized: !!a.recognizes, dependence: 0, deals: 0, aligned: false, sanctioning: false, supportsEnemy: false };
   for (const f of C.factions) g.fac[f.id] = { loyalty: f.loyalty, influence: f.influence, lastCrisis: -99 };
+  g.urna = urnaNew(g);
+  if (C.quinzenas){ g.half = 1; g.halfDone = false; } // a campanha começa na 2ª quinzena de outubro (noite de 30/10)
   syncActorStats(g);
   prepContested(g);
   initArmies(g);

@@ -28,16 +28,18 @@ function renderGame(){
   const nextStory = G.story.pending ? Math.max(0, G.story.due - G.month) : null;
   $("#app").innerHTML = `
     <div class="hud">
-      <div class="hud-date"><strong>${esc(monthLabel(G.month))}</strong><small>Turno ${G.turn} · ${esc(ph.label)}${ph.war ? " · em guerra" : ""}</small>${diffBadgeHTML(G)}</div>
+      <div class="hud-date"><strong>${esc(dateLabel(G))}</strong><small>Turno ${G.turn} · ${halfOn(G) ? "<span>15 dias</span> · " : ""}${esc(ph.label)}${ph.war ? " · em guerra" : ""}</small>${diffBadgeHTML(G)}</div>
       <div class="hud-res">
         <div class="ecocell" data-eco="ap" role="button" tabindex="0" title="De onde vêm suas ações (clique)"><span class="k">Ações <i class="ecoi">i</i></span><span class="ap">${apDots}</span><b>${G.ap}</b>${apSrcLine()}</div>
         <div class="ecocell" data-eco="money" role="button" tabindex="0" title="${esc(C.money.label)}: renda, teto e usos (clique)"><span class="k">${esc(C.money.label)} <i class="ecoi">i</i></span><b class="${G.money < 0 ? "neg" : G.money >= moneyCap(G) ? "capped" : ""}">${Math.round(G.money)}${Number.isFinite(moneyCap(G)) ? `<small class="cap">/${moneyCap(G)}</small>` : ""}</b><small>${sgn(inc.total)}/mês${paceFor(G) > 1 ? ` (×${paceFor(G)} por turno)` : ""}</small></div>
         <div title="${esc(C.forces.label)}" class="hudarmy" data-tab="mapa"><span class="k">${esc(C.forces.short)}</span><b>${totStr}</b><small>${ph.noArmies ? "sem comando" : frontMode(G) ? (G.war.fronts.length ? `<span>${tpArmies(G, "player").length} exérc. · ${tpArmies(G, "player").filter(a => a.order).length} com ordem</span>` : "na reserva") : `${myA.length} exérc. · ordens ${ordersUsed(G)}/${commandLimit(G)}`}</small></div>
       </div>
-      <button class="primary endbtn" id="btnEnd" ${pend ? "disabled" : ""} title="${pend ? "Resolva os eventos pendentes na aba História" : "Avança o tempo e resolve economia, combates, facções e diplomacia"}">Encerrar ${paceFor(G) > 1 && !(G.story.pending && G.story.due - G.month < paceFor(G)) ? `${paceFor(G)} meses` : "mês"} ▸</button>
+      <button class="primary endbtn" id="btnEnd" ${pend ? "disabled" : ""} title="${pend ? "Resolva os eventos pendentes na aba História" : "Avança o tempo e resolve economia, combates, facções e diplomacia"}">Encerrar ${halfOn(G) ? "quinzena" : paceFor(G) > 1 && !(G.story.pending && G.story.due - G.month < paceFor(G)) ? `${paceFor(G)} meses` : "mês"} ▸</button>
     </div>
     <div class="stats">${stats}</div>
     ${southBarHTML()}
+    ${urnaBarHTML()}
+    ${G.notice && G.notice.k === "mensal" ? `<div class="pendbar mensal">⏩ Fim das quinzenas: a partir de agora cada turno é um mês.</div>` : ""}
     <nav class="tabs" role="tablist">${shown.map(([id, l]) => `<button class="tab${UI.tab===id?" on":""}" data-tab="${id}" role="tab" aria-selected="${UI.tab===id}" tabindex="${UI.tab===id ? 0 : -1}">${l}</button>`).join("")}${G.simple ? `<button class="tab more" data-more aria-expanded="${!hideExtra}">${hideExtra ? "Mais ▾" : "Menos ▴"}</button>` : ""}</nav>
     ${pend && UI.tab !== "historia" ? `<div class="pendbar">Há ${pend} evento(s) aguardando decisão. <button class="linkbtn" data-tab="historia">Ir para História</button></div>` : ""}
     ${advisorHTML()}
@@ -46,11 +48,12 @@ function renderGame(){
   document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { UI.tab = b.dataset.tab; renderGame(); });
   document.querySelectorAll("[data-more]").forEach(b => b.onclick = () => { UI.moreTabs = hideExtra; if (!UI.moreTabs && extra.includes(UI.tab)) UI.tab = "historia"; renderGame(); });
   if ($("#btnSouth")) $("#btnSouth").onclick = openSouth;
+  if ($("#btnUrna")) $("#btnUrna").onclick = openUrna;
   bindAdvisor();
   $("#btnEnd").onclick = () => {
     const snap = majorSnap();
     if (!endTurn(G)) return;
-    AUDIO.sfx("turn"); announce(`${monthLabel(G.month)}: turno ${G.turn}. ${G.ap} ações disponíveis.`);
+    AUDIO.sfx("turn"); announce(`${dateLabel(G)}: turno ${G.turn}. ${G.ap} ações disponíveis.`);
     UI.tab = "historia"; UI.dealMsg = null; UI.selArmy = null; save(); cloud("syncSave", SCEN.id); renderGame(); window.scrollTo({ top: 0 });
     const ev = G.mil, major = majorCheck(snap);
     if (ev && G.ended && frontMode(G) && (ev.battles || []).some(r => r.final && r.win)) playFrontResolution(ev, null); // Recife caiu: animação + "Recife caiu!" por cima do final
@@ -65,5 +68,5 @@ function renderGame(){
 }
 function chapterKicker(node){
   const ch = node.chapter || "", m = ch.match(/^(Capítulo [^—]+|Capítulo Final|Epílogo|Guerra Civil)/);
-  return monthLabel(G.month) + (m ? " · " + m[1].trim() : "");
+  return dateLabel(G) + (m ? " · " + m[1].trim() : "");
 }

@@ -16,7 +16,7 @@ function focusOppText(F){
 }
 function focusTip(F, st){
   const fx = fxSummary(G, F.fx), un = focusUnlocks(G, F);
-  return [F.name, F.oport ? "⚡ Oportunidade — " + focusOppText(F) : "", F.desc, `Duração: ${F.months} ${F.months === 1 ? "mês" : "meses"} · custo ${focusTree(G).ap ?? 1} AP${F.cost ? ` + ${F.cost} ${SCEN.campaign.money.short}` : ""}`,
+  return [F.name, F.oport ? "⚡ Oportunidade — " + focusOppText(F) : "", F.desc, `Duração: ${F.months} ${turnUnit(G, F.months)} · custo ${focusTree(G).ap ?? 1} AP${F.cost ? ` + ${F.cost} ${SCEN.campaign.money.short}` : ""}`,
     fx ? "Efeitos: " + fx : "", F.risk ? `Risco (${Math.round(F.risk.p * 100)}%): ${F.risk.msg}` : "", ...un, `Situação: ${st.why}`].filter(Boolean).map(trText).join("\n");
 }
 function focusSVG(T, Gm){
@@ -55,14 +55,14 @@ function tabDecisoes(el){
     const ic = F.oport && st.state === "unavailable" ? "⚡" : FSTATE[st.state][1], rep = F.oport && f.rep[F.id] ? ` · ×${f.rep[F.id]}` : "";
     const extra = F.oport ? (st.state === "available" ? ` · <em class="fexp">⚡ ${st.left} ${st.left === 1 ? "mês" : "meses"}</em>` : "") : (F.excl || []).length ? " · exclusivo" : F.avail && !F.avail.phase && !F.avail.notPhase ? " · depende do momento" : "";
     return `<button class="fnode st-${st.state}${F.oport ? " opp" : ""}${isNew ? " fresh" : ""}${UI.selFocus === F.id ? " sel" : ""}" data-fid="${F.id}" style="left:${Gm.X(F.x) - Gm.nw / 2}px;top:${Gm.Y(F.y)}px;--bc:${br.color || "#c9a45c"}" title="${esc(focusTip(F, st))}" aria-label="${esc(F.name)} — ${esc(F.oport && st.state === "unavailable" ? "Oportunidade fechada" : FSTATE[st.state][0])}${isNew ? " — novo" : ""}">
-      ${isNew ? `<span class="fnew" aria-hidden="true">${F.oport ? "NOVA" : "NOVO"}</span>` : ""}<span class="fic" aria-hidden="true">${ic}</span><b>${esc(F.name)}</b><small>${F.months} ${F.months === 1 ? "mês" : "meses"}${F.cost ? ` · ${F.cost} ${esc(C.money.short)}` : ""}${extra}${rep}</small>${st.state === "active" ? `<i class="fprog"><u style="width:${pr}%"></u></i>` : ""}</button>`;
+      ${isNew ? `<span class="fnew" aria-hidden="true">${F.oport ? "NOVA" : "NOVO"}</span>` : ""}<span class="fic" aria-hidden="true">${ic}</span><b>${esc(F.name)}</b><small>${F.months} ${turnUnit(G, F.months)}${F.cost ? ` · ${F.cost} ${esc(C.money.short)}` : ""}${extra}${rep}</small>${st.state === "active" ? `<i class="fprog"><u style="width:${pr}%"></u></i>` : ""}</button>`;
   }).join("");
   const freshReg = fresh.filter(id => !(focusDef(G, id) || {}).oport && focusStatus(G, focusDef(G, id)).state === "available");
   const oppBar = `<div class="fopps" role="region" aria-label="Oportunidades e focos novos"><span class="fopl">⚡ Oportunidades</span>${open.length ? open.map(F => { const st = focusStatus(G, F); return `<button class="fchip${fresh.includes(F.id) ? " fresh" : ""}" data-fid="${F.id}">${esc(F.name)} <small>${st.state === "active" ? "em andamento" : `expira em ${st.left} ${st.left === 1 ? "mês" : "meses"}`}</small></button>`; }).join("") : `<small>Nenhuma aberta agora. Elas aparecem conforme a situação (apoio, guerra, caixa, Sul…) e somem se você não aproveitar.</small>`}
     ${freshReg.length ? `<span class="fopl new">✨ Novos focos</span>${freshReg.map(id => `<button class="fchip fresh" data-fid="${id}">${esc(focusName(G, id))}</button>`).join("")}` : ""}</div>`;
   const act = f.active ? focusDef(G, f.active) : null;
   const status = act
-    ? `<div class="fstatus on"><span>Foco atual</span><strong>${esc(act.name)}</strong><div class="bar"><i style="width:${Math.round(100 * f.prog / act.months)}%;background:#c9a45c"></i></div><small>${f.prog}/${act.months} meses · avança ao encerrar o mês</small></div>`
+    ? `<div class="fstatus on"><span>Foco atual</span><strong>${esc(act.name)}</strong><div class="bar"><i style="width:${Math.round(100 * f.prog / act.months)}%;background:#c9a45c"></i></div><small>${f.prog}/${act.months} ${turnUnit(G, act.months)} · avança ao encerrar o mês</small></div>`
     : `<div class="fstatus"><span>Foco atual</span><strong>Nenhum</strong><small>Escolha um foco disponível (●). Começar custa ${T.ap ?? 1} AP; só um por vez. Concluídos: ${f.done.filter(id => !(focusDef(G, id) || {}).oport).length} de ${T.nodes.filter(F => !F.oport).length}.</small></div>`;
   const sel = UI.selFocus ? focusDef(G, UI.selFocus) : null;
   let detail = "";
@@ -73,7 +73,7 @@ function tabDecisoes(el){
       <div class="chap" style="color:${br.color}">${esc(br.label || "")}</div><h3>${esc(sel.name)}</h3>
       <div class="fstate st-${st.state}">${FSTATE[st.state][1]} ${esc(st.why)}</div>
       <p>${esc(sel.desc)}</p>
-      <dl><dt>Duração</dt><dd>${sel.months} ${sel.months === 1 ? "mês" : "meses"} · ${T.ap ?? 1} AP${sel.cost ? ` + ${sel.cost} ${esc(C.money.short)}` : ""}</dd>
+      <dl><dt>Duração</dt><dd>${sel.months} ${turnUnit(G, sel.months)} · ${T.ap ?? 1} AP${sel.cost ? ` + ${sel.cost} ${esc(C.money.short)}` : ""}</dd>
       ${sel.fx ? `<dt>Efeitos</dt><dd>${esc(fxSummary(G, sel.fx))}</dd>` : ""}
       ${sel.risk ? `<dt>Risco</dt><dd>${Math.round(sel.risk.p * 100)}%: ${esc(sel.risk.msg)} (${esc(fxSummary(G, sel.risk.fx))})</dd>` : ""}
       ${focusUnlocks(G, sel).length ? `<dt>Libera</dt><dd>${focusUnlocks(G, sel).map(esc).join("<br>")}</dd>` : ""}

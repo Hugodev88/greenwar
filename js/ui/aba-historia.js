@@ -12,16 +12,16 @@ function tabHistoria(el, nextStory){
         <div class="choices">${choices.map((c, i) => `<button class="choice" data-i="${i}" ${c.ok?"":"disabled"}>${esc(c.text)}${c.ok ? endTagHTML(i) : `<small>${esc(describeReq(c.req))}</small>`}</button>`).join("")}</div></div>`;
     } else {
       const ev = findEvent(G, q.id), crisis = !!ev.crisisOf;
-      html += `<div class="card event ${crisis ? "crisis" : ""}"><div class="chap">${esc(monthLabel(G.month))} · ${crisis ? "Crise de facção" : ev.chained ? "Desdobramento" : "Evento"}</div><h2>${esc(ev.title)}</h2>${whoHTML(portraitOf("eventos", ev.id) || (crisis ? portraitOf("faccoes", ev.crisisOf) : null))}
+      html += `<div class="card event ${crisis ? "crisis" : ""}"><div class="chap">${esc(dateLabel(G))} · ${crisis ? "Crise de facção" : ev.chained ? "Desdobramento" : "Evento"}</div><h2>${esc(ev.title)}</h2>${whoHTML(portraitOf("eventos", ev.id) || (crisis ? portraitOf("faccoes", ev.crisisOf) : null))}
         ${eventText(G, q).map(p => `<p>${esc(p)}</p>`).join("")}
         <div class="choices">${choices.map((c, i) => `<button class="choice" data-i="${i}" ${c.ok?"":"disabled"}>${esc(c.text)}<small>${c.ok ? esc(fxSummary(G, c.fx) || (ev.generic ? (i === 0 ? "Opinião do parceiro +10, legitimidade −3, nacionalistas −10" : "Opinião −25, dependência −25, apoio +3") : "")) : esc(describeReq(c.req))}</small></button>`).join("")}</div></div>`;
     }
     if (G.queue.length > 1) html += `<div class="hint">Depois deste, mais ${G.queue.length - 1} evento(s) na fila.</div>`;
   } else {
-    html += `<div class="card quiet"><div class="chap">${esc(monthLabel(G.month))}</div><h2>Sem eventos pendentes</h2>
+    html += `<div class="card quiet"><div class="chap">${esc(dateLabel(G))}</div><h2>Sem eventos pendentes</h2>
       <p>Use seus <strong>${G.ap} pontos de ação</strong> nas abas ${SCEN.campaign.focus ? `<a href="#" data-go="decisoes">Decisões</a>, ` : ""}<a href="#" data-go="acoes">Ações</a>, <a href="#" data-go="mapa">Mapa</a>, <a href="#" data-go="diplomacia">Diplomacia</a> e <a href="#" data-go="faccoes">Facções</a>. Depois, clique em <strong>Encerrar mês</strong>.</p>
       ${SCEN.campaign.focus ? (G.focus.active ? `<div class="hint">Foco nacional em andamento: <strong>${esc(focusName(G, G.focus.active))}</strong> (${G.focus.prog}/${focusDef(G, G.focus.active).months} meses).</div>` : `<div class="hint">Nenhum foco nacional em andamento — <a href="#" data-go="decisoes">escolha um na aba Decisões</a>.</div>`) : ""}
-      ${nextStory !== null ? `<div class="hint">Próximo evento-chave da história ${nextStory <= 0 ? "no próximo turno" : `em cerca de ${nextStory} ${nextStory === 1 ? "mês" : "meses"}`}.</div>` : ""}</div>`;
+      ${nextStory !== null ? `<div class="hint">Próximo evento-chave da história ${halfOn(G) ? (2 * nextStory - G.half <= 1 ? "no próximo turno" : `em cerca de ${2 * nextStory - G.half} quinzenas`) : nextStory <= 0 ? "no próximo turno" : `em cerca de ${nextStory} ${nextStory === 1 ? "mês" : "meses"}`}.</div>` : ""}</div>`;
   }
   if (G.log.length){
     const L = G.log[0];

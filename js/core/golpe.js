@@ -8,6 +8,7 @@ function coupDetail(g){ return g && g.diff === "facil" ? 3 : g && g.diff === "di
 function coupFocusOn(g, id){ return !!g.focus && (g.focus.active === id || g.focus.done.includes(id)); }
 function coupState(g){
   const K = golpeCfg(g); if (!K || !g || g.ended) return null;
+  if (urnaOn(g) || (g.queue[0] && g.queue[0].type === "story" && ["julgamento_tse", "posse_adiada", "veredito", "escalada"].includes(g.queue[0].node))) return null; // contestação das urnas (js/core/urnas.js): a linha do golpe fica de lado
   const A = K.aceitou, P = K.conspira, V = g.visited;
   const next = [g.story && g.story.node].concat(g.queue.map(q => q.type === "story" && q.node)); // escolha já feita, cena ainda por vir
   if (A.visitedAny.some(n => V.includes(n) || next.includes(n)) || A.focus.some(id => coupFocusOn(g, id))) return null;

@@ -15,6 +15,7 @@ const CONQUISTAS = [
   { id: "dificil",      icone: "🔥", nome: "Sem rede de proteção",  desc: "Vença no Difícil.",                                        teste: (g, x) => x.outcome === "vitoria" && g.diff === "dificil" },
   { id: "rapida",       icone: "⏱️", nome: "Contra o relógio",      desc: "Termine uma partida rápida.",                              teste: g => !!g.quick },
   { id: "urnas",        icone: "🗳️", nome: "Pelas urnas",           desc: "Volte ao poder pela eleição.",                             teste: g => g.ended.node === "fim_retorno" },
+  { id: "virada",       icone: "⚖️", nome: "A virada no tribunal",  desc: "Vença contestando as urnas, sem guerra.",                 teste: g => g.ended.node === "fim_urnas" },
   { id: "paz",          icone: "🕊️", nome: "Sem disparar um tiro",  desc: "Vença sem nenhuma batalha.",                               teste: (g, x) => x.outcome === "vitoria" && !g.stat.battles },
   { id: "sul",          icone: "🤝", nome: "Federação unida",       desc: "Assine o Pacto Federativo com o Sul.",                     teste: g => (g.flags || []).includes("sul_aliado") },
   { id: "veterano",     icone: "🎖️", nome: "Veterano",              desc: "Passe 10 meses ou mais em combate numa campanha.",         teste: g => (g.stat.battles || 0) >= 10 },
