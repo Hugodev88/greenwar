@@ -14,10 +14,10 @@ function mapDescriptionHTML(g, mode){
   if (!ph.noArmies && frontMode(g)){
     const W = g.war;
     html += `<h4>Tropas: ${Math.round(frontPool(g))} (reserva ${Math.round(W.reserve)})</h4>`;
-    if (W.fronts.length && ph.war){ const K = frontCfg(g); html += `<p><span>No mapa: a linha de frente é a borda grossa laranja; faixas listradas mostram o seu lado e o lado inimigo; cada frente tem um placar com a sua força e a do inimigo.</span> <span>Sua capital</span>: ${esc(K.capital)} · <span>redutos inimigos</span>: ${W.fronts.map(f => esc((K.frentes[f.id] || {}).reduto || "—")).join(", ")}.</p>`;
+    if (W.fronts.length && ph.war){ const K = frontCfg(g); html += `<p><span>No mapa: a linha de frente é a borda grossa laranja; faixas listradas mostram o seu lado e o lado inimigo; cada frente tem um placar com a sua força e a do inimigo.</span> <span>Sua capital</span>: ${esc(K.capitalNome || K.capital)} · <span>capitais inimigas</span>: ${W.fronts.map(f => esc(g.reg ? frontFala(g, "reduto", f.id) : (K.frentes[f.id] || {}).reduto || "—")).join(", ")}.</p>`;
       // guerra por regiões: placar de cada frente e as regiões que mudaram de lado no último mês
       if (g.reg){ const ch = regChanges(g), F = (grp, k) => frontFala(g, grp, k);
-        html += `<h4>${esc(F("regioes", "territorio"))}</h4><p>${esc(F("regioes", "maioria"))}</p><ul>${W.fronts.map(f => { const T = regTally(g, f); return `<li><b>${esc(frontName(g, f))}</b>: <span>${esc(gfmt(F("regioes", "placar"), T.p, T.e))}</span> · <span>${esc(gfmt(F("regioes", "saldoMes"), T.got, T.lost))}</span></li>`; }).join("")}</ul>
+        html += `<h4>${esc(F("regioes", "territorio"))}</h4><p>${esc(F("regioes", "maioria"))}</p><ul>${W.fronts.map(f => { const T = regTally(g, f); return `<li><b>${esc(frontName(g, f))}</b>: <span>${esc(gfmt(F("regioes", "placar"), T.p, T.e))}</span> · <span>${esc(gfmt(F("regioes", "saldoMes"), T.got, T.lost))}</span>${accPathText(g, f)}</li>`; }).join("")}</ul>
           <p>${ch.length ? esc(gfmt(F("regioes", "acc"), ch.map(m => gfmt(F("regioes", m.side === "player" ? "tomadaPor" : "perdidaPara"), regLabel(m.id))).join("; "))) : esc(F("regioes", "accNada"))}</p>`; } }
     if (W.fronts.length) html += `<h4>Frentes (${W.fronts.length})</h4><ul>${W.fronts.map(f => `<li><b>${esc(frontName(g, f))}</b> · <span>força no placar do mapa: você</span> ${frontPowers(g, f).P} <span>× inimigo</span> ${frontPowers(g, f).E}${f.last ? ` · <span>${f.last.d >= 3 ? "no último mês a linha avançou" : f.last.d <= -3 ? "no último mês a linha recuou" : "no último mês a linha quase não mexeu"}</span>${Math.abs(f.last.d) >= 3 ? " " + Math.abs(Math.round(f.last.d)) : ""}` : ""} · <span>linha</span> ${f.progress > 0 ? "+" : ""}${Math.round(f.progress)} · <span>sua postura</span>: <span>${esc(frontFala(g, "postura", f.special ? "avancar" : f.posture))}</span> · <span>tropas</span> ${Math.round(f.troops)} · <span>moral</span> ${Math.round(f.morale)} · <span>suprimento</span> ${Math.round(f.supply)} · <span>inimigo</span> ${Math.round(f.enemy)}, <span>próximo mês</span>: <span>${esc(frontFala(g, "posturaCurta", f.eposture || "segurar"))}</span> · <span>próximo estado a tomar</span>: ${esc(frontTarget(g, f, 1) || "—")} · <span>a perder</span>: ${esc(frontTarget(g, f, -1) || "—")}</li>`).join("")}</ul>`;
   } else if (!ph.noArmies){
@@ -29,4 +29,12 @@ function mapDescriptionHTML(g, mode){
     if (ph.war) html += `<h4>Intenções inimigas conhecidas</h4><p>${it.length ? it.map(p => { const a = armyById(g, p.id); return `${esc(a ? a.name : "?")}: ${esc(ORDER_LABEL[p.type].toLowerCase())} ${esc(p.to)}`; }).join(" · ") : "Nenhuma conhecida."}</p>`;
   }
   return html;
+}
+// Fase 12: "Faltam N regiões até Recife", distância do inimigo até Brasília e o rompimento do último mês, para o leitor de tela
+function accPathText(g, f){
+  const F = (grp, k) => frontFala(g, grp, k), nP = regFaltam(g, f, 1), nE = regFaltam(g, f, -1), L = f.last, out = [];
+  if (nP) out.push(nP === 1 ? gfmt(F("regioes", "faltaUma"), regGoalName(g, f, 1)) : gfmt(F("regioes", "faltam"), nP, regGoalName(g, f, 1)));
+  if (nE) out.push(nE === 1 ? gfmt(F("regioes", "faltaUmaInimigo"), regGoalName(g, f, -1)) : gfmt(F("regioes", "faltamInimigo"), nE, regGoalName(g, f, -1)));
+  if (L && L.rompe && g.mil && L.month === g.mil.month) out.push(F("regioes", L.rompe > 0 ? "rompeTitulo" : "rompeTituloInimigo"));
+  return out.map(t => ` · <span>${esc(t)}</span>`).join("");
 }

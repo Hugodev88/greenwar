@@ -87,10 +87,13 @@ function renderMap(el, control, changed, withNotes, opts){
   svg.addEventListener("mousemove", show);
   svg.addEventListener("mouseleave", () => tip.style.display = "none");
   if (opts && opts.onPick) svg.addEventListener("click", e => {
-    const fb = e.target.closest("g.fbadge"); if (fb && opts.onFront){ tip.style.display = "none"; opts.onFront(fb.dataset.front); return; }
+    const fb = e.target.closest("g.fbadge"); if (fb && opts.onFront){ tip.style.display = "none";
+      if (opts.zoom){ const m = (fb.getAttribute("transform") || "").match(/translate\(([-\d.]+),([-\d.]+)\)/); if (m) mapZoomTo(+m[1], +m[2], Math.max(mapZoomState().k, 2.2)); } // placar: aproxima e centraliza a frente
+      opts.onFront(fb.dataset.front); return; }
     const c = e.target.closest("g.cnt"); if (c && opts.onArmy){ tip.style.display = "none"; opts.onArmy(c.dataset.uf, c.dataset.side); return; }
     const p = e.target.closest("path.uf"); if (p) opts.onPick(p.dataset.uf); });
   else svg.addEventListener("click", show);
+  if (opts && opts.zoom) mapZoomAttach(el, opts); // zoom e arraste (js/ui/mapa-zoom.js), só no mapa principal
 }
 
 /* ---------- Camadas militares do mapa: fronteiras de frente, setas de ordens, contadores (OTAN) ---------- */

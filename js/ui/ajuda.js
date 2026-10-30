@@ -21,6 +21,9 @@ function openHelp(){
       <dt>Oportunidades (⚡)</dt><dd>Focos curtos que abrem quando a situação permite e somem em poucos meses se você não aproveitar. Muitos voltam mais tarde.</dd>
       <dt>Sem prazo</dt><dd>A campanha completa não acaba por data: ela continua até você vencer ou perder (ou escolher um final). Só a partida rápida tem prazo curto.</dd>
       <dt>Cansaço da guerra</dt><dd>Depois de 12 meses de combate, o Apoio Popular cai aos poucos e as frentes ficam mais voláteis, para que o impasse se resolva.</dd>
+      ${SCEN && SCEN.id === "brasil2022" ? `<dt>Recife e Brasília</dt><dd>Na guerra, a resistência instala o governo constitucional no Recife. Tomar a região de Recife vence a guerra; perder Brasília (DF) é a derrota. A Liga do Sul tem capital em Porto Alegre. O cartão da frente mostra quantas regiões faltam até lá, e o mapa mostra o caminho mais curto.</dd>
+      <dt>Rompimento</dt><dd>Com força 1,5× maior e o mês ganho, a linha inimiga desaba e o atacante avança várias regiões seguidas rumo à capital, sempre por regiões vizinhas. Quem segura a linha logo depois estabiliza a frente.</dd>` : ""}
+      <dt>Zoom do mapa</dt><dd>Roda do mouse, gesto de pinça ou os botões + e − aproximam o mapa; arraste para mover; ⟲ volta ao mapa inteiro. Com o mapa selecionado, as teclas + e − e as setas também funcionam.</dd>
       <dt>Exércitos e ordens</dt><dd>Contadores azuis no mapa (o número é a força). Ordens não gastam AP; o limite por mês depende do Apoio Militar e da lealdade dos militares.</dd>
     </dl></details>
     <div class="disclaimer">${esc(SCEN ? SCEN.intro.disclaimer : "Obra de ficção / história alternativa.")}</div>

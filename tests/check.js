@@ -508,6 +508,51 @@ for (const sc of SCENARIOS) {
         console.log(`Regiões: 133 regiões IBGE, vizinhança simétrica, capitais OK; sem "disputa" no 2022; migração v9→v10 OK; ${moved} regiões mudaram de lado em 10 meses de guerra de teste`);
       }
     }
+    // fase 12: capturas contíguas, caminho até Recife, rompimento, capital da Resistência e migração v10→v11
+    {
+      const RX = new Function(JOGO.codigo + "; return { REG_DATA, newCampaign, endTurn, phaseOf, choose, queueChoices, advisorTips, advisorDo, frontMode, coupState, coupStoryTip, sideOf, regPath, regFaltam, regGoal, migrateSave, SAVE_VERSION };")();
+      const RG = RX.REG_DATA.regs;
+      if (RG["2702"].adj.includes("2801")) err("regiões: Arapiraca e Aracaju só se tocam num ponto e não podem ser vizinhas");
+      let recs = 0, caps = 0, naoAdj = 0, naoAdjPre = 0, romp = 0, flagOk = 0, wars = 0, pathBad = 0, ex = "";
+      for (let seed = 1; seed <= 14; seed++){
+        const g = RX.newCampaign(sc22, seed); const seen = new Set(); let opened = false;
+        for (let t = 0; t < 70 && !g.ended; t++){ let guard = 0;
+          while (g.queue.length && !g.ended && guard++ < 20){ const tip = RX.coupStoryTip(g, RX.coupState(g)); if (tip) RX.advisorDo(g, tip); else { const ch = RX.queueChoices(g); RX.choose(g, Math.max(0, ch.findIndex(c => c.ok))); } }
+          if (g.ended) break;
+          for (let k = 0; k < 10; k++){ const tp = RX.advisorTips(g, { tab: "mapa" }).find(x => x.act.k !== "tab" && x.act.k !== "end"); if (!tp || RX.advisorDo(g, tp).ok === false) break; }
+          const war = RX.frontMode(g) && RX.phaseOf(g).war && g.war.fronts.length, pre = g.reg ? Object.assign({}, g.reg) : null, ph = RX.phaseOf(g);
+          if (war && !opened){ opened = true; wars++; if (g.war.fronts.some(f => f.id === "resistencia") && g.flags.includes("recife_capital")) flagOk++; }
+          if (war) for (const f of g.war.fronts){ const P = RX.regPath(g, f, 1);
+            if (P && (P[P.length - 1] !== RX.regGoal(g, f, 1) || P.some((id, i) => i && !RG[id].adj.includes(P[i - 1])) || RX.regFaltam(g, f, 1) !== P.length)) pathBad++; }
+          RX.endTurn(g);
+          if (!war || !pre) continue;
+          const cur = Object.assign({}, pre);
+          for (const r of (g.war && g.war.log) || []){ if (seen.has(r)) continue; seen.add(r); recs++; if (r.rompe) romp++;
+            for (const m of r.regs || []){ caps++; const dir = m.side === "player" ? 1 : -1;
+              const mine = (map, x) => m.side === "player" ? RX.sideOf(g, map[x], ph) === "player" : map[x] === r.front;
+              if (!RG[m.id].adj.some(x => mine(cur, x))){ naoAdj++; if (!ex) ex = `s${seed} ${RG[m.id].n}`; }
+              if (r.rompe !== dir && !RG[m.id].adj.some(x => mine(pre, x))) naoAdjPre++;
+              cur[m.id] = m.to; } }
+        }
+      }
+      if (!caps) err("fase 12: nenhuma região capturada nas partidas de teste");
+      if (naoAdj) err(`fase 12: ${naoAdj} capturas sem vizinhança com o atacante na hora da captura (ex.: ${ex})`);
+      if (naoAdjPre) err(`fase 12: ${naoAdjPre} capturas fora de rompimento sem vizinhança com o território do início do mês`);
+      if (pathBad) err(`fase 12: ${pathBad} caminhos até a capital inimiga inválidos`);
+      if (wars && flagOk < wars) err(`fase 12: Recife não foi anunciada como capital da Resistência em ${wars - flagOk} guerras`);
+      // migração v10 → v11: eixos zerados, cerco limitado e a flag da capital criada
+      if (gwReg){ const v10 = JSON.parse(JSON.stringify(gwReg)); v10.v = 10; v10.flags = v10.flags.filter(x => x !== "recife_capital"); for (const f of v10.war.fronts) f.rompe = { dir: 1, month: 1 };
+        const m = RX.migrateSave(v10);
+        if (!m || m.v !== RX.SAVE_VERSION || m.v < 11) err("fase 12: migração v10→v11 falhou");
+        else if (m.war.fronts.some(f => f.rompe)) err("fase 12: migração v10→v11 manteve rompimento antigo");
+        else if (m.war.fronts.some(f => f.id === "resistencia") && !m.flags.includes("recife_capital")) err("fase 12: migração v10→v11 não criou a capital da Resistência"); }
+      // interface: evento de Recife, estatísticas só de campanhas concluídas
+      const rd = f => fs.readFileSync(require("path").join(JOGO.RAIZ, f), "utf8");
+      if (!/recife_capital:\s*\{/.test(rd("js/ui/grandes-eventos.js"))) err("fase 12: falta o grande evento de Recife");
+      if (/campaignStarted/.test(rd("js/ui/menu.js"))) err("estatísticas: começar campanha não pode contar nas estatísticas");
+      if (!/achDone[\s\S]{0,200}finRecord|finRecord[\s\S]{0,200}achDone/.test(rd("js/ui/conquistas.js"))) err("estatísticas: a campanha só conta no final (finRecord)");
+      console.log(`Fase 12: ${caps} capturas em ${recs} meses de frente, todas contíguas (sem saltos); ${romp} rompimentos; caminho até a capital OK; Recife anunciada em ${flagOk}/${wars} guerras; migração v10→v11 OK`);
+    }
     // conselheira: no máximo 2 dicas, com título, texto e ação; "Fazer isso" funciona e não quebra a partida
     for (let seed = 1; seed <= 12; seed++){
       const g = API.newCampaign(sc22, seed, { diff: seed % 2 ? "facil" : "normal" });

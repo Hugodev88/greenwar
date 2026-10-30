@@ -16,6 +16,22 @@ function frontLineHTML(f, prog0){
     <div class="flbar"><i class="mid"></i>${from !== null ? `<i class="ghost" style="left:${Math.min(from, x)}%;width:${Math.abs(x - from)}%"></i>` : ""}<i class="pos ${p >= 0 ? "up" : "down"}" style="left:${x}%"></i></div>
     <div class="flends"><span class="bad">◀ <span>perde</span> <b>${esc(tD || "—")}</b></span><span class="flv"><span>linha</span> <b>${p > 0 ? "+" : ""}${p}</b></span><span class="good"><span>toma</span> <b>${esc(tA || "—")}</b> ▶</span></div></div>`;
 }
+// "Faltam N regiões até Recife" (caminho mais curto pelas regiões inimigas) e a distância do inimigo até Brasília
+function frontPathHTML(f){
+  if (!G.reg) return "";
+  const nP = regFaltam(G, f, 1), nE = regFaltam(G, f, -1), gP = regGoalName(G, f, 1), gE = regGoalName(G, f, -1);
+  const a = nP ? `<span class="good">🎯 <span>${esc(nP === 1 ? gfmt(fFala("regioes", "faltaUma"), gP) : gfmt(fFala("regioes", "faltam"), nP, gP))}</span></span>` : "";
+  const b = nE && nE <= 6 ? `<span class="bad">⚠ <span>${esc(nE === 1 ? gfmt(fFala("regioes", "faltaUmaInimigo"), gE) : gfmt(fFala("regioes", "faltamInimigo"), nE, gE))}</span></span>` : "";
+  return a || b ? `<div class="fpath" title="${esc(fFala("regioes", "rompeAjuda"))}">${a}${b}</div>` : "";
+}
+// Faixa do rompimento (ou da linha estabilizada) do último combate desta frente
+function frontRompeHTML(rec){
+  if (!rec || !G.reg) return "";
+  const f = { id: rec.front }, regs = (rec.regs || []).filter(m => (m.side === "player") === (rec.rompe > 0)).map(m => regName(m.id)).join(", ");
+  if (rec.rompe) return `<p class="frompe ${rec.rompe > 0 ? "good" : "bad"}" role="status">💥 <span>${esc(gfmt(fFala("regioes", rec.rompe > 0 ? "rompeu" : "rompeuInimigo"), regs, regGoalName(G, f, rec.rompe)))}</span></p>`;
+  if (rec.estab) return `<p class="frompe estab ${rec.estab < 0 ? "good" : "bad"}">🛡 <span>${esc(gfmt(fFala("regioes", rec.estab < 0 ? "estabilizou" : "estabilizouInimigo"), frontName(G, rec.front)))}</span></p>`;
+  return "";
+}
 function frontBarsHTML(f){
   const P = Math.round(frontForce(G, f, f.special ? "avancar" : f.posture, f.special).total), E = Math.round(enemyForce(G, f, f.eposture || "segurar").total), tot = Math.max(1, P + E);
   return `<div class="pw"><b style="color:#9cc3ea"><span>Você</span> ${P}</b><div class="bar2" title="Força = tropas × moral × suprimento × general × postura × apoio"><i class="p" style="width:${P / tot * 100}%"></i><i class="e" style="width:${E / tot * 100}%"></i></div><b style="color:#f0a493">${E} <span>Inimigo</span></b></div>`;
@@ -40,7 +56,9 @@ function frontCardHTML(f){
   const posts = FRONT_POSTURES.map(p => `<button class="fpost ${p}${cur === p ? " on" : ""}" data-fpost="${p}" data-front="${f.id}" aria-pressed="${cur === p}" ${f.special ? "disabled" : ""}>
       <b>${POSTURE_ICON[p]} <span>${esc(fFala("postura", p))}</span></b>${adv.posture === p ? `<em class="sug">sugerido</em>` : ""}<small>${esc(fFala("posturaDesc", p))}</small></button>`).join("");
   return `<div class="fcard2" data-fcard="${f.id}">
-    <div class="fhead"><h4>${esc(frontName(G, f))}</h4><small><span>Reduto inimigo:</span> <b>${esc(G.reg && REG_DATA.cap[red] ? regLabel(REG_DATA.cap[red]) : red)}</b></small></div>
+    <div class="fhead"><h4>${esc(frontName(G, f))}</h4><small>${G.reg ? `★ <b>${esc(fFala("reduto", f.id))}</b>` : `<span>Reduto inimigo:</span> <b>${esc(red)}</b>`}</small></div>
+    ${f.last && G.mil && f.last.month === G.mil.month ? frontRompeHTML(f.last) : ""}
+    ${frontPathHTML(f)}
     ${G.reg ? regTrendHTML(G, f) : ""}
     ${frontLineHTML(f)}
     ${frontBarsHTML(f)}
@@ -174,6 +192,7 @@ function openFrontReport(rec, opts){
       <small class="muted">${esc(fFala("inimigo", rec.front))}</small></div><button class="xbtn" data-close aria-label="Fechar">✕</button></div>
     <div class="frvs"><div class="frside p">${GP ? portraitImg(GP, 48) : ""}<div><small>Você</small><b>${POSTURE_ICON[rec.p]} <span>${esc(fFala("postura", rec.p))}</span></b>${rec.special ? `<em>💥 <span>Ofensiva especial</span></em>` : ""}</div></div>
       <div class="vs">VS</div><div class="frside e">${EP ? portraitImg(EP, 48) : ""}<div><small>Inimigo</small><b>${POSTURE_ICON[rec.e]} <span>${esc(fFala("postura", rec.e))}</span></b>${rec.eSpecial ? `<em>💥 <span>Ofensiva especial</span></em>` : ""}</div></div></div>
+    ${frontRompeHTML(rec)}
     ${G.reg && rec.regs ? regTrendHTML(G, rec.front) : ""}
     <div class="frline">${frontLineHTML(f, rec.regs ? (rec.won || rec.lost ? undefined : rec.prog0) : rec.prog0 + (rec.moved.length ? (rec.moved[0].side === "player" ? -100 : 100) : 0))}
       ${rec.regs && (rec.won || rec.lost) ? `<p class="frmove"><b class="${rec.won >= rec.lost ? "good" : "bad"}">${esc(gfmt(fFala("regioes", "saldoMes"), rec.won, rec.lost))}</b> · <span>${esc(regMovesText(rec))}</span></p>` : ""}
@@ -205,6 +224,7 @@ function playFrontResolution(ev, done){
   ev.fronts.forEach(r => {
     later(() => { AUDIO.sfx(r.p === "avancar" || r.e === "avancar" ? "boom" : "order");
       cap.textContent = `${frontName(G, r.front)}: ${frontReport(G, r).summary}`; cap.className = "rcap " + (r.d > 5 ? "good" : r.d < -5 ? "bad" : "");
+      if (r.rompe){ cap.innerHTML = frontRompeHTML(r); cap.className = "rcap rompefx " + (r.rompe > 0 ? "good" : "bad"); AUDIO.sfx("boom"); } // "Rompimento! A linha inimiga desabou em …"
       list.appendChild(btn(r)); if (RG && r.regs) r.regs.forEach((m, i) => later(() => flipFill(m.id, m.to, true), 350 + i * 120)); else r.moved.forEach(m => later(() => flipFill(m.uf, m.to), 450)); }, t);
     t += 1300;
   });

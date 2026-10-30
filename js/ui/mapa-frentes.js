@@ -67,13 +67,23 @@ function frontMapLayers(g, control, w){
     out.over += frontPushSVG(f, G0);
     out.badges += frontBadgeSVG(g, f, G0, w);
   }
-  // capital (estrela) e redutos inimigos das frentes abertas (alvo)
-  const mark = (uf, cls, lbl) => { const s = MAP_DATA.states[uf]; if (!s) return ""; const R = g.reg && REG_DATA.regs[REG_DATA.cap[uf]];
+  // caminho mais curto até a capital inimiga (seta tracejada discreta, região por região) — o "Faltam N regiões até Recife"
+  if (g.reg) for (const f of W.fronts){
+    const P = regPath(g, f, 1); if (!P || !P.length) continue;
+    const { atk } = regSides(g, f, 1), R0 = REG_DATA.regs[P[0]], from = R0.adj.filter(atk).map(k => REG_DATA.regs[k]).sort((a, b) => Math.hypot(a.lx - R0.lx, a.ly - R0.ly) - Math.hypot(b.lx - R0.lx, b.ly - R0.ly))[0];
+    const pts = (from ? [from] : []).concat(P.map(k => REG_DATA.regs[k])).map(r => `${r.lx.toFixed(1)},${r.ly.toFixed(1)}`);
+    if (pts.length > 1) out.over += `<polyline class="frota" points="${pts.join(" ")}" marker-end="url(#frotaArr)"><title>${esc(gfmt(frontFala(g, "regioes", "rota"), regGoalName(g, f, 1)))}</title></polyline>`;
+  }
+  out.defs += `<marker id="frotaArr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#ffe08a"/></marker>`;
+  // capital (estrela dourada) e capitais inimigas das frentes abertas (estrela vermelha grande + nome: "Recife — capital da Resistência")
+  const STAR = "M0,-6.5L1.9,-2L6.6,-2L2.8,1L4.2,5.8L0,3L-4.2,5.8L-2.8,1L-6.6,-2L-1.9,-2z";
+  const mark = (uf, cls, lbl, name) => { const s = MAP_DATA.states[uf]; if (!s) return ""; const R = g.reg && REG_DATA.regs[REG_DATA.cap[uf]];
     const x = R ? R.lx : s.lx + (LABEL_POS[uf] ? 0 : 11), y = R ? R.ly : s.ly - (LABEL_POS[uf] ? 0 : 9); if (R) lbl = lbl.replace(uf + ":", `${R.n} (${uf}):`);
-    return `<g class="fgoal ${cls}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><title>${esc(lbl)}</title>${cls === "cap" ? `<path d="M0,-6.5L1.9,-2L6.6,-2L2.8,1L4.2,5.8L0,3L-4.2,5.8L-2.8,1L-6.6,-2L-1.9,-2z"/>` : `<circle r="5.6"/><circle r="3.2"/><circle class="dot" r="1.2"/>`}</g>`; };
+    const right = x > w * 0.62, t = name ? `<text class="fglbl" x="${right ? -11 : 11}" y="1" text-anchor="${right ? "end" : "start"}">${esc(name)}</text>` : "";
+    return `<g class="fgoal ${cls}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><title>${esc(lbl)}</title><g class="zinv">${cls === "cap" ? `<path d="${STAR}"/>` : `<path class="big" d="${STAR}" transform="scale(1.45)"/>`}${t}</g></g>`; };
   const own = uf => g.reg && REG_DATA.cap[uf] ? g.reg[REG_DATA.cap[uf]] : control[uf];
-  if (K.capital && sideOf(g, own(K.capital), ph) === "player") out.over += mark(K.capital, "cap", `${K.capital}: sua capital — se cair, o regime cai`);
-  for (const f of W.fronts){ const r = K.frentes[f.id] && K.frentes[f.id].reduto; if (r && control[r] !== undefined && sideOf(g, own(r), ph) !== "player") out.over += mark(r, "goal", `${r}: reduto inimigo — ${frontName(g, f)}`); }
+  if (K.capital && sideOf(g, own(K.capital), ph) === "player") out.over += mark(K.capital, "cap", `${K.capital}: sua capital — se cair, o regime cai`, g.reg ? frontFala(g, "regioes", "capitalSua") : "");
+  for (const f of W.fronts){ const r = K.frentes[f.id] && K.frentes[f.id].reduto; if (r && control[r] !== undefined && sideOf(g, own(r), ph) !== "player") out.over += mark(r, "goal", `${r}: capital inimiga — ${frontName(g, f)}`, g.reg ? frontFala(g, "reduto", f.id) : ""); }
   return out;
 }
 // Placar de regiões embaixo do placar de força: "34 × 21" e o saldo do mês (+3/−1); sem regiões, o número da linha
@@ -90,7 +100,8 @@ function frontLegendHTML(g){
     <span><svg viewBox="-35 -11 70 22" width="48" height="15"><path fill="${C.p}" d="M0,-10H-24A10,10 0 0 0 -24,10H0z"/><path fill="${C.e}" d="M0,-10H24A10,10 0 0 1 24,10H0z"/><rect x="-34" y="-10" width="68" height="20" rx="10" fill="none" stroke="#f3e2b8" stroke-width="1.5"/><text x="-13" y="1" fill="#fff" font-size="11" font-weight="800" text-anchor="middle" dominant-baseline="middle">120</text><text x="13" y="1" fill="#fff" font-size="11" font-weight="800" text-anchor="middle" dominant-baseline="middle">95</text></svg>força: você ■ / inimigo ◆ (toque para abrir)</span>
     <span><svg viewBox="0 0 26 12" width="26" height="12"><path d="M3,1L9,6L3,11M11,1L17,6L11,11M19,1L25,6L19,11" fill="none" stroke="#f3c969" stroke-width="2.2"/></svg>para onde a linha andou</span>
     <span><svg viewBox="-7 -7 14 14" width="13" height="13"><path d="M0,-6.5L1.9,-2L6.6,-2L2.8,1L4.2,5.8L0,3L-4.2,5.8L-2.8,1L-6.6,-2L-1.9,-2z" fill="#f3c969" stroke="#1a1408"/></svg>sua capital</span>
-    <span><svg viewBox="-7 -7 14 14" width="13" height="13"><circle r="5.6" fill="#fff" stroke="#1a1408"/><circle r="3.2" fill="#c0392b"/><circle r="1.2" fill="#fff"/></svg>reduto inimigo (vitória)</span>
+    <span><svg viewBox="-10 -10 20 20" width="15" height="15"><path d="M0,-9.4L2.8,-2.9L9.6,-2.9L4.1,1.5L6.1,8.4L0,4.4L-6.1,8.4L-4.1,1.5L-9.6,-2.9L-2.8,-2.9z" fill="#e0412f" stroke="#fff" stroke-width="1.4"/></svg>capital inimiga (vitória)</span>
+    ${g && g.reg ? `<span><svg viewBox="0 0 30 10" width="30" height="10"><path d="M2,5H23" stroke="#ffe08a" stroke-width="1.8" stroke-dasharray="3 3"/><path d="M22,1.5L29,5L22,8.5z" fill="#ffe08a"/></svg>caminho mais curto até a capital inimiga</span>` : ""}
     <span><svg viewBox="0 0 30 10" width="30" height="10"><path d="M2,5H24" stroke="#f3c969" stroke-width="3"/><path d="M22,1L29,5L22,9z" fill="#f3c969"/></svg>você avança</span>
     <span><svg viewBox="0 0 30 10" width="30" height="10"><path d="M2,5H24" stroke="#ff6a52" stroke-width="2.6" stroke-dasharray="4 3"/><path d="M22,1L29,5L22,9z" fill="#ff6a52"/></svg>ataque inimigo previsto</span>${g && g.reg ? regLegendHTML(g) : ""}</div>`;
 }

@@ -112,16 +112,27 @@ function advisorRun(g, tip){
   if (a.k === "auto"){ setAutoOrders(g, "auto"); autoOrders(g, "auto"); return { ok: true, msg: "Ordens automáticas ligadas: as tropas agem sozinhas todo mês." }; }
   return { ok: true };
 }
+// Fase 12: caminho até a capital inimiga e rompimento ("Faltam N regiões até Recife. Com 1,5× ou mais de força, a linha rompe.")
+function advisorPathText(g, f, ratio){
+  if (!g.reg) return "";
+  const n = regFaltam(g, f, 1), RC = frontCfg(g).regioes; if (!n) return "";
+  const a = " " + (n === 1 ? gfmt(frontFala(g, "regioes", "faltaUma"), regGoalName(g, f, 1)) : gfmt(frontFala(g, "regioes", "faltam"), n, regGoalName(g, f, 1))) + ".";
+  return a + (ratio >= RC.rompe ? " " + frontFala(g, "regioes", "dicaRompe") : "");
+}
 // Dicas de guerra no modo frentes: uma por frente quando a postura atual não é a sugerida
 function advisorFrontTips(g, tips){
   const W = g.war, K = frontCfg(g); if (!W.fronts.length) return;
+  // rompimento inimigo no último mês: segurar logo em seguida estabiliza a linha (não há um segundo rompimento seguido)
+  for (const f of W.fronts){ const L = f.last;
+    if (g.reg && L && L.rompe < 0 && g.mil && L.month === g.mil.month && !f.special && f.posture !== "segurar" && g.autoOrders !== "auto")
+      tips.push({ id: "estab_" + f.id, pri: 86, head: frontFala(g, "regioes", "rompeTituloInimigo"), text: gfmt(frontFala(g, "regioes", "dicaEstab"), frontName(g, f)), act: { k: "posture", id: f.id, p: "segurar" } }); }
   for (const f of W.fronts){
-    if (f.special || g.autoOrders === "auto") continue;
+    if (f.special || g.autoOrders === "auto" || tips.some(t => t.id === "estab_" + f.id)) continue;
     const adv = frontAdvice(g, f), nm = frontName(g, f); if (f.posture === adv.posture) continue;
     const tA = frontTarget(g, f, 1), tD = frontTarget(g, f, -1);
     const text = adv.why === "ofensivaInimiga" ? `O inimigo prepara uma ofensiva especial na ${nm}. Segure a linha: a defesa ganha +30%.`
       : adv.why === "moral" ? `A tropa da ${nm} está cansada (moral ${Math.round(f.morale)}, suprimento ${Math.round(f.supply)}). Recue um mês para reorganizar.`
-      : adv.posture === "avancar" ? `Você está mais forte na ${nm} (${adv.ratio.toFixed(1)}×). Avance para tomar ${tA || "terreno"}.`
+      : adv.posture === "avancar" ? `Você está mais forte na ${nm} (${adv.ratio.toFixed(1)}×). Avance para tomar ${tA || "terreno"}.${advisorPathText(g, f, adv.ratio)}`
       : f.eposture === "avancar" ? `O inimigo vai atacar na ${nm}${tD ? ` (rumo a ${tD})` : ""}. Segure a linha: a defesa ganha +30%.`
       : `Avançar agora na ${nm} travaria (${(adv.ratio || 0).toFixed(1)}×). Segure a linha e junte tropas.`;
     tips.push({ id: "post_" + f.id, pri: adv.why === "ofensivaInimiga" || (adv.posture === "segurar" && f.eposture === "avancar") ? 82 : adv.posture === "recuar" ? 76 : 68,

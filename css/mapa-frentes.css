@@ -40,7 +40,23 @@
   /* capital e redutos */
   .mapbox g.fgoal{pointer-events:none}
   .mapbox g.fgoal.cap path{fill:#f3c969;stroke:#1a1408;stroke-width:1}
-  .mapbox g.fgoal.goal circle{fill:#fff;stroke:#1a1408;stroke-width:.8}.mapbox g.fgoal.goal circle+circle{fill:#c0392b}.mapbox g.fgoal.goal circle.dot{fill:#fff}
+  .mapbox g.fgoal.goal path.big{fill:#e0412f;stroke:#fff;stroke-width:1.1;filter:drop-shadow(0 0 2px #000a)}
+  .mapbox g.fgoal text.fglbl{font-size:8.5px;font-weight:800;fill:#ffe9b8;stroke:#140a05;stroke-width:2.6px;paint-order:stroke;dominant-baseline:middle;letter-spacing:.1px}
+  .mapbox g.fgoal.cap text.fglbl{fill:#f3c969;font-size:7.5px}
+  /* Fase 12: caminho mais curto até a capital inimiga (discreto) */
+  .mapbox polyline.frota{fill:none;stroke:#ffe08a;stroke-width:1.6;stroke-dasharray:3.5 3;stroke-linecap:round;stroke-linejoin:round;opacity:.8;pointer-events:none;animation:frota 1.6s linear infinite}
+  @keyframes frota{to{stroke-dashoffset:-13}}
+  body.rm .mapbox polyline.frota{animation:none}
+  @media (prefers-reduced-motion:reduce){.mapbox polyline.frota{animation:none}}
+  /* Fase 12: "Faltam N regiões até Recife" e o rompimento */
+  .fpath{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.82rem;margin:4px 0 2px}.fpath .good{color:#bfe3a8}.fpath .bad{color:#f0a493}
+  .frompe{margin:6px 0;padding:6px 9px;border-radius:8px;font-weight:700;font-size:.86rem;border:1px solid}
+  .frompe.good{background:#21401c;border-color:#7fc06a;color:#dff5d2}.frompe.bad{background:#4a1a14;border-color:#e0705a;color:#ffe0d8}
+  .frompe.estab{font-weight:600;opacity:.92}
+  .rcap.rompefx{animation:rompefx .9s ease 2}.rcap.rompefx .frompe{margin:0}
+  @keyframes rompefx{0%,100%{transform:none}20%{transform:translateX(-4px) scale(1.03)}40%{transform:translateX(4px)}60%{transform:translateX(-2px)}}
+  body.rm .rcap.rompefx{animation:none}
+  @media (prefers-reduced-motion:reduce){.rcap.rompefx{animation:none}}
   .fleg span{white-space:nowrap}
   .fcard2.flash{animation:fcflash 1.5s ease}
   @keyframes fcflash{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 3px #f3c969,0 0 18px #f3c96988}}

@@ -1,9 +1,19 @@
-// js/ui/conquistas.js — Interface: guarda as conquistas e a melhor nota (localStorage "gw_conquistas_v1" e, com login, a nuvem) e monta o texto para compartilhar.
+// js/ui/conquistas.js — Interface: guarda as conquistas, a melhor nota e as campanhas concluídas (localStorage "gw_conquistas_v1"/"gw_concluidas_v1" e, com login, a nuvem) e monta o texto para compartilhar.
 /* Formato: { v: 1, got: { id: { at, sc, diff } }, best: { cenário: "S"|"A"|"B"|"C" } }. A nuvem guarda o mesmo objeto
    numa linha da tabela saves (scenario_id "_conquistas"); a mesclagem fica em js/nuvem/cloud.js. */
 const ACH_KEY = "gw_conquistas_v1";
 function achLoad(){ try { const d = JSON.parse(localStorage.getItem(ACH_KEY)); if (d && d.got) return Object.assign({ v: 1, got: {}, best: {} }, d); } catch(e){} return { v: 1, got: {}, best: {} }; }
 function achStore(d){ try { localStorage.setItem(ACH_KEY, JSON.stringify(d)); } catch(e){} }
+// Campanhas concluídas (Fase 12): estatísticas só contam campanhas que chegaram a um final (vitória ou derrota).
+// Formato { n: { cenário: concluídas }, sent: { cenário: já enviadas à nuvem } }; campanhas abandonadas ou em andamento não entram.
+const FIN_KEY = "gw_concluidas_v1";
+function finRecord(scId){
+  let d; try { d = JSON.parse(localStorage.getItem(FIN_KEY)); } catch(e){}
+  d = d && d.n ? d : { n: {}, sent: {} };
+  d.n[scId] = (d.n[scId] || 0) + 1;
+  try { localStorage.setItem(FIN_KEY, JSON.stringify(d)); } catch(e){}
+  cloud("campaignFinished");
+}
 // Registra as conquistas desta campanha uma única vez (marca em G.ended) e devolve as novas
 function achRecord(){
   const gr = endingGrade(G);
@@ -14,6 +24,7 @@ function achRecord(){
   for (const id of fresh) d.got[id] = { at: Date.now(), sc: SCEN.id, diff: G.diff || "normal" };
   d.best[SCEN.id] = betterGrade(d.best[SCEN.id], gr.letter);
   achStore(d);
+  finRecord(SCEN.id); // conta a campanha concluída uma única vez (o mesmo marcador achDone)
   G.ended.achDone = true; G.ended.achNew = fresh; G.ended.grade = gr.letter; save();
   cloud("syncAchievements");
   return { grade: gr, fresh };

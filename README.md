@@ -50,10 +50,13 @@ npx serve .        # ou: python3 -m http.server 8000
 - **Força** = tropas × moral × suprimento × general × postura × apoio (e a dificuldade).
 - **Guerra por regiões (fase 11):** durante a guerra o Brasil é dividido nas **133 regiões geográficas intermediárias do IBGE**. A cada mês cada frente toma ou perde de 0 a 4 regiões (até 6 com ofensiva especial), conforme a vantagem; a barra vai de −100 a +100 e cada 100 vira uma região. O estado é de quem tem a maioria das regiões dele (empate: quem tem a região da capital). Não existe mais "em disputa" no 2022.
 - **Cerco:** a região da sua capital (DF) e a do reduto inimigo (Recife; no Sul, Porto Alegre) só caem com o cerco completo; enquanto isso a linha toma as regiões em volta. O cartão mostra o "Cerco à sua capital: N%".
+- **Recife, capital da Resistência (fase 12):** quando a guerra começa, o governo constitucional se instala no Recife (grande evento). Vitória = tomar a região de Recife (estrela vermelha); derrota = perder a do DF. O cartão da frente mostra "Faltam N regiões até Recife" pelo caminho mais curto, desenhado no mapa como linha tracejada.
+- **Avanço contíguo e rompimento (fase 12):** a linha só toma regiões vizinhas do que você já tinha no começo do mês e empurra na direção da capital inimiga, como uma faixa (sem saltos pela costa). Com força 1,5× maior e o mês ganho, a linha inimiga **rompe** e você avança várias regiões seguidas pelo caminho mais curto; quem **segura a linha** logo depois estabiliza a frente.
+- **Zoom do mapa (fase 12):** roda do mouse, pinça ou os botões + / − / ⟲ aproximam o mapa; arraste para mover; clicar no placar de uma frente aproxima nela; "Ir para Recife" centraliza a capital inimiga; com o mapa em foco, + − 0 e as setas também funcionam. Com zoom alto aparecem os nomes das regiões.
 - **Quem está ganhando:** o mapa pisca as regiões tomadas/perdidas no mês (com setas), cada frente mostra "Você X regiões × Inimigo Y" e +ganhas/−perdidas, e o cartão e o relatório têm um gráfico dos últimos meses.
 - **Fonte das regiões:** IBGE, Divisão Regional do Brasil em Regiões Geográficas Imediatas e Intermediárias (2017), malha da API de malhas v3 do IBGE (`servicodados.ibge.gov.br/api/v3/malhas`, qualidade mínima) e nomes da API de localidades v1; gerada e simplificada por `tools/build-regioes.js` em `js/data/mapa-regioes.js`.
 - **Recrutar:** +20 de tropas por 10 Recursos, até 2 vezes por mês, sem AP. **Comando automático** e o **modo simples** (Fácil) deixam os generais escolherem as posturas.
-- Saves antigos (v7) são migrados: os exércitos viram o total de tropas das frentes. Saves v9 viram v10: as regiões são criadas a partir do dono de cada estado e o antigo "em disputa" vira de um dos lados.
+- Saves antigos (v7) são migrados: os exércitos viram o total de tropas das frentes. Saves v9 viram v10: as regiões são criadas a partir do dono de cada estado e o antigo "em disputa" vira de um dos lados; saves v10 viram v11 (caminho até a capital e rompimento).
 
 ### Exércitos e ordens (1964)
 - **Selecionar:** toque numa ficha azul (seu exército; o número é a força total no estado e o selo "×n" indica vários exércitos — toque de novo para alternar). Os estados alcançáveis ficam destacados: borda vermelha = atacar, azul = mover/recuar. Ao escolher um, aparece a **previsão** e o botão **Confirmar ordem**.
@@ -118,7 +121,7 @@ O login é **opcional**. Sem conta, offline ou se o Supabase estiver fora do ar,
 - cadastro e login por e-mail e senha, link mágico, "Esqueci a senha" e troca de senha;
 - botão do Google pronto, mas escondido (`FEATURES.googleLogin` em `js/nuvem/config.js`);
 - perfil com nome de exibição, `@usuário`, emblema (ícones embutidos ou iniciais, sem upload) e bio;
-- estatísticas: campanhas iniciadas e finais desbloqueados por cenário;
+- estatísticas: campanhas **concluídas** (que chegaram a um final, vitória ou derrota) e finais desbloqueados por cenário — campanhas abandonadas ou em andamento não contam;
 - aba **Jogadores**, com o ranking por finais e os perfis públicos;
 - saves na nuvem (um por cenário), enviados ao "Encerrar mês", ao chegar num final e ao começar uma campanha;
 - ao entrar, o jogo junta os saves deste aparelho com os da nuvem. Se os dois forem diferentes, ele pergunta qual manter e mostra qual é o mais recente. Os finais e as conquistas são unidos nos dois sentidos (as conquistas ficam numa linha extra da tabela `saves`, com `scenario_id = "_conquistas"`; não precisa de migração).

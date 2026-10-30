@@ -57,8 +57,8 @@ function tabMapa(el){
   const onFront = id => { UI.selUF = null; if (G.simple && !UI.manual) UI.manual = true; renderGame();
     setTimeout(() => { const c = document.querySelector(`[data-fcard="${id}"]`); if (!c) return; c.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: window.innerWidth < 900 ? "start" : "nearest" }); c.classList.add("flash"); setTimeout(() => c.classList.remove("flash"), 1600); }, 40); };
   const milOn = UI.mapMode !== "agitacao", wideFc = window.innerWidth > 900 && !big;
-  if (FM) renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, mode: UI.mapMode, military: milOn, fronts: true, arrows: milOn ? frontArrows(G) : [], onPick, onFront });
-  else renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, selArmy: sel, tgtMode: UI.ordMode || null, pend: milOn && sel ? pend : null, mode: UI.mapMode, military: milOn, onPick, onArmy: pickArmy, overlay: milOn && sel && pend && !wideFc ? forecastCardHTML(sel, pend) : "" });
+  if (FM) renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, mode: UI.mapMode, military: milOn, fronts: true, arrows: milOn ? frontArrows(G) : [], onPick, onFront, zoom: true });
+  else renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, selArmy: sel, tgtMode: UI.ordMode || null, pend: milOn && sel ? pend : null, mode: UI.mapMode, military: milOn, onPick, onArmy: pickArmy, overlay: milOn && sel && pend && !wideFc ? forecastCardHTML(sel, pend) : "", zoom: true });
   if (milOn && sel && pend && wideFc) $(".sidepanel").insertAdjacentHTML("afterbegin", forecastCardHTML(sel, pend));
   if (!tabMapa._esc){ tabMapa._esc = e => { if (e.key !== "Escape" || UI.tab !== "mapa" || document.querySelector(".overlay, .modal, #ecoModal") || (typeof coachBusy === "function" && coachBusy())) return;
       if (UI.pend){ UI.pend = null; renderGame(); } else if (UI.selArmy){ UI.selArmy = null; renderGame(); } }; document.addEventListener("keydown", tabMapa._esc); }

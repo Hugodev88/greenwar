@@ -69,6 +69,8 @@ function frontOpen(g, fac, n, troops){
   if (free) W.gens[free.id] = fac;
   frontPlan(g);
   (g.warNews ||= []).push(gfmt(frontFala(g, "eventos", "abriu"), frontName(g, f), frontFala(g, "inimigo", fac)));
+  // a capital do inimigo desta frente é anunciada uma vez (Recife: grande evento "capital da Resistência")
+  if (D.capitalFlag && !g.flags.includes(D.capitalFlag)){ g.flags.push(D.capitalFlag); if (D.capitalNews) g.warNews.push(frontFala(g, "eventos", D.capitalNews)); }
   return f;
 }
 function frontClose(g, f){
@@ -265,9 +267,23 @@ function frontClash(g, f, R){
   f.troops = Math.max(0, f.troops - lossP); f.enemy = Math.max(5, f.enemy - lossE);
   // a linha anda: cada 100 de avanço = uma região (até RC.maxMes por mês; mais com ofensiva especial de qualquer lado)
   const RC = K.regioes, ph = phaseOf(g), prog0 = f.progress, moved = [], regs = [];
-  const capN = RC.maxMes + (f.special || f.eSpecial ? RC.extraOfensiva : 0);
-  const take = dir => { const id = regPick(g, f, dir, true); if (!id) return false;
-    const m = regTake(g, id, dir > 0 ? (ph.playerMain || ph.player[0]) : f.id, dir > 0 ? "player" : "enemy"); m.front = f.id; regs.push(m); if (m.state) moved.push(m.state); return true; };
+  // ROMPIMENTO: com vantagem grande (razão ≥ RC.rompe) e o mês ganho, a linha do defensor desaba e o atacante avança
+  // várias regiões seguidas pelo caminho mais curto até o alvo (sempre contínuo). Quem SEGURA a linha logo depois de sofrer
+  // um rompimento estabiliza: não há um segundo rompimento seguido contra ele.
+  const ratio = Pe / Math.max(1, Ee);
+  let rompe = 0, estab = 0; // estab: direção do rompimento que foi segurado (−1: você segurou; +1: o inimigo segurou)
+  if (!(g.ceasefire > 0)){
+    const cand = pA && d > 0 && ratio >= RC.rompe ? 1 : eA && d < 0 && 1 / Math.max(0.01, ratio) >= RC.rompe ? -1 : 0;
+    const R0 = f.rompe; // { dir, month } do último rompimento nesta frente
+    if (cand && R0 && R0.dir === cand && R0.month === g.month - 1 && (cand > 0 ? e : p) === "segurar") estab = cand;
+    else rompe = cand;
+  }
+  if (rompe) f.progress += rompe * RC.rompeBonus;
+  const capN = RC.maxMes + (f.special || f.eSpecial ? RC.extraOfensiva : 0) + (rompe ? RC.rompeN : 0);
+  const reg0 = Object.assign({}, g.reg);
+  const take = dir => { const id = regPick(g, f, dir, true, rompe === dir ? "rota" : null, rompe === dir ? null : reg0); if (!id) return false;
+    const m = regTake(g, id, dir > 0 ? (ph.playerMain || ph.player[0]) : f.id, dir > 0 ? "player" : "enemy"); m.front = f.id; regs.push(m); if (m.state) moved.push(m.state);
+    (f.axis ||= {})[dir > 0 ? "p" : "e"] = id; return true; };
   // capital e reduto não caem num mês de sorte: quem encosta neles faz um CERCO (regSiege). Cada +100 com o alvo cercado soma 100 ao cerco
   // e, enquanto isso, a linha continua tomando as outras regiões; o alvo só pode ser tomado com o cerco cheio ((custoAlvo − 1) × 100).
   const S = (g.war.siege ||= {}), SG = regSiegeMax(g);
@@ -287,6 +303,8 @@ function frontClash(g, f, R){
   }
   f.progress = clamp(f.progress, -90, 90);
   const won = regs.filter(m => m.side === "player").length, lost = regs.length - won;
+  const rompeRegs = rompe ? regs.filter(m => (m.side === "player") === (rompe > 0)) : [];
+  if (rompe && rompeRegs.length >= 2) f.rompe = { dir: rompe, month: g.month }; else { rompe = 0; if (!estab) delete f.rompe; }
   if (won) f.supply = Math.max(10, f.supply - RC.suprimento * won);
   if (lost >= 2 || moved.some(m => m.side === "enemy")) g.war.lostAt = g.month;
   const rows = [{ k: "tropas", p: Math.round(f.troops + lossP), e: Math.round(f.enemy + lossE) }];
@@ -295,12 +313,14 @@ function frontClash(g, f, R){
   rowsSit.forEach(r => { let x = rows.find(y => y.k === r.k); if (!x){ x = { k: r.k }; rows.push(x); } x[r.side] = (x[r.side] || 1) * r.v; });
   if (Math.abs(luck) >= 1) rows.push({ k: "sorte", luck: Math.round(luck) });
   const rec = { month: g.month, front: f.id, p, e, special: !!f.special, P: Math.round(Pe), E: Math.round(Ee), d, prog0: Math.round(prog0), prog: Math.round(f.progress),
-    moved, regs, won, lost, lossP, lossE, why, rows, troops: Math.round(f.troops), enemy: Math.round(f.enemy), morale: Math.round(f.morale), supply: Math.round(f.supply), gen: gen ? gen.id : null };
+    moved, regs, won, lost, lossP, lossE, why, rows, rompe, estab, ratio: Math.round(ratio * 100) / 100, troops: Math.round(f.troops), enemy: Math.round(f.enemy), morale: Math.round(f.morale), supply: Math.round(f.supply), gen: gen ? gen.id : null };
   if (f.eSpecial){ rec.eSpecial = true; if (d > -10){ f.emorale = clamp(f.emorale + K.ofensiva.inimiga.falhaMoral, 10, 80); if (R) R(gfmt(frontFala(g, "eventos", "ofensivaInimigaFalhou"), frontName(g, f)), "good"); } f.eSpecial = false; }
   f.last = rec; f.special = false; if (f.prevPosture){ f.posture = f.prevPosture; delete f.prevPosture; }
   if (R){
     R(`${frontName(g, f)}: ${frontFala(g, "postura", p)} × ${frontFala(g, "posturaCurta", e).toLowerCase()} inimigo — ${gfmt(frontFala(g, "regioes", "saldoMes"), won, lost)}. Baixas: suas ${lossP}, inimigas ${lossE}.`, won > lost ? "good" : lost > won ? "bad" : "info");
     if (regs.length) R(gfmt(frontFala(g, "regioes", won ? (lost ? "listaAmbos" : "listaGanhou") : "listaPerdeu"), regs.filter(m => m.side === "player").map(m => regName(m.id)).join(", "), regs.filter(m => m.side === "enemy").map(m => regName(m.id)).join(", ")), won >= lost ? "good" : "bad");
+    if (rompe) R(gfmt(frontFala(g, "regioes", rompe > 0 ? "rompeu" : "rompeuInimigo"), rompeRegs.map(m => regName(m.id)).join(", "), regGoalName(g, f, rompe)), rompe > 0 ? "good" : "bad");
+    if (estab) R(gfmt(frontFala(g, "regioes", estab < 0 ? "estabilizou" : "estabilizouInimigo"), frontName(g, f)), estab < 0 ? "good" : "bad");
     for (const m of moved) R(gfmt(frontFala(g, "eventos", m.side === "player" ? "tomou" : "perdeu"), MAP_DATA.states[m.uf].name, (scOf(g).story.factions[m.to] || {}).label || m.to), m.side === "player" ? "good" : "bad");
   }
   return rec;

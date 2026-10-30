@@ -14,7 +14,7 @@ const CAPS = { AC:[-67.81,-9.975], AL:[-35.735,-9.665], AP:[-51.07,0.034], AM:[-
   ES:[-40.34,-20.32], GO:[-49.25,-16.68], MA:[-44.30,-2.53], MT:[-56.10,-15.60], MS:[-54.62,-20.47], MG:[-43.94,-19.92], PA:[-48.50,-1.456], PB:[-34.86,-7.12],
   PR:[-49.27,-25.43], PE:[-34.88,-8.05], PI:[-42.80,-5.09], RJ:[-43.17,-22.91], RN:[-35.21,-5.79], RS:[-51.23,-30.03], RO:[-63.90,-8.76], RR:[-60.67,2.82],
   SC:[-48.55,-27.59], SP:[-46.63,-23.55], SE:[-37.07,-10.91], TO:[-48.33,-10.18] };
-const nameOf = {}, ufOf = {}; for (const r of NAMES){ nameOf[r.id] = r.nome; ufOf[r.id] = r.UF.sigla; }
+const nameOf = {}, ufOf = {}; for (const r of NAMES){ nameOf[r.id] = r.nome.replace(/\s*\u00bf\s*/g, " – "); ufOf[r.id] = r.UF.sigla; }
 const pk = p => p[0] + "," + p[1];
 const rings = []; // { id, pts:[[lon,lat]] }
 for (const f of G.features){ const id = String(f.properties.codarea); const polys = f.geometry.type === "Polygon" ? [f.geometry.coordinates] : f.geometry.coordinates;
@@ -68,11 +68,13 @@ for (const id in out){ const r = big[id].ring; let x0 = 1e9, y0 = 1e9, x1 = -1e9
   let best = null, bd = -1; const st = Math.max(0.4, Math.min(x1-x0, y1-y0) / 24);
   for (let x = x0; x <= x1; x += st) for (let y = y0; y <= y1; y += st){ if (!inside([x,y], r)) continue; let d = 1e9; for (let i = 0; i < r.length; i++) d = Math.min(d, dseg([x,y], r[i], r[(i+1)%r.length])); if (d > bd){ bd = d; best = [x,y]; } }
   best = best || r[0]; out[id].lx = +best[0].toFixed(1); out[id].ly = +best[1].toFixed(1); }
-// vizinhança: arestas compartilhadas com comprimento > 0,3 px (inclui vizinhos de outro estado)
+// vizinhança: fronteira compartilhada de pelo menos MIN_BORDA px (~11 km); encostos de um ponto (simplificação) não contam,
+// senão a guerra "pula" por quinas (ex.: Arapiraca/AL × Aracaju/SE, Picos/PI × Juazeiro/BA)
+const MIN_BORDA = +(process.env.MIN_BORDA || 1.5);
 const shared = {};
 for (const [k, s] of own){ if (s.size < 2) continue; const [a, b] = k.split("|").map(t => proj(t.split(",").map(Number))); const L = Math.hypot(a[0]-b[0], a[1]-b[1]); const ids = [...s].sort(); const key = ids.join("|"); shared[key] = (shared[key] || 0) + L; }
 for (const id in out) out[id].adj = [];
-for (const key in shared){ if (shared[key] < 0.3) continue; const [a, b] = key.split("|"); if (out[a] && out[b]){ out[a].adj.push(b); out[b].adj.push(a); } }
+for (const key in shared){ if (shared[key] < MIN_BORDA) continue; const [a, b] = key.split("|"); if (out[a] && out[b]){ out[a].adj.push(b); out[b].adj.push(a); } }
 for (const id in out) out[id].adj.sort();
 // capital de cada estado
 const capOf = {};

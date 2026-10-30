@@ -1,0 +1,15 @@
+/* css/mapa-zoom.css — Zoom e arraste do mapa principal (js/ui/mapa-zoom.js): botões, traços que não engrossam e nomes das regiões com zoom alto. */
+  .mapbox .mapzoom{position:absolute;top:6px;right:6px;display:flex;flex-direction:column;align-items:center;gap:4px;z-index:3}
+  .mapbox .mapzoom button{min-width:34px;height:34px;border-radius:8px;border:1px solid #6b5a3c;background:#1d1610e6;color:#f3e2b8;font-size:1.15rem;font-weight:800;line-height:1;cursor:pointer;padding:0 8px}
+  .mapbox .mapzoom button:hover,.mapbox .mapzoom button:focus-visible{background:#3a2c1c;outline:2px solid #f3c969;outline-offset:1px}
+  .mapbox .mapzoom button.zgo{font-size:.78rem;height:auto;padding:6px 8px;white-space:nowrap}
+  .mapbox .mapzoom .zlv{font-size:.68rem;color:#cdbb92;background:#0009;border-radius:6px;padding:1px 4px;font-variant-numeric:tabular-nums}
+  .mapbox svg.zoomable{touch-action:pan-y;cursor:default}
+  .mapbox svg.zoomable.zoomed{cursor:grab}.mapbox svg.zoomable.dragging{cursor:grabbing}
+  .mapbox svg.zoomed :is(path,line,polyline){vector-effect:non-scaling-stroke}
+  .mapbox svg.zoomed :is(g.fbadge,g.cnt,g.fgoal,g.fpush,pattern) :is(path,line,polyline){vector-effect:none}
+  .mapbox svg g.rgnames{display:none;pointer-events:none}
+  .mapbox svg.znames g.rgnames{display:inline}
+  .mapbox svg g.rgnames text{font-size:7.5px;font-weight:600;fill:#fff8e4;stroke:#000b;stroke-width:2px;opacity:.9}
+  @media (max-width:600px){ .mapbox .mapzoom{top:4px;right:4px;gap:3px} .mapbox .mapzoom button{min-width:32px;height:32px;font-size:1rem;padding:0 6px} .mapbox .mapzoom .zlv{display:none}
+    .mapbox .mapzoom button.zgo span{display:none} .mapbox .mapzoom button.zgo{padding:0 6px;height:32px} .mapbox svg g.rgnames text{font-size:10px} }

@@ -122,7 +122,7 @@ O `index.html` tem só a marcação e a lista de `<link>`/`<script>`. **Os scrip
   - `saveVersion`, `monthLabel`, `current()`;
   - `refresh(ids)`, que volta à tela de título ou ao menu se a nuvem trocou o save do cenário aberto.
 - **Tabelas** (rodar o SQL no SQL Editor; o arquivo é idempotente):
-  - `profiles(id → auth.users, username único ^[a-z0-9_]{3,20}$, display_name ≤40, avatar (id de emblema ou 'iniciais'), bio ≤280, campaigns_played, campaigns_by_scenario jsonb, endings jsonb {cenário: [ids]}, endings_count calculado por gatilho, created_at, updated_at)`;
+  - `profiles(id → auth.users, username único ^[a-z0-9_]{3,20}$, display_name ≤40, avatar (id de emblema ou 'iniciais'), bio ≤280, campaigns_played (desde a fase 12: total de campanhas concluídas), campaigns_by_scenario jsonb (a chave `_fim` = concluídas por cenário; as outras chaves são contagens antigas de campanhas iniciadas, ignoradas), endings jsonb {cenário: [ids]}, endings_count calculado por gatilho, created_at, updated_at)`;
   - `saves(user_id, scenario_id, slot 0–9, data jsonb, save_version, created_at, updated_at, PK(user_id, scenario_id, slot))`. Hoje o jogo usa só o `slot = 0`.
 - **RLS:**
   - perfis: leitura pública (`anon` e `authenticated`); insert e update só do dono;
@@ -275,6 +275,17 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 58 
 - **Tela:** `js/ui/mapa-regioes.js` + `css/mapa-regioes.css` (camada de regiões, linha de frente por região, regiões que mudaram no mês piscando, setas, placar, gráfico); `frontGeom` usa regiões; o relatório e a descrição acessível listam as regiões que mudaram.
 - **Check:** novos testes de regiões (vizinhança, maioria, migração, regiões mudando de lado) e de sintaxe de todos os scripts do `index.html`.
 
+## 7n. Fase 12 (out/2026): Recife, combate contíguo, rompimento, zoom do mapa e estatísticas (save v11)
+- **Combate contíguo (correção do "Bahia → Alagoas"):** a escolha de região (`regPick` em `js/core/regioes.js`) pesava a distância até Recife pela frente inteira, então o avanço "escorria" pela costa (Vitória da Conquista → Salvador → Aracaju → Maceió); além disso, regiões que só se tocavam num ponto contavam como vizinhas. Agora: vizinhança exige fronteira mínima (`MIN_BORDA` em `tools/build-regioes.js`), a captura fica perto do eixo do último avanço (`f.axis`), há coesão de faixa e penalidade de "dedo", e fora de rompimento só se toma região vizinha do território que o atacante tinha **no início do mês**. O inimigo usa a mesma regra.
+- **Recife, capital da Resistência:** ao abrir a frente, a flag `recife_capital` dispara o grande evento (`MAJOR_FLAGS` em `js/ui/grandes-eventos.js`, com `any`/`over`). Estrela vermelha grande + rótulo "Recife — capital da Resistência" (e "Porto Alegre — capital da Liga do Sul"); vitória = tomar a região de Recife, derrota = perder a do DF. O cartão da frente mostra "Faltam N regiões até Recife" (`regPath`/`regFaltam`: BFS só por regiões inimigas) e o mapa desenha o caminho mais curto (linha tracejada).
+- **Rompimento:** com força ≥ `regioes.rompe` (1,5×) e o mês ganho, a linha rompe: `+rompeBonus` de progresso e até `rompeN` capturas extras seguindo o caminho (`regPick` modo "rota"), sempre contíguas. Mensagem e animação "Rompimento! A linha inimiga desabou em …"; quem **segura** logo depois estabiliza a frente (sem rompimento seguido). O cerco só começa vizinho à capital.
+- **Zoom do mapa (todas as fases):** `js/ui/mapa-zoom.js` + `css/mapa-zoom.css`, só no mapa principal (`opts.zoom`). Roda do mouse (rumo ao cursor), pinça e arraste no celular, arrastar no computador, botões + / − / ⟲ e "Ir para Recife", teclas + − 0 e setas. O estado (`MAPZ`, por cenário) sobrevive às re-renderizações; clicar no placar aproxima a frente; rótulos/placares são contra-escalados e os nomes das regiões aparecem com zoom ≥ 2,4×; arraste não vira clique; respeita "reduzir movimento".
+- **Estatísticas só de campanhas concluídas:** começar campanha não conta mais (`campaignStarted` removido). `finRecord` (`js/ui/conquistas.js`) conta uma vez no final (vitória ou derrota, marcador `achDone`) em `localStorage "gw_concluidas_v1"`; com login, `pushFinished` (`js/nuvem/cloud.js`) soma em `profiles.campaigns_by_scenario._fim` (coluna jsonb que já existia — **sem mudança no banco**) e grava `campaigns_played` = total concluído. Perfil, perfil público, tabela e ranking leem só `_fim` ("Campanhas concluídas"). Os números antigos (campanhas iniciadas) ficam intactos no banco, mas não são exibidos. Saves em andamento continuam carregáveis.
+- **Save v11:** `migrateV11` zera eixos/rompimentos antigos, limita o cerco ao novo máximo e cria a flag da capital da frente aberta.
+- **Check:** capturas contíguas na hora da captura e com o território do início do mês (fora de rompimento), caminho válido até a capital, Arapiraca–Aracaju não vizinhas, Recife anunciada em toda guerra, migração v10→v11, estatísticas só no final.
+
+- **Balanceamento (Fase 12):** `poderBase` 1,05, `k` 105, `reduto` 1,6, `regioes.maxMes` 5, `suprimento` 5, `rompe` 1,5, `rompeN` 1, `rompeBonus` 100. `sim.js 300`: golpista Normal 45% (guerra média 20,9 meses), pacificador 79%; tuning Fácil iniciante ~63%, Difícil golpista ~3%.
+
 ## 8. Limitações conhecidas
 - Guerra por regiões: as regiões são simplificadas (litorais e fronteiras finas aproximados); o inimigo escolhe a região pela mesma regra que você (sem plano de vários meses); no celular as fronteiras finas ficam bem discretas. No modo Difícil, o pacificador vence ~29% e as guerras longas podem passar de 100 meses em casos raros.
 - Idiomas: inglês, chinês e russo cobrem todo o cenário 2022; o cenário 1964 (bloqueado) só tem o cartão do menu traduzido. Frases montadas por partes (registro do turno, dicas com nomes) podem ter ordem de palavras menos natural em chinês/russo; a tradução zh/ru não passou por revisão de falante nativo.
@@ -292,6 +303,7 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 58 
 - No desktop o tooltip dos nós é o `title` nativo do navegador.
 - **Nuvem:**
   - as estatísticas e os finais do perfil são gravados pelo cliente, então dá para forjá-los (o ranking é "de confiança");
+  - campanhas concluídas antes da fase 12 não podem ser reconstruídas: o perfil começa a contar "Campanhas concluídas" a partir da primeira campanha terminada depois da atualização (finais desbloqueados continuam valendo);
   - há um só slot de save por cenário;
   - o conflito de saves é decidido pelo relógio de cada aparelho;
   - sem internet não há login (o jogo funciona, mas não sincroniza);

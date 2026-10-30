@@ -81,5 +81,5 @@ function startNew(opts){
   UI.selFocus = null; UI.fscroll = null; UI.manual = false; UI.moreTabs = false;
   G = newCampaign(SCEN, 0, opts || lastNewChoice());
   Object.assign(UI, { tab: "historia", selUF: null, selArmy: null, selActor: null, req: [], off: [], dealMsg: null });
-  save(); renderGame(); cloud("campaignStarted", SCEN.id); cloud("syncSave", SCEN.id);
+  save(); renderGame(); cloud("syncSave", SCEN.id); // estatísticas: só conta quando a campanha chega a um final (achRecord)
 }

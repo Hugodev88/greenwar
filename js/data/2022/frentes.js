@@ -10,19 +10,23 @@
    - Vitória: tomar a região de Recife (reduto da resistência). Derrota: perder Brasília (DF). A região de Porto Alegre é o reduto da Liga do Sul.
    Generais e rostos: só personagens fictícios (os retratos já existem em js/data/2022/retratos.js). */
 const FRENTES_2022 = {
-  capital: "DF",
-  poderBase: 1.3,            // enemyPower do Normal: Fácil/Difícil escalam as tropas inimigas em relação a ele
-  k: 85,                     // quanto a linha anda por mês com uma vantagem de força (escala logarítmica)
+  capital: "DF", capitalNome: "Brasília",
+  poderBase: 1.05,            // enemyPower do Normal: Fácil/Difícil escalam as tropas inimigas em relação a ele
+  k: 105,                     // quanto a linha anda por mês com uma vantagem de força (escala logarítmica)
   bonusAvanco: 8,            // empurrão extra de quem avança com vantagem (a linha nunca fica parada demais)
   ruido: 7,                  // sorte: ± pontos na linha por mês
   defesaSegurar: 1.3,        // segurar a linha: defesa ×1,3
   defesaInimiga: 1.0,        // o inimigo entrincheirado (posição preparada) além do terreno
-  reduto: 1.3,               // defesa extra na região-reduto inimiga (Recife / Porto Alegre) e na capital (Brasília)
+  reduto: 1.6,               // defesa extra na região-reduto inimiga (Recife / Porto Alegre) e na capital (Brasília)
   // regiões: escala = quanto o avanço mensal vale em "progresso" (100 = uma região); máximo de regiões por frente por mês
   // (+extraOfensiva com ofensiva especial de qualquer lado); suprimento gasto por região tomada; escolha do alvo:
-  // foco (peso da distância até o objetivo), coesão (prefere regiões já meio cercadas: a linha anda larga), sorte;
-  // custoAlvo: a região da capital / do reduto custa este tanto × 100 de avanço
-  regioes: { escala: 3.5, maxMes: 4, extraOfensiva: 2, suprimento: 2, foco: 1, coesao: 2.5, sorte: 0.8, custoAlvo: 5 },
+  // foco (peso da distância até o objetivo), coesao (por região vizinha do atacante) e coesaoFr (fração da borda já cercada):
+  // a linha anda larga; dedo: penalidade para região encostada em uma só do atacante; local: peso da distância ao eixo da
+  // batalha (a última região tomada — nada de pular para outro trecho da frente); sorte;
+  // custoAlvo: a região da capital / do reduto exige um cerco de (custoAlvo − 1) × 100 de avanço encostado nela;
+  // rompe: razão de força para o ROMPIMENTO (a linha desaba e o atacante avança rompeN regiões a mais pelo caminho mais curto)
+  regioes: { escala: 3.5, maxMes: 5, extraOfensiva: 2, suprimento: 5, foco: 1, coesao: 1, coesaoFr: 1.5, dedo: 1.5, local: 1.2, sorte: 0.8, custoAlvo: 3,
+    rompe: 1.5, rompeN: 1, rompeBonus: 100 },
   recuo: 22,                 // recuar e reorganizar: a linha cede este tanto (menos se o inimigo também não ataca)
   recruta: { forca: 20, custo: 10, porMes: 2, moral: 50 },
   poolMin: 10,
@@ -45,7 +49,7 @@ const FRENTES_2022 = {
   ],
   // frentes possíveis (uma por facção inimiga). tropas = base + porEstado × estados que o inimigo controla ao abrir
   frentes: {
-    resistencia: { tropas: 40, porEstado: 4, reforco: 9, ataca: 1.0, retrato: "gen_barreto", traco: "agressivo", reduto: "PE", vitoria: "fim_regime" },
+    resistencia: { tropas: 40, porEstado: 4, reforco: 9, ataca: 1.0, retrato: "gen_barreto", traco: "agressivo", reduto: "PE", vitoria: "fim_regime", capitalFlag: "recife_capital", capitalNews: "capitalRecife" },
     separatista: { tropas: 14, porEstado: 6, reforco: 2.5, ataca: 1.35, retrato: "gen_kessler", traco: "defensivo", reduto: "RS" }
   },
   ofensiva: { custo: 10, intervalo: 4, primeira: 2, mult: 1.5, avanco: 1.5, falhaMoral: -20, falhaPerdas: 0.1,
@@ -55,7 +59,7 @@ const FRENTES_2022 = {
   falas: {
     nome: { resistencia: "Frente Nordeste", separatista: "Frente Sul" },
     inimigo: { resistencia: "Resistência constitucional", separatista: "Liga do Sul" },
-    reduto: { resistencia: "Recife — governo provisório da resistência", separatista: "Porto Alegre — sede da Liga do Sul" },
+    reduto: { resistencia: "Recife — capital da Resistência", separatista: "Porto Alegre — capital da Liga do Sul" },
     postura: { avancar: "Avançar", segurar: "Segurar a linha", recuar: "Recuar e reorganizar" },
     posturaCurta: { avancar: "Avançar", segurar: "Segurar", recuar: "Recuar" },
     posturaDesc: {
@@ -124,7 +128,22 @@ const FRENTES_2022 = {
       inimigas: "Regiões inimigas",
       cercoCapital: "Cerco à sua capital: {0}%",
       cercoReduto: "Cerco ao reduto inimigo: {0}%",
-      cercoAjuda: "Capital e reduto só caem com o cerco completo; enquanto isso, a linha toma as regiões em volta."
+      cercoAjuda: "Capital e reduto só caem com o cerco completo; enquanto isso, a linha toma as regiões em volta.",
+      rompeu: "Rompimento! A linha inimiga desabou em {0}. Suas tropas avançam rumo a {1}.",
+      rompeuInimigo: "Rompimento inimigo! Sua linha desabou em {0}. O inimigo avança rumo a {1}.",
+      estabilizou: "{0}: você segurou e a linha se estabilizou — sem novo rompimento neste mês.",
+      estabilizouInimigo: "{0}: o inimigo segurou e a linha dele se estabilizou — sem novo rompimento neste mês.",
+      rompeTitulo: "Rompimento!",
+      dicaRompe: "Com 1,5× ou mais de força e o mês ganho, a linha inimiga rompe e você avança várias regiões seguidas rumo à capital deles.",
+      dicaEstab: "A linha desabou na {0}. Segure a linha neste mês: quem segura logo depois de um rompimento estabiliza a frente e impede um novo rompimento.",
+      rompeTituloInimigo: "Rompimento inimigo!",
+      capitalSua: "Brasília — sua capital",
+      faltam: "Faltam {0} regiões até {1}",
+      faltaUma: "Falta 1 região até {0}",
+      faltamInimigo: "O inimigo está a {0} regiões de {1}",
+      faltaUmaInimigo: "O inimigo está a 1 região de {0}",
+      rota: "Caminho mais curto até {0}",
+      rompeAjuda: "Rompimento: com força 1,5× maior e o mês ganho, a linha desaba e avança várias regiões seguidas rumo ao alvo. Quem segura a linha logo depois estabiliza."
     },
     eventos: {
       abriu: "Abriu a {0}: a linha de frente contra {1} está ativa.",
@@ -137,6 +156,7 @@ const FRENTES_2022 = {
       ligaCaiu: "Porto Alegre caiu: a Liga do Sul se rendeu e a Frente Sul foi fechada.",
       mobiliza: "Alistamento: +{0} de tropas para o seu efetivo.",
       ofensiva: "Ofensiva especial lançada na {0}.",
+      capitalRecife: "Recife é a capital da Resistência: o governo constitucional se instalou no Palácio do Campo das Princesas.",
       ofensivaInimiga: "{0}: o inimigo prepara uma ofensiva especial! Segurar a linha reduz o estrago.",
       ofensivaInimigaFalhou: "{0}: a ofensiva inimiga quebrou contra a sua linha."
     }

@@ -39,9 +39,20 @@ const I18N_PRE = [
   // registro do mapa: "MG (Minas Gerais) passou para: X" / "MG (Minas Gerais) entrou em disputa"
   [/^([A-Z]{2}) \((.+?)\) (?:passaram|passou) para:? (.+)$/, (m, f) => m[1] + " (" + f(m[2]) + ") switched to: " + f(m[3]), (m, f) => m[1] + "（" + f(m[2]) + "）转归：" + f(m[3]), (m, f) => m[1] + " (" + f(m[2]) + ") теперь за: " + f(m[3])],
   [/^([A-Z]{2}) \((.+?)\) (?:entraram|entrou) em disputa(\.?)$/, (m, f) => m[1] + " (" + f(m[2]) + ") became contested" + m[3], (m, f) => m[1] + "（" + f(m[2]) + "）陷入争夺" + (m[3] ? "。" : ""), (m, f) => m[1] + " (" + f(m[2]) + "): начались бои" + m[3]],
-  [/^Nota ([SABCDEF])$/, (m) => "Grade " + m[1], (m) => "评级 " + m[1], (m) => "Оценка " + m[1]]
+  [/^Nota ([SABCDEF])$/, (m) => "Grade " + m[1], (m) => "评级 " + m[1], (m) => "Оценка " + m[1]],
+  // fase 12: rompimento (lista de regiões = nomes próprios, mantidos) e a dica de estabilizar
+  // caminho até a capital: o nome (Recife, Porto Alegre, Brasília) é traduzido se houver tradução, senão fica como está
+  [/^Faltam (\d+) regiões até (.+)$/, (m) => m[1] + " regions to " + i18nName(m[2]), (m) => "距离" + i18nName(m[2]) + "还剩 " + m[1] + " 个地区", (m) => "До " + i18nName(m[2]) + " осталось регионов: " + m[1]],
+  [/^Falta 1 região até (.+)$/, (m) => "1 region to " + i18nName(m[1]), (m) => "距离" + i18nName(m[1]) + "还剩 1 个地区", (m) => "До " + i18nName(m[1]) + " остался 1 регион"],
+  [/^O inimigo está a (\d+) regiões de (.+)$/, (m) => "The enemy is " + m[1] + " regions from " + i18nName(m[2]), (m) => "敌人距离" + i18nName(m[2]) + "还有 " + m[1] + " 个地区", (m) => "Противник в " + m[1] + " регионах от " + i18nName(m[2])],
+  [/^O inimigo está a 1 região de (.+)$/, (m) => "The enemy is 1 region from " + i18nName(m[1]), (m) => "敌人距离" + i18nName(m[1]) + "还有 1 个地区", (m) => "Противник в 1 регионе от " + i18nName(m[1])],
+  [/^Caminho mais curto até (.+)$/, (m) => "Shortest path to " + i18nName(m[1]), (m) => "通往" + i18nName(m[1]) + "的最短路线", (m) => "Кратчайший путь до " + i18nName(m[1])],
+  [/^Rompimento! A linha inimiga desabou em (.+)\. Suas tropas avançam rumo a (.+)\.$/, (m, f) => "Breakthrough! The enemy line collapsed at " + m[1] + ". Your troops advance toward " + f(m[2]) + ".", (m, f) => "突破！敌方战线在" + m[1] + "崩溃。你的部队正向" + f(m[2]) + "推进。", (m, f) => "Прорыв! Линия противника рухнула: " + m[1] + ". Ваши войска наступают на " + f(m[2]) + "."],
+  [/^Rompimento inimigo! Sua linha desabou em (.+)\. O inimigo avança rumo a (.+)\.$/, (m, f) => "Enemy breakthrough! Your line collapsed at " + m[1] + ". The enemy advances toward " + f(m[2]) + ".", (m, f) => "敌军突破！你的战线在" + m[1] + "崩溃。敌人正向" + f(m[2]) + "推进。", (m, f) => "Прорыв противника! Ваша линия рухнула: " + m[1] + ". Противник наступает на " + f(m[2]) + "."],
+  [/^A linha desabou na (.+?)\. Segure a linha neste mês: quem segura logo depois de um rompimento estabiliza a frente e impede um novo rompimento\.$/, (m, f) => "The line collapsed on the " + f(m[1]) + ". Hold the line this month: holding right after a breakthrough stabilizes the front and prevents another breakthrough.", (m, f) => "战线在" + f(m[1]) + "崩溃。本月请守住战线：在突破之后立即坚守，可以稳定战线并阻止再次突破。", (m, f) => "Линия рухнула: " + f(m[1]) + ". Удерживайте линию в этом месяце: оборона сразу после прорыва стабилизирует фронт и не даёт прорвать его снова."]
 ];
 const I18N_RULES = [
+  [/^Avance para tomar (?!terreno\.?$)(.+?)(\.?)$/, (m) => "Advance to take " + m[1] + m[2], (m) => "推进以夺取" + m[1] + (m[2] ? "。" : ""), (m) => "Наступайте, чтобы взять " + m[1] + m[2]],
   [/^Aparece quando (.+)$/, (m, f) => "Appears when " + f(m[1]), (m, f) => "出现条件：" + f(m[1]), (m, f) => "Появляется, когда: " + f(m[1])],
   [/^aparece quando (.+)$/, (m, f) => "appears when " + f(m[1]), (m, f) => "出现条件：" + f(m[1]), (m, f) => "появляется, когда: " + f(m[1])],
   [/^pode voltar a partir de (.+)$/, (m, f) => "can return from " + f(m[1]), (m, f) => "可于" + f(m[1]) + "起再次出现", (m, f) => "может вернуться с " + f(m[1])],
@@ -83,6 +94,8 @@ const I18N_RULES = [
   // último recurso: frase com ponto final cuja versão sem ponto tem tradução ("Recusar." → "Recusar")
   [/^(.+[^.])\.$/, (m, f) => f(m[1]) + ".", (m, f) => f(m[1]) + "。", (m, f) => f(m[1]) + "."]
 ];
+// nome próprio (cidade/capital): tradução exata se existir, senão o original
+function i18nName(s){ const r = trCore(s, 5, i18nLang()); return r == null ? s : r; }
 function trCore(raw, depth, L){
   if (typeof raw !== "string") return null;
   depth = depth || 0; L = L || i18nLang();

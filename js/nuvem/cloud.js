@@ -345,6 +345,24 @@ async function mergeEndings(scIds) {
   return changedLocal;
 }
 
+// Campanhas concluídas (chegaram a um final, vitória ou derrota). Ficam em campaigns_by_scenario._fim = { cenário: n }
+// (coluna jsonb que já existe — sem mudar o banco). Os números antigos de campaigns_by_scenario contavam campanhas
+// INICIADAS (inclusive abandonadas) e por isso não são mais exibidos; ficam intactos no banco. campaigns_played passa
+// a guardar o total de concluídas. Local: { n: {cenário: concluídas}, sent: {cenário: já enviadas} } em Game.finishedKey.
+function finishedOf(p, scId) { const f = p && p.campaigns_by_scenario && p.campaigns_by_scenario._fim; return (f && +f[scId]) || 0; }
+async function pushFinished() {
+  if (!st.profile || !Game.finishedKey) return;
+  const loc = readJSON(Game.finishedKey); if (!loc || !loc.n) return;
+  const sent = Object.assign({}, loc.sent || {}), by = Object.assign({}, st.profile.campaigns_by_scenario || {}), fim = Object.assign({}, by._fim || {});
+  let add = 0;
+  for (const id in loc.n) { const d = (loc.n[id] || 0) - (sent[id] || 0); if (d > 0) { fim[id] = (fim[id] || 0) + d; sent[id] = loc.n[id]; add += d; } }
+  if (!add) return;
+  by._fim = fim;
+  const total = Object.values(fim).reduce((s, n) => s + (+n || 0), 0);
+  await updateProfile({ campaigns_by_scenario: by, campaigns_played: total });
+  writeJSON(Game.finishedKey, Object.assign({}, loc, { sent }));
+}
+
 // Conquistas: uma linha extra em saves (scenario_id "_conquistas"); o jogo faz a união (GWGame.mergeAchievements).
 const ACH_ROW = "_conquistas";
 async function mergeAchievements(rows) {
@@ -379,11 +397,11 @@ window.GWCloud = {
     if (!canSync()) return;
     track(mergeAchievements());
   },
-  campaignStarted(scId) {
+  // Fase 12: estatísticas só contam campanhas que chegaram a um final. O jogo conta no aparelho (Game.finishedKey)
+  // e aqui enviamos o que ainda não subiu; iniciar uma campanha não conta mais nada.
+  campaignFinished() {
     if (!canSync() || !st.profile) return;
-    const by = Object.assign({}, st.profile.campaigns_by_scenario || {});
-    by[scId] = (by[scId] || 0) + 1;
-    track(updateProfile({ campaigns_played: (st.profile.campaigns_played || 0) + 1, campaigns_by_scenario: by }));
+    track(pushFinished());
   },
   deleteSave(scId) {
     if (!canSync()) return;
@@ -427,6 +445,7 @@ async function mergeOnLogin({ interactive = false } = {}) {
     }
     for (const id of await mergeEndings()) changed.add(id);
     await mergeAchievements(rows || []);
+    await pushFinished();
     st.lastSync = Date.now(); st.lastError = null;
     if (changed.size) Game.refresh([...changed]);
     if (interactive) return { uploads: uploads.length, downloaded: changed.size, conflicts: conflicts.length, skipped };
@@ -464,7 +483,7 @@ function askConflicts(conflicts) {
 function endingsStats(p) {
   return scenarios().map(sc => {
     const got = new Set(((p && p.endings) || {})[sc.id] || []);
-    return { sc, got: sc.endings.filter(e => got.has(e.id)), total: sc.endings.length, played: ((p && p.campaigns_by_scenario) || {})[sc.id] || 0 };
+    return { sc, got: sc.endings.filter(e => got.has(e.id)), total: sc.endings.length, played: finishedOf(p, sc.id) };
   });
 }
 // Totais só dos cenários jogáveis (hoje: 2022). O endings_count/campaigns_played do banco somam todos os cenários
@@ -474,7 +493,7 @@ function playTotals(p) {
   return { endings: s.reduce((n, x) => n + x.got.length, 0), played: s.reduce((n, x) => n + x.played, 0) };
 }
 function statsHTML(p, showNames) {
-  return `<table class="gwc-table"><tr><th>Cenário</th><th>Campanhas</th><th>Finais</th></tr>${endingsStats(p).map(s => `
+  return `<table class="gwc-table"><tr><th>Cenário</th><th>Campanhas concluídas</th><th>Finais</th></tr>${endingsStats(p).map(s => `
     <tr><td>${esc(s.sc.year)} — ${esc(s.sc.title)}${showNames && s.got.length ? `<div class="gwc-muted">${s.got.map(e => esc(e.name || e.id)).join(" · ")}</div>` : ""}</td>
     <td>${s.played}</td><td>${s.got.length}/${s.total}<div class="gwc-bar"><i style="width:${s.total ? Math.round(100 * s.got.length / s.total) : 0}%"></i></div></td></tr>`).join("")}</table>`;
 }
@@ -503,7 +522,7 @@ function openProfile(tab = "perfil") {
       <div class="gwc-row"><button class="gwc-primary">Salvar perfil</button></div></form>`;
   } else if (tab === "stats") {
     const t = playTotals(p);
-    body = `<p>Campanhas iniciadas: <b>${t.played}</b> · Finais desbloqueados: <b>${t.endings}</b></p>${statsHTML(p, true)}
+    body = `<p>Campanhas concluídas: <b>${t.played}</b> · Finais desbloqueados: <b>${t.endings}</b></p>${statsHTML(p, true)}
       <p class="gwc-muted">Membro desde ${esc(fmtDate(p.created_at))}.</p>`;
   } else {
     body = `<div id="gwc-rank" class="gwc-muted">Carregando ranking…</div>`;
@@ -557,7 +576,7 @@ async function loadRanking(root) {
   if (!data.length) { box.textContent = "Nenhum jogador ainda."; return; }
   box.className = "";
   box.innerHTML = `<p class="gwc-muted" style="margin-top:0">Ranking por finais desbloqueados em ${esc(scenarios().map(sc => sc.year).join(", "))} (top 50). Clique para ver o perfil.</p>
-    <table class="gwc-table"><tr><th>#</th><th>Jogador</th><th>Finais</th><th>Campanhas</th></tr>${data.map((u, i) => `
+    <table class="gwc-table"><tr><th>#</th><th>Jogador</th><th>Finais</th><th>Campanhas concluídas</th></tr>${data.map((u, i) => `
     <tr class="click" data-id="${esc(u.id)}"><td>${i + 1}</td><td><span class="gwc-row" style="gap:6px">${avatarHTML(u, 24)}<span>${esc(displayName(u))} <span class="gwc-muted">@${esc(u.username)}</span></span></span></td>
     <td>${u.endings_count}</td><td>${u.campaigns_played}</td></tr>`).join("")}</table>`;
   box.querySelectorAll("tr[data-id]").forEach(tr => tr.onclick = () => openPublicProfile(tr.dataset.id));
@@ -570,7 +589,7 @@ async function openPublicProfile(id) {
   if (error || !p) { root.querySelector(".modal-card").insertAdjacentHTML("beforeend", `<p>${esc(error ? ptError(error) : "Perfil não encontrado.")}</p>`); return; }
   const r = openModal(`<div class="gwc-head">${avatarHTML(p, 56)}<div><h2>${esc(displayName(p))}</h2><div class="gwc-muted">@${esc(p.username)} · desde ${esc(fmtDate(p.created_at).split(" ")[0])}</div></div></div>
     ${p.bio ? `<p style="white-space:pre-wrap">${esc(p.bio)}</p>` : ""}
-    <p>Campanhas: <b>${playTotals(p).played}</b> · Finais desbloqueados: <b>${playTotals(p).endings}</b></p>
+    <p>Campanhas concluídas: <b>${playTotals(p).played}</b> · Finais desbloqueados: <b>${playTotals(p).endings}</b></p>
     ${statsHTML(p, false)}
     <div class="gwc-row" style="margin-top:14px"><button class="btn-sm" data-act="back">← Jogadores</button></div>`);
   r.querySelector('[data-act="back"]').onclick = () => st.user ? openProfile("jogadores") : closeModal();

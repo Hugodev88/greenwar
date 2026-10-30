@@ -23,7 +23,12 @@ const MAJOR_FLAGS = {
     cons: g => [{ k: "good", t: "O exército separatista foi dissolvido." }, { k: "", t: `A tensão recomeça em ${southCfg(g).truceReset}. Cuide dela para não haver uma segunda revolta.` }] },
   sul_aliado: { tone: "gold", head: "Pacto Federativo", sub: "Os governadores do Sul assinam o pacto: mais autonomia em troca de lealdade. A rebelião do Sul está descartada.",
     cons: g => [{ k: "good", t: "A Tensão no Sul deixa de importar: o Sul é seu aliado." }, { k: "good", t: `Na guerra, a ${southCfg(g).allyName} (força ${southCfg(g).allyStr}) luta do seu lado.` }] },
-  sul_esmagado: { tone: "gold", head: "A Liga do Sul cai", sub: "Não resta nenhum estado sob controle separatista. A revolta do Sul acabou.", cons: () => [] }
+  sul_esmagado: { tone: "gold", head: "A Liga do Sul cai", sub: "Não resta nenhum estado sob controle separatista. A revolta do Sul acabou.", cons: () => [] },
+  // Fase 12: a resistência instala o governo constitucional no Recife (abre a frente da resistência). "over": vira a tela principal mesmo junto com "O país está partido".
+  recife_capital: { any: true, over: true, head: "Recife, capital da Resistência", sub: "No Palácio do Campo das Princesas, governadores, parlamentares e comandantes leais à Constituição declaram instalado no Recife o governo constitucional. A partir de hoje o Brasil tem duas capitais — e a guerra, dois alvos.",
+    cons: () => [{ k: "good", t: "Vitória: tomar a região de Recife (PE) — a estrela vermelha no mapa." },
+      { k: "bad", t: "Derrota: perder a região de Brasília (DF)." },
+      { k: "", t: "O cartão da frente mostra quantas regiões faltam até Recife pelo caminho mais curto. Com força 1,5× maior, a linha inimiga pode romper." }] }
 };
 const PHASE_WHY = {
   oposicao: "o poder está passando ao presidente eleito: as Forças Armadas voltaram à cadeia de comando regular e não obedecem mais às suas ordens políticas",
@@ -39,13 +44,14 @@ function majorCheck(b){
   if (!b || !G || G.ended) return null;
   const ph = phaseOf(G), cfg = MAJOR_NODES[SCEN.id] || {};
   const fresh = G.visited.slice(b.vis).filter(n => cfg[n]);
-  const freshF = G.flags.slice(b.fl ?? G.flags.length).filter(f => MAJOR_FLAGS[f] && southOn(G));
+  const freshF = G.flags.slice(b.fl ?? G.flags.length).filter(f => MAJOR_FLAGS[f] && (MAJOR_FLAGS[f].any || southOn(G)));
   const phaseChanged = ph.id !== b.ph;
   if (!fresh.length && !phaseChanged && !freshF.length) return null;
   const node = fresh[fresh.length - 1], MF = freshF.length ? MAJOR_FLAGS[freshF[freshF.length - 1]] : null;
-  const M = node ? cfg[node] : MF;
+  const M = node && !(MF && MF.over) ? cfg[node] : MF;
   const C = SCEN.campaign, cons = [];
-  if (node && MF) cons.push({ k: MF.tone === "gold" ? "good" : "bad", t: `${MF.head}: ${MF.sub}` });
+  if (node && MF && M === MF) cons.push({ k: "bad", t: `${cfg[node].head}: ${cfg[node].sub}` });
+  else if (node && MF) cons.push({ k: MF.tone === "gold" ? "good" : "bad", t: `${MF.head}: ${MF.sub}` });
   if (MF) MF.cons(G).forEach(c => cons.push(c));
   if (southOn(G) && b.south != null && G.south.state === "calmo" && G.south.t - b.south >= 8) cons.push({ k: G.south.t >= southCfg(G).warn ? "bad" : "", t: `Tensão no Sul: ${b.south} → ${G.south.t}. Clique na barra “Tensão no Sul” para ver como baixá-la.` });
   const nowA = armiesOf(G, "player"), lost = b.armies.length - nowA.length;
