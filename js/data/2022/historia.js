@@ -293,7 +293,7 @@ const STORY_2022 = {
 
     /* ======================= FINAIS ======================= */
     fim_retorno: {
-      ending: true, outcome: "vitoria", endingName: "De Volta pelas Urnas",
+      ending: true, outcome: "vitoria", endingName: "De Volta pelas Urnas", dica: "Aceite o resultado, faça uma defesa técnica nos tribunais (Base Política 55 ou mais) e dispute 2026 com o Apoio Popular alto.",
       onEnter: { map: { MG: "oposicao", AM: "oposicao", TO: "oposicao" } },
       chapter: "Epílogo — 2026", title: "A Revanche Democrática",
       text: [
@@ -302,7 +302,7 @@ const STORY_2022 = {
       ]
     },
     fim_oposicao: {
-      ending: true, outcome: "parcial", endingName: "Líder da Oposição",
+      ending: true, outcome: "parcial", endingName: "Líder da Oposição", dica: "Aceite o resultado e, no fim, escolha comandar a direita sem disputar o cargo (ou perca a eleição de 2026).",
       onEnter: { resolve: { disputa: "legal" } },
       chapter: "Epílogo", title: "A Voz da Oposição",
       text: [
@@ -311,7 +311,7 @@ const STORY_2022 = {
       ]
     },
     fim_herdeiro: {
-      ending: true, outcome: "vitoria", endingName: "O Herdeiro",
+      ending: true, outcome: "vitoria", endingName: "O Herdeiro", dica: "Se ficar inelegível, apoie um herdeiro político com Apoio Popular e Base Política em 50 ou mais.",
       onEnter: { map: { MG: "oposicao" }, resolve: { disputa: "oposicao" } },
       chapter: "Epílogo — 2026", title: "O Fazedor de Reis",
       text: [
@@ -320,7 +320,7 @@ const STORY_2022 = {
       ]
     },
     fim_ostracismo: {
-      ending: true, outcome: "derrota", endingName: "Ostracismo",
+      ending: true, outcome: "derrota", endingName: "Ostracismo", dica: "Deixe o Apoio Popular chegar a zero, ou insista na própria candidatura depois de ficar inelegível.",
       onEnter: { resolve: { oposicao: "legal", disputa: "legal" }, map: { SC: "oposicao", RR: "oposicao", RO: "oposicao", AC: "oposicao" } },
       chapter: "Epílogo", title: "O Lento Apagar das Luzes",
       text: [
@@ -329,7 +329,7 @@ const STORY_2022 = {
       ]
     },
     fim_golpe_fracassado: {
-      ending: true, outcome: "derrota", endingName: "O Golpe Que Não Veio",
+      ending: true, outcome: "derrota", endingName: "O Golpe Que Não Veio", dica: "Tente a ruptura sem Apoio Militar suficiente e decida permanecer no país.",
       chapter: "Epílogo", title: "O Banco dos Réus",
       text: [
         "A tentativa de ruptura termina em papel: um decreto anulado, uma ordem ignorada, uma reunião registrada em atas e depoimentos. Você é denunciado por crimes contra o Estado Democrático de Direito e responde ao processo no Brasil.",
@@ -337,7 +337,7 @@ const STORY_2022 = {
       ]
     },
     fim_exilio: {
-      ending: true, outcome: "derrota", endingName: "Exílio",
+      ending: true, outcome: "derrota", endingName: "Exílio", dica: "Tente a ruptura sem Apoio Militar suficiente e decida deixar o país.",
       chapter: "Epílogo", title: "Longe de Casa",
       text: [
         "Um avião decola de madrugada. No exterior, você concede entrevistas, recebe visitas de aliados e acompanha pela televisão os processos que correm à sua revelia.",
@@ -345,7 +345,7 @@ const STORY_2022 = {
       ]
     },
     fim_regime: {
-      ending: true, outcome: "vitoria", endingName: "Regime de Exceção",
+      ending: true, outcome: "vitoria", endingName: "Regime de Exceção", dica: "Siga a ruptura com Apoio Militar alto e vença a guerra até dominar quase todo o território.",
       onEnter: { resolve: { resistencia: "regime", disputa: "regime", separatista: "regime" } },
       chapter: "Epílogo", title: "Vitória Amarga",
       text: [
@@ -354,7 +354,7 @@ const STORY_2022 = {
       ]
     },
     fim_divisao: {
-      ending: true, outcome: "parcial", endingName: "O Brasil Partido",
+      ending: true, outcome: "parcial", endingName: "O Brasil Partido", dica: "Durante a guerra, aceite um cessar-fogo com as linhas congeladas.",
       onEnter: { resolve: { disputa: "resistencia" }, map: { MG: "disputa" } },
       chapter: "Epílogo", title: "Três Bandeiras",
       text: [
@@ -366,7 +366,7 @@ const STORY_2022 = {
       ]
     },
     fim_restauracao: {
-      ending: true, outcome: "derrota", endingName: "Restauração Democrática",
+      ending: true, outcome: "derrota", endingName: "Restauração Democrática", dica: "No regime, perca a maioria dos estados ou negocie uma saída.",
       onEnter: { resolve: { regime: "legal", resistencia: "legal", disputa: "legal", separatista: "legal", voto_lula: "legal", voto_bolso: "legal" } },
       chapter: "Epílogo", title: "O Fim da Aventura",
       text: [

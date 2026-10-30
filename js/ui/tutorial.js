@@ -27,7 +27,8 @@ function tutSteps(ctx){
     ],
     historia: [
       { sel: ".card.story, .card.event, .card.quiet", t: "História e eventos", h: `<p>Aqui chegam os <b>eventos-chave</b> da trama (em datas certas) e os <b>eventos</b> e <b>crises</b> do mês.</p><p>Cada opção mostra os efeitos embaixo. Opções cinza exigem atributos ou decisões anteriores.</p>` },
-      { sel: ".card.report", t: "Relatório do mês", h: `<p>Tudo o que aconteceu ao encerrar o mês: renda, agitação, facções, diplomacia e batalhas (toque numa batalha para ver o porquê do resultado).</p>` }
+      { sel: ".card.report", t: "Relatório do mês", h: `<p>Tudo o que aconteceu ao encerrar o mês: renda, agitação, facções, diplomacia e batalhas (toque numa batalha para ver o porquê do resultado).</p>` },
+      { t: "Como a campanha termina", h: `<p>Cada campanha acaba num dos finais da história: vitória, intermediário ou derrota.</p><p>Na tela de final você recebe uma <b>nota de S a C</b>, um resumo da sua história e <b>conquistas</b>.</p><p>O botão <b>Tentar outro final</b> dá dicas de como chegar aos finais que você ainda não viu.</p>` }
     ],
     mapa: [
       { sel: ".layerbar", t: "Camadas do mapa", h: `<p>O mapa tem <b>duas camadas</b>:</p><ul><li><b>Controle</b>: quem manda em cada estado.</li><li><b>Agitação</b>: o risco de protestos e revoltas em cada estado.</li></ul><p>O botão <b>ⓘ</b> explica a agitação em detalhes.</p>` },

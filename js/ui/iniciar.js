@@ -38,6 +38,8 @@ window.GWGame = {
   saveVersion: SAVE_VERSION,
   minSaveVersion: 2, // saves v2 da nuvem são aceitos e migrados ao abrir
   monthLabel: m => monthLabel(m),
+  achKey: ACH_KEY, // conquistas (js/ui/conquistas.js): a nuvem guarda a união
+  mergeAchievements: (a, b) => achMerge(a, b),
   current: () => ({ scenario: SCEN ? SCEN.id : null, inGame: !!G }),
   refresh(changed){ // atualiza a tela depois de baixar dados da nuvem
     if (SCEN && !playable(SCEN)){ G = null; renderMenu(); return; }

@@ -78,6 +78,12 @@ npx serve .        # ou: python3 -m http.server 8000
 - Ela nunca empurra para a ruptura: fora do regime, os focos do ramo "Ruptura" não são sugeridos.
 - O **×** esconde as dicas até o próximo mês. Em **⚙ Configurações → Conselheira**: Automática (ligada no Fácil e no Normal, desligada no Difícil), Sempre ligada ou Desligada.
 
+### Tela de final e conquistas (novo, fase 5)
+- Ao chegar num final, a tela mostra a **nota (S, A, B ou C)**, um resumo em texto da sua campanha (duração, território, ações, ponto forte e fraco), os **momentos marcantes** (suas escolhas na história), as **conquistas** e o **mapa final**. "Como a nota foi calculada" abre a conta.
+- **Nota:** tipo de final (vitória 52, intermediário 34, derrota 14) + 30% da média dos atributos + território (sem guerra, 6 pontos fixos) + decisões nacionais (até 5) + paz com o Sul (4) + dificuldade (Fácil −4, Difícil +4). S a partir de 85, A de 70, B de 50. Derrota fica no máximo em B, intermediário no máximo em A, vitória no mínimo em B. Os números ficam em `js/data/conquistas.js`.
+- **13 conquistas** (primeira campanha, vitória, nota S, vencer no Difícil, partida rápida, pelas urnas, sem batalhas, pacto com o Sul, veterano, planejador, boa equipe com a conselheira, 5 finais, todos os finais). Ficam no aparelho (`gw_conquistas_v1`) e, com login, na nuvem.
+- Botões: **Jogar de novo** (mesma dificuldade e duração), **Tentar outro final** (lista os finais que faltam, com uma dica de como chegar em cada um; campo `dica` dos finais em `historia.js`) e **Compartilhar** (menu de compartilhar do celular; no computador copia o texto, com o link do jogo).
+
 ## Contas e saves na nuvem (Supabase)
 O login é **opcional**. Sem conta, offline ou se o Supabase estiver fora do ar, o jogo continua igual, com os saves no `localStorage`.
 
@@ -88,7 +94,7 @@ O login é **opcional**. Sem conta, offline ou se o Supabase estiver fora do ar,
 - estatísticas: campanhas iniciadas e finais desbloqueados por cenário;
 - aba **Jogadores**, com o ranking por finais e os perfis públicos;
 - saves na nuvem (um por cenário), enviados ao "Encerrar mês", ao chegar num final e ao começar uma campanha;
-- ao entrar, o jogo junta os saves deste aparelho com os da nuvem. Se os dois forem diferentes, ele pergunta qual manter e mostra qual é o mais recente. Os finais são unidos nos dois sentidos.
+- ao entrar, o jogo junta os saves deste aparelho com os da nuvem. Se os dois forem diferentes, ele pergunta qual manter e mostra qual é o mais recente. Os finais e as conquistas são unidos nos dois sentidos (as conquistas ficam numa linha extra da tabela `saves`, com `scenario_id = "_conquistas"`; não precisa de migração).
 
 **Arquivos:**
 - `js/nuvem/config.js`: URL do projeto e a *publishable key* (pública por design; quem protege os dados é o RLS);
@@ -121,6 +127,7 @@ node tests/sim.js 40 brasil1964    # cenário bloqueado: só roda se pedido pelo
 node tests/sim.js 300 brasil2022 --dif=facil      # dificuldade Fácil (também: --dif=dificil)
 node tests/sim.js 300 brasil2022 --rapida         # partida rápida (combina com --dif)
 node tests/sim.js 300 brasil2022 --conselheira    # acrescenta as IAs "iniciante" e "conselheira" (que só segue as dicas)
+node tests/sim.js 300 --notas                     # mostra a distribuição da nota final e das conquistas por IA (automático com --dif/--rapida)
 ```
 Com `--dif` ou `--rapida` o sim imprime também a linha **resultado** (vitória / intermediário / derrota, pelo campo `outcome` dos finais) e, no Fácil, roda a IA **iniciante** (aleatória que lê os avisos de derrota do modo simples). O `tests/check.js` roda esses modos com 80 partidas e falha se o Fácil não vencer bem mais que o Difícil.
 A simulação imprime uma linha **economia** por IA (AP médio, Recursos médio, pico, turnos com 60+, saldo final, ações de facção, conversões) e falha se os Recursos passarem do teto.
@@ -150,10 +157,13 @@ js/
     cenarios.js           lista do menu (SCENARIOS)
     estados.js            fronteiras (ADJ) e terreno das UFs
     mapa-brasil.js        geometria dos 27 estados (gerada por tools/build-map.js)
+    modos.js · conquistas.js  dificuldades e conquistas/nota final (fase 5)
   core/                 REGRAS do jogo, sem tela: estado, efeitos, história, eventos, ações, economia,
-                        facções, diplomacia, focos, turno, sul, exércitos, combate, inimigo, ordens, saves
+                        facções, diplomacia, focos, turno, sul, exércitos, combate, inimigo, ordens, saves,
+                        modos, conselheiro, conquistas (nota e conquistas do final)
   ui/                   TELA: menu, jogo, abas (aba-*.js), mapa, exércitos, batalha, resolução, tutorial,
-                        grandes-eventos, ajuda, economia, janelas, configurações, acessibilidade, iniciar.js (último)
+                        grandes-eventos, ajuda, economia, janelas, configurações, acessibilidade, modos, conselheiro,
+                        conquistas, final (tela de final), iniciar.js (último)
   i18n/                 traducao.js (camada PT→EN) e en.js (dicionário)
   audio/                audio.js (trilha e efeitos gerados no navegador)
   nuvem/                cloud.js e config.js (contas e saves na nuvem, opcional)

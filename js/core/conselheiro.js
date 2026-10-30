@@ -78,6 +78,11 @@ function advisorTips(g, ctx){
 }
 // Executa o "Fazer isso" de uma dica (tudo menos "tab" e "end", que são da tela)
 function advisorDo(g, tip){
+  const res = advisorRun(g, tip);
+  if (res && res.ok !== false && tip.act.k !== "tab" && tip.act.k !== "end") g.stat.adv = (g.stat.adv || 0) + 1; // conta para a conquista "Boa equipe"
+  return res;
+}
+function advisorRun(g, tip){
   const a = tip && tip.act; if (!a) return { ok: false, msg: "Dica inválida" };
   if (a.k === "action") return doAction(g, a.id);
   if (a.k === "fac") return factionAction(g, a.id, "agradar");

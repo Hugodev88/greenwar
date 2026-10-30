@@ -345,6 +345,24 @@ async function mergeEndings(scIds) {
   return changedLocal;
 }
 
+// Conquistas: uma linha extra em saves (scenario_id "_conquistas"); o jogo faz a união (GWGame.mergeAchievements).
+const ACH_ROW = "_conquistas";
+async function mergeAchievements(rows) {
+  if (!Game.achKey || !Game.mergeAchievements) return;
+  if (rows === undefined) {
+    const { data, error } = await st.sb.from("saves").select("scenario_id,data").eq("user_id", st.user.id).eq("scenario_id", ACH_ROW).eq("slot", SLOT);
+    if (error) throw error; rows = data;
+  }
+  const row = (rows || []).find(r => r.scenario_id === ACH_ROW);
+  const local = readJSON(Game.achKey), remote = row && row.data && row.data.got ? row.data : null;
+  const merged = Game.mergeAchievements(local, remote);
+  if (JSON.stringify(merged) !== JSON.stringify(local)) writeJSON(Game.achKey, merged);
+  if (!Object.keys(merged.got).length || (remote && JSON.stringify(merged) === JSON.stringify(remote))) return;
+  const { error } = await st.sb.from("saves").upsert({ user_id: st.user.id, scenario_id: ACH_ROW, slot: SLOT, data: merged, save_version: 1 },
+    { onConflict: "user_id,scenario_id,slot" });
+  if (error) throw error;
+}
+
 // ---------- ganchos chamados pelo jogo ----------
 const timers = {};
 window.GWCloud = {
@@ -356,6 +374,10 @@ window.GWCloud = {
   syncEndings(scId) {
     if (!canSync() || !st.profile) return;
     track(mergeEndings([scId]));
+  },
+  syncAchievements() {
+    if (!canSync()) return;
+    track(mergeAchievements());
   },
   campaignStarted(scId) {
     if (!canSync() || !st.profile) return;
@@ -404,6 +426,7 @@ async function mergeOnLogin({ interactive = false } = {}) {
       }
     }
     for (const id of await mergeEndings()) changed.add(id);
+    await mergeAchievements(rows || []);
     st.lastSync = Date.now(); st.lastError = null;
     if (changed.size) Game.refresh([...changed]);
     if (interactive) return { uploads: uploads.length, downloaded: changed.size, conflicts: conflicts.length, skipped };

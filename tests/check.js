@@ -269,7 +269,7 @@ for (const sc of SCENARIOS) {
 }
 // ---- saves: migração v2 → v4 e v3 → v4, e um combate de teste ----
 {
-  const API = new Function(JOGO.codigo + "; return { SCENARIOS, scOf, newCampaign, migrateSave, SAVE_VERSION, endTurn, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices, battleReport, advisorTips, advisorDo };")();
+  const API = new Function(JOGO.codigo + "; return { SCENARIOS, scOf, newCampaign, migrateSave, SAVE_VERSION, endTurn, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices, battleReport, advisorTips, advisorDo, endingGrade, earnedAchievements, achMerge, CONQUISTAS };")();
   let n = 0;
   for (const sc of API.SCENARIOS){ if (sc.soon || !sc.campaign) continue;
     for (let seed = 1; seed <= 25; seed++){
@@ -349,6 +349,29 @@ for (const sc of SCENARIOS) {
         API.endTurn(g);
       }
     }
+  }
+  // tela de final: nota S/A/B/C válida, conquistas conhecidas, dica em todo final e união local+nuvem das conquistas
+  {
+    const sc22 = API.SCENARIOS.find(s => s.id === "brasil2022"), ids = API.CONQUISTAS.map(c => c.id);
+    if (new Set(ids).size !== ids.length) err("conquistas com id repetido");
+    for (const [id, n] of Object.entries(sc22.story.nodes)) if (n.ending && !n.dica) err(`final ${id} sem dica (botão "Tentar outro final")`);
+    let ended = 0;
+    for (let seed = 1; seed <= 30; seed++){
+      const g = API.newCampaign(sc22, seed, { diff: ["facil", "normal", "dificil"][seed % 3], quick: seed % 2 === 0 });
+      for (let t = 0; t < 60 && !g.ended; t++){
+        while (g.queue.length && !g.ended){ const ch = API.queueChoices(g); const ok = ch.findIndex(c => c.ok); API.choose(g, ok < 0 ? 0 : ok); }
+        if (!g.ended) API.endTurn(g);
+      }
+      if (!g.ended) continue; ended++;
+      const gr = API.endingGrade(g), got = API.earnedAchievements(g, { achados: 9, total: 9 });
+      if (!"SABC".includes(gr.letter) || !(gr.score >= 0 && gr.score <= 100) || !gr.parts.length) err(`nota inválida #${seed}: ${gr.letter} ${gr.score}`);
+      if (gr.outcome === "derrota" && "SA".includes(gr.letter)) err(`derrota com nota ${gr.letter}`);
+      if (!got.includes("primeira") || !got.includes("historiador") || got.some(id => !ids.includes(id))) err(`conquistas inválidas #${seed}: ${got.join(",")}`);
+    }
+    if (ended < 20) err(`só ${ended}/30 partidas de teste chegaram ao final`);
+    const m = API.achMerge({ v: 1, got: { primeira: { at: 5 }, xyz: { at: 1 } }, best: { brasil2022: "B" } }, { v: 1, got: { primeira: { at: 3 }, vitoria: { at: 9 } }, best: { brasil2022: "A", outro: "Z" } });
+    if (m.got.primeira.at !== 3 || !m.got.vitoria || m.got.xyz || m.best.brasil2022 !== "A" || m.best.outro) err("achMerge: união das conquistas errada");
+    if (Object.keys(API.achMerge(null, "lixo").got).length) err("achMerge: dados inválidos deveriam virar registro vazio");
   }
   // desdobramento: escolher "n_acampamentos" agenda "n_acampamentos_radical", que precisa aparecer em poucos meses
   {

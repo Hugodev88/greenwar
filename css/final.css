@@ -1,0 +1,55 @@
+/* css/final.css — Tela de final: nota (S/A/B/C), resumo da história, conquistas, dicas de outros finais e botões. */
+.ending .endhead{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.ending .endtitle h2{margin-top:6px}
+.outtag{display:inline-block;font-family:system-ui,sans-serif;font-size:.72rem;padding:3px 9px;border-radius:20px;margin-bottom:12px;border:1px solid var(--line);color:var(--muted)}
+.outtag.vitoria{border-color:var(--green);color:#9fd096}
+.outtag.parcial{border-color:var(--gold);color:var(--gold)}
+.outtag.derrota{border-color:var(--red);color:#e0907f}
+.grade{flex:none;width:84px;height:84px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:3px solid var(--line);background:#14120f;font-family:system-ui,sans-serif}
+.grade b{font-size:2.4rem;line-height:1}
+.grade small{font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.grade.gS{border-color:#e8c46a;color:#f3d27c;box-shadow:0 0 22px rgba(232,196,106,.35)}
+.grade.gA{border-color:var(--green);color:#9fd096}
+.grade.gB{border-color:var(--blue);color:#8fb3d6}
+.grade.gC{border-color:#6b6258;color:var(--muted)}
+.gradeline{font-family:system-ui,sans-serif;font-size:.9rem;color:var(--muted);margin:-4px 0 12px}
+.endbtns{flex-direction:row;flex-wrap:wrap}
+.endbtns{gap:6px}
+.endbtns button{flex:1 1 140px;margin:0}
+.endsec{margin-top:22px;padding-top:14px;border-top:1px solid var(--line)}
+.endsec h3{margin:0 0 10px;font-weight:normal;color:var(--gold);font-size:1.15rem}
+.endsec h4{margin:14px 0 6px;font-family:system-ui,sans-serif;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.endsec p{margin:6px 0}
+.endsec p::first-letter{font-size:inherit !important;float:none !important;padding:0 !important;color:inherit !important}
+.endchips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.endchips .chip{font-size:.75rem;padding:3px 9px}
+.endchips .chip.good{border-color:var(--green)}
+.endchips .chip.bad{border-color:var(--red)}
+.moments{padding-left:20px;margin:4px 0;font-size:.9rem}
+.moments small,.summary small{color:var(--muted);margin-right:4px}
+.gradecalc{margin-top:12px;font-size:.85rem;color:var(--muted)}
+.gradecalc summary,.ending details.summary summary{cursor:pointer}
+.gradecalc table{border-collapse:collapse;margin-top:6px;min-width:240px}
+.gradecalc td{padding:2px 10px 2px 0}
+.gradecalc td+td{text-align:right}
+.gradecalc .tot td{border-top:1px solid var(--line);color:var(--ink);font-weight:bold}
+.achgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.ach{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:#14120f;opacity:.55;font-family:system-ui,sans-serif}
+.ach.got{opacity:1;border-color:#4a443c}
+.ach.new{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.ach .achic{font-size:1.4rem;line-height:1}
+.ach b{font-size:.85rem;font-weight:600}
+.ach small{display:block;font-size:.74rem;color:var(--muted);margin-top:2px}
+.achnew{font-size:.62rem;background:var(--gold);color:#1a1612;padding:1px 6px;border-radius:8px;vertical-align:middle}
+.hintsbox[hidden]{display:none}
+.endhints{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.endhints li{padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:#14120f}
+.endhints .outtag{margin:0 6px 0 0}
+.endhints small{display:block;color:var(--muted);margin-top:4px;font-family:system-ui,sans-serif;font-size:.8rem}
+.sharebox{width:100%;box-sizing:border-box;background:#14120f;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;font-size:.85rem}
+@media (max-width:640px){
+  .grade{width:64px;height:64px}
+  .grade b{font-size:1.8rem}
+  .endbtns button{flex:1 1 100%}
+  .achgrid{grid-template-columns:1fr}
+}

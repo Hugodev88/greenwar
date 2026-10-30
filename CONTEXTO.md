@@ -104,6 +104,7 @@ O `index.html` tem só a marcação e a lista de `<link>`/`<script>`. **Os scrip
   - `jogo_br_ultimo_cenario`;
   - `gw_settings_v1`: configurações (idioma, acessibilidade, som);
   - `gw_tut_v3`: progresso do tutorial contextual `{ off, seen: { hud, historia, mapa, exercitos, decisoes, faccoes, diplomacia, acoes } }` (a antiga `jogo_br_tutorial_v2` não é mais lida).
+  - `gw_conquistas_v1`: conquistas e melhor nota por cenário `{ v: 1, got, best }` (fase 5; também na nuvem).
 - Cada `save()` grava `G.savedAt = Date.now()`, usado para dizer qual save é mais recente na mesclagem com a nuvem.
 
 ### Camada de nuvem (Supabase): `js/nuvem/config.js`, `js/nuvem/cloud.js` e `supabase/migrations/001_init.sql`
@@ -225,6 +226,10 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 
 - **UI (`js/ui/modos.js`, `css/modos.css`):** `openNewCampaign()` (janela de dificuldade/duração; última escolha em `gw_newcamp_v1`), `diffBadgeHTML(g)` (selo no HUD), `settingsCampaignHTML()` (Configurações → Campanha atual), `simpleArmiesHTML()` (aba Mapa no modo simples; `UI.manual` abre o comando completo), `UI.moreTabs` (botão Mais ▾), `endTagHTML(i)` (aviso de final nas escolhas).
 - **sim.js:** `--dif=facil|normal|dificil` e `--rapida`; IA `iniciante` (só no Fácil); linha `resultado:` por IA.
 - **Conselheira:** `ADVISOR`, `advisorTips(g, { tab, manual })` (no máximo 2 dicas `{ id, pri, head, text, sub, act }`, ordenadas por prioridade, sem ação repetida) e `advisorDo(g, tip)` em `js/core/conselheiro.js`; cartão `advisorHTML()`/`bindAdvisor()` e `SET.advisor` ("auto"/"on"/"off") em `js/ui/conselheiro.js` + `css/conselheiro.css`. `act.k`: `tab`, `action`, `fac`, `focus`, `auto`, `recruit`, `end`. sim: `--conselheira` (automático no Fácil) acrescenta as IAs `iniciante` e `conselheira` (história como a iniciante; no resto só aperta "Fazer isso"). 300 partidas: Normal 36% → 55% de vitória (iniciante → conselheira), Difícil 25% → 50%, Rápida 28% → 49%, Fácil 61% → 62%.
+
+- **Tela de final:** dados em `js/data/conquistas.js` (`CONQUISTAS` com `teste(g, x)`, `NOTA_FAIXAS`, `NOTA_BASE`, `NOTA_TETO`, `NOTA_PAZ`, `NOTA_SUL`, `NOTA_DIF`, `GRADE_RANK`); CORE em `js/core/conquistas.js` (`endingGrade(g)` → `{ letter, score, outcome, parts }`, `earnedAchievements(g, { achados, total })`, `endingMoments(g, n)`, `achMerge(a, b)`, `betterGrade`); UI em `js/ui/conquistas.js` (`achRecord()` grava uma vez por final e marca `G.ended.achDone/achNew/grade`; `shareText`, `shareEnding`) e `js/ui/final.js` (`renderEnding`), CSS em `css/final.css`. Os finais têm `dica` (texto do botão "Tentar outro final"). `advisorDo` conta `g.stat.adv` (dicas seguidas). localStorage `gw_conquistas_v1` = `{ v: 1, got: { id: { at, sc, diff } }, best: { cenário: nota } }`.
+- **Conquistas na nuvem:** linha de `saves` com `scenario_id = "_conquistas"`, `slot = 0`, `save_version = 1` (cabe nas regras da tabela; o RLS já limita ao dono). `mergeAchievements()` em `cloud.js` roda no login (dentro de `mergeOnLogin`, com as linhas já lidas) e no gancho `GWCloud.syncAchievements`; a união é `GWGame.mergeAchievements` (= `achMerge`). Não usa `profiles.endings` para não mexer na contagem de finais do ranking.
+- **sim.js:** `--notas` imprime `nota:` (S/A/B/C por IA e por tipo de final) e `conquistas:`; automático fora do Normal. `check.js` testa a nota, as conquistas, as dicas dos finais e o `achMerge`.
 
 ## 8. Limitações conhecidas
 - Modo English: cobre interface, tutorial, os grandes eventos e o evento de abertura; os demais textos de eventos, os epílogos e o cenário 1964 seguem em português.

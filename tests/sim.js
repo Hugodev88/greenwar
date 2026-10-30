@@ -5,6 +5,7 @@
 // ações e escolhas que baixam a Tensão no Sul (mede se dá para evitar a rebelião da Liga do Sul).
 // Uso: node tests/sim.js [partidas_por_IA=300] [cenário] [--dif=facil|normal|dificil] [--rapida] [--conselheira]
 // --conselheira (automático no Fácil) acrescenta a IA "conselheira": história como a iniciante e, no resto, só aperta "Fazer isso" nas dicas.
+// --notas imprime a distribuição da nota final (S/A/B/C) e das conquistas por IA (automático fora do Normal).
 // Sem --dif/--rapida joga o modo Normal, campanha completa (o jogo original) e grava sim-resultados.json.
 const fs = require("fs");
 const JOGO = require("./carregar.js");
@@ -14,11 +15,12 @@ const API = new Function(code + `; return { SCENARIOS, MAP_DATA, convertMoney, a
   phaseOf, sideOf, sideCounts, playerUFs, findEvent, fxSummary, incomeFor, monthLabel, OFF_TYPES,
   focusTree, focusStatus, focusCheck, startFocus, focusDef,
   ADJ, ARMY_MAX, SAVE_VERSION, armiesOf, armyById, armyTargets, setOrder, recruitArmy, battleOdds, commandLimit, ordersUsed,
-  reinforceCost, recruitCost, armyAllowed, sideStr, migrateSave, knownIntents, battleReport, choicePreview, advisorTips, advisorDo,
+  reinforceCost, recruitCost, armyAllowed, sideStr, migrateSave, knownIntents, battleReport, choicePreview, advisorTips, advisorDo, endingGrade, earnedAchievements, CONQUISTAS,
   ...(typeof southFactors === "function" ? { southFactors, southRate, southEta, autoOrders, clearOrders, setAutoOrders, nodeView } : {}) };`)();
 const ARGS = process.argv.slice(2).filter(a => !a.startsWith("--")), FLAGS = process.argv.slice(2).filter(a => a.startsWith("--"));
 const OPTS = { diff: ((FLAGS.find(a => a.startsWith("--dif=")) || "").split("=")[1]) || "normal", quick: FLAGS.includes("--rapida") };
 const ADV = FLAGS.includes("--conselheira") || OPTS.diff === "facil"; // IA que só segue as dicas da conselheira
+const NOTAS = FLAGS.includes("--notas");
 const VARIANT = OPTS.diff !== "normal" || OPTS.quick || ADV; // modo diferente do original: imprime a taxa de vitória e não grava o JSON
 const N = +ARGS[0] || 300;
 let fails = 0;
@@ -277,6 +279,7 @@ for (const sc of API.SCENARIOS){
     const dist = {}, turnsArr = [], monthsArr = [], via = { historia: 0, campanha: 0 }; let crashes = 0, deals = 0, battles = 0, focusDone = 0, orders = 0, evN = 0, evMonths = 0, evMaxGap = 0;
     const ES = { turns: 0, ap: 0, money: 0, max: 0, maxAll: 0, rich: 0, endMoney: 0, fac: 0, conv: 0 };
     const SU = { war: 0, rebel: 0, peak: 0, ally: 0, truce: 0, crushed: 0 };
+    const GR = { S: 0, A: 0, B: 0, C: 0 }, ACH = {}, GO = {};
     const WS = { n: 0, months: 0, bat: 0, won: 0, att: 0, attWon: 0, peak: 0, s0: 0, s1: 0, gained: 0, end: {} };
     for (let i = 1; i <= N; i++){
       let res;
@@ -284,6 +287,9 @@ for (const sc of API.SCENARIOS){
       if (res.err){ crashes++; fail(`${sc.id}/${mode}#${i}: ${res.err} em ${API.monthLabel(res.g.month)}`); continue; }
       const g = res.g;
       dist[g.ended.node] = (dist[g.ended.node] || 0) + 1;
+      { const gr = API.endingGrade(g); GR[gr.letter]++; (GO[gr.outcome] = GO[gr.outcome] || { S: 0, A: 0, B: 0, C: 0 })[gr.letter]++;
+        if (!"SABC".includes(gr.letter) || !Number.isFinite(gr.score) || gr.score < 0 || gr.score > 100) fail(`${sc.id}/${mode}#${i}: nota inválida ${gr.letter} ${gr.score}`);
+        for (const id of API.earnedAchievements(g)) ACH[id] = (ACH[id] || 0) + 1; }
       turnsArr.push(g.turn); monthsArr.push(g.month - g.startMonth);
       via[g.ended.why ? "campanha" : "historia"]++; deals += g.stat.deals; battles += g.stat.battles; orders += g.stat.orders || 0;
       { const E = g.simEco; ES.turns += E.turns; ES.ap += E.apSum; ES.money += E.moneySum; ES.max += E.moneyMax; ES.maxAll = Math.max(ES.maxAll, E.moneyMax); ES.rich += E.rich; ES.endMoney += g.money; ES.fac += E.facPaid || 0; ES.conv += E.conv || 0; }
@@ -301,6 +307,8 @@ for (const sc of API.SCENARIOS){
     if (sc.campaign.focus) console.log(`    focos concluídos/partida: ${(focusDone / N).toFixed(1)}`);
     console.log(`    eventos/partida: ${(evN / N).toFixed(1)} (1 a cada ${(evMonths / Math.max(1, evN)).toFixed(1)} meses; maior intervalo ${evMaxGap} meses)`);
     console.log("    " + sorted.map(([k, v]) => `${k} ${(100*v/N).toFixed(0)}%`).join(" · "));
+    if (VARIANT || NOTAS){ console.log(`    nota: S ${(100*GR.S/N).toFixed(0)}% · A ${(100*GR.A/N).toFixed(0)}% · B ${(100*GR.B/N).toFixed(0)}% · C ${(100*GR.C/N).toFixed(0)}%` + Object.entries(GO).map(([k, v]) => ` | ${k}: ` + "SABC".split("").map(l => l + v[l]).join(" ")).join(""));
+      console.log("    conquistas: " + API.CONQUISTAS.filter(c => ACH[c.id]).map(c => `${c.id} ${(100*ACH[c.id]/N).toFixed(0)}%`).join(" · ")); }
     if (VARIANT){ const T = { vitoria: 0, parcial: 0, derrota: 0 }; for (const k in dist) T[sc.story.nodes[k].outcome || "parcial"] += dist[k]; // outcome dos finais (historia.js)
       console.log(`    resultado: vitória ${(100 * T.vitoria / N).toFixed(0)}% · intermediário ${(100 * T.parcial / N).toFixed(0)}% · derrota ${(100 * T.derrota / N).toFixed(0)}% · meses médios ${avg(monthsArr)}`); }
     if (WS.n){
