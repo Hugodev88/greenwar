@@ -7,7 +7,7 @@ function tabMapa(el){
   if (UI.pend && (!sel || sel.id !== UI.pend.army || !armyTargets(G, sel).some(t => t.uf === UI.pend.to))) UI.pend = null;
   const pend = UI.pend;
   const panel = sel ? armyPanel(sel) : uf ? ufPanel(uf) : overviewPanel();
-  const hint = ph.noArmies ? "" : sel && sel.side === "player" ? `<div class="maphint">${esc(sel.name)} selecionado. ${UI.ordMode === "atacar" ? `${MOBILE_MAP() ? "Toque" : "Clique"} num estado com <b class="hl-a">borda vermelha</b> para atacar.` : UI.ordMode ? `${MOBILE_MAP() ? "Toque" : "Clique"} num estado com <b class="hl-m">borda azul</b> para mover.` : `${MOBILE_MAP() ? "Toque" : "Clique"} num estado destacado (<b class="hl-a">vermelho</b> = atacar, <b class="hl-m">azul</b> = mover) ou use os botões ao lado.`} Ataques mostram a previsão antes de confirmar.</div>`
+  const hint = ph.noArmies ? "" : G.simple && !UI.manual && !sel ? `<div class="maphint">Modo simples: seus exércitos agem sozinhos. ${MOBILE_MAP() ? "Toque" : "Clique"} num estado para ver detalhes e agir nele.</div>` : sel && sel.side === "player" ? `<div class="maphint">${esc(sel.name)} selecionado. ${UI.ordMode === "atacar" ? `${MOBILE_MAP() ? "Toque" : "Clique"} num estado com <b class="hl-a">borda vermelha</b> para atacar.` : UI.ordMode ? `${MOBILE_MAP() ? "Toque" : "Clique"} num estado com <b class="hl-m">borda azul</b> para mover.` : `${MOBILE_MAP() ? "Toque" : "Clique"} num estado destacado (<b class="hl-a">vermelho</b> = atacar, <b class="hl-m">azul</b> = mover) ou use os botões ao lado.`} Ataques mostram a previsão antes de confirmar.</div>`
     : `<div class="maphint">Use os botões grandes em <b>Meus exércitos</b> (⚔ Atacar · ➜ Mover · 🛡 Defender · ＋ Reforçar) — ou ${MOBILE_MAP() ? "toque" : "clique"} numa <b>ficha azul</b> no mapa e depois no destino.</div>`;
   const lim = commandLimit(G), used = ordersUsed(G), nA = armiesOf(G, "player").length;
   const infoOpen = UI.layerInfo === true;
@@ -82,6 +82,8 @@ function tabMapa(el){
   el.querySelectorAll("[data-atkw]").forEach(b => b.onclick = () => { const a = armyById(G, b.dataset.atkw); if (!a) return; UI.selArmy = a.id; UI.selUF = a.uf; UI.ordMode = "atacar"; UI.pend = { army: a.id, to: b.dataset.to, type: "atacar" }; renderGame(); toMap(); });
   el.querySelectorAll("[data-auto]").forEach(b => b.onclick = () => { const r = autoOrders(G, b.dataset.auto, false); if (r.ok && r.n) AUDIO.sfx("order"); afterAct(r); });
   el.querySelectorAll("[data-clear]").forEach(b => b.onclick = () => { UI.pend = null; afterAct(clearOrders(G)); });
+  el.querySelectorAll("[data-manual]").forEach(b => b.onclick = () => { UI.manual = b.dataset.manual === "1"; renderGame(); });
+  el.querySelectorAll("[data-auto-on]").forEach(b => b.onclick = () => afterAct(setAutoOrders(G, "auto")));
   if ($("#autoSel")) $("#autoSel").onchange = e => afterAct(setAutoOrders(G, e.target.value));
   el.querySelectorAll("[data-south]").forEach(b => b.onclick = openSouth);
   el.querySelectorAll("[data-battle]").forEach(b => b.onclick = () => { const f = b.dataset.battle, r = battleAt(f); r ? openBattle(r) : openForecast(f); });

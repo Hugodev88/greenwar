@@ -9,7 +9,7 @@
               [{ if:{min:{militar:55}, max:{apoio:30}}, to:'id' }, ..., { to:'padrao' }]
      req    – (opcional) condição para a escolha estar disponível: {min:{...}, max:{...}}
      flag   – (opcional) marca um fato na história (ex.: 'isabel_aliada')
-   Nós com ending:true são finais.
+   Nós com ending:true são finais; outcome diz se é vitória, final intermediário (parcial) ou derrota (tela final e avisos do modo Fácil).
    ===================================================================== */
 /* ---------- Cenário 2022 (história alternativa) — único jogável ---------- */
 const STORY_2022 = {
@@ -293,7 +293,7 @@ const STORY_2022 = {
 
     /* ======================= FINAIS ======================= */
     fim_retorno: {
-      ending: true, endingName: "De Volta pelas Urnas",
+      ending: true, outcome: "vitoria", endingName: "De Volta pelas Urnas",
       onEnter: { map: { MG: "oposicao", AM: "oposicao", TO: "oposicao" } },
       chapter: "Epílogo — 2026", title: "A Revanche Democrática",
       text: [
@@ -302,7 +302,7 @@ const STORY_2022 = {
       ]
     },
     fim_oposicao: {
-      ending: true, endingName: "Líder da Oposição",
+      ending: true, outcome: "parcial", endingName: "Líder da Oposição",
       onEnter: { resolve: { disputa: "legal" } },
       chapter: "Epílogo", title: "A Voz da Oposição",
       text: [
@@ -311,7 +311,7 @@ const STORY_2022 = {
       ]
     },
     fim_herdeiro: {
-      ending: true, endingName: "O Herdeiro",
+      ending: true, outcome: "vitoria", endingName: "O Herdeiro",
       onEnter: { map: { MG: "oposicao" }, resolve: { disputa: "oposicao" } },
       chapter: "Epílogo — 2026", title: "O Fazedor de Reis",
       text: [
@@ -320,7 +320,7 @@ const STORY_2022 = {
       ]
     },
     fim_ostracismo: {
-      ending: true, endingName: "Ostracismo",
+      ending: true, outcome: "derrota", endingName: "Ostracismo",
       onEnter: { resolve: { oposicao: "legal", disputa: "legal" }, map: { SC: "oposicao", RR: "oposicao", RO: "oposicao", AC: "oposicao" } },
       chapter: "Epílogo", title: "O Lento Apagar das Luzes",
       text: [
@@ -329,7 +329,7 @@ const STORY_2022 = {
       ]
     },
     fim_golpe_fracassado: {
-      ending: true, endingName: "O Golpe Que Não Veio",
+      ending: true, outcome: "derrota", endingName: "O Golpe Que Não Veio",
       chapter: "Epílogo", title: "O Banco dos Réus",
       text: [
         "A tentativa de ruptura termina em papel: um decreto anulado, uma ordem ignorada, uma reunião registrada em atas e depoimentos. Você é denunciado por crimes contra o Estado Democrático de Direito e responde ao processo no Brasil.",
@@ -337,7 +337,7 @@ const STORY_2022 = {
       ]
     },
     fim_exilio: {
-      ending: true, endingName: "Exílio",
+      ending: true, outcome: "derrota", endingName: "Exílio",
       chapter: "Epílogo", title: "Longe de Casa",
       text: [
         "Um avião decola de madrugada. No exterior, você concede entrevistas, recebe visitas de aliados e acompanha pela televisão os processos que correm à sua revelia.",
@@ -345,7 +345,7 @@ const STORY_2022 = {
       ]
     },
     fim_regime: {
-      ending: true, endingName: "Regime de Exceção",
+      ending: true, outcome: "vitoria", endingName: "Regime de Exceção",
       onEnter: { resolve: { resistencia: "regime", disputa: "regime", separatista: "regime" } },
       chapter: "Epílogo", title: "Vitória Amarga",
       text: [
@@ -354,7 +354,7 @@ const STORY_2022 = {
       ]
     },
     fim_divisao: {
-      ending: true, endingName: "O Brasil Partido",
+      ending: true, outcome: "parcial", endingName: "O Brasil Partido",
       onEnter: { resolve: { disputa: "resistencia" }, map: { MG: "disputa" } },
       chapter: "Epílogo", title: "Três Bandeiras",
       text: [
@@ -366,7 +366,7 @@ const STORY_2022 = {
       ]
     },
     fim_restauracao: {
-      ending: true, endingName: "Restauração Democrática",
+      ending: true, outcome: "derrota", endingName: "Restauração Democrática",
       onEnter: { resolve: { regime: "legal", resistencia: "legal", disputa: "legal", separatista: "legal", voto_lula: "legal", voto_bolso: "legal" } },
       chapter: "Epílogo", title: "O Fim da Aventura",
       text: [

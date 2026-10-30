@@ -1,0 +1,28 @@
+/* css/modos.css — Janela Nova campanha (dificuldade e duração), selo de dificuldade no HUD e modo simples do Fácil. */
+  .newcard{max-width:720px}
+  .newcard .nch{font-family:system-ui,sans-serif;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;font-weight:600}
+  .diffs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .diffs.two{grid-template-columns:repeat(2,1fr)}
+  .diffc{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;background:#14120f;border:1px solid var(--line);border-radius:8px;padding:12px 13px;color:var(--ink);cursor:pointer;font:inherit}
+  .diffc:hover{border-color:var(--gold)}
+  .diffc.on{border-color:var(--gold);background:#221d15;box-shadow:0 0 0 2px rgba(201,164,92,.35) inset}
+  .diffc .di{font-size:1.5rem;line-height:1}
+  .diffc b{font-size:1.08rem;color:var(--gold);font-weight:normal}
+  .diffc small{font-family:system-ui,sans-serif;font-size:.8rem;color:var(--muted);line-height:1.45}
+  .diffc .rec{font-family:system-ui,sans-serif;font-style:normal;font-size:.7rem;background:var(--green);color:#fff;border-radius:10px;padding:1px 8px}
+  .newnote{margin:12px 0 4px}
+  .dbadge{display:inline-flex;align-items:center;gap:5px;margin-top:3px;font-family:system-ui,sans-serif;font-size:.72rem;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:0 8px 0 6px;background:#14120f}
+  .dbadge i{font-style:normal}
+  .dbadge .dq{color:var(--gold)}
+  .dbadge .dq::before{content:"·";color:var(--muted);margin-right:5px}
+  .dbadge.d-facil{border-color:#5f8f5a}.dbadge.d-dificil{border-color:#a8402f}
+  .hud-date .dbadge{display:flex;width:max-content}
+  .tab.more{opacity:.85;font-style:italic}
+  .simplebox{background:#14120f;border:1px solid var(--line);border-left:3px solid var(--green);border-radius:6px;padding:10px 12px;margin:6px 0 12px;font-family:system-ui,sans-serif;font-size:.88rem}
+  .simplebox p{margin:0 0 8px}
+  .simplearmies{list-style:none;margin:0 0 8px;padding:0;display:flex;flex-direction:column;gap:4px}
+  .simplearmies li{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-bottom:1px dashed var(--line);padding:3px 0}
+  .simplearmies span{color:var(--muted);font-size:.8rem}
+  .choice .endtag{font-weight:600;color:var(--gold)}
+  .choice .endtag.derrota{color:#e07a66}.choice .endtag.vitoria{color:#8fc487}
+  @media (max-width:700px){ .diffs,.diffs.two{grid-template-columns:1fr;gap:7px} .diffc{display:grid;grid-template-columns:auto 1fr;column-gap:10px;row-gap:2px;padding:9px 11px} .diffc .di{grid-row:span 3;font-size:1.3rem} .diffc .rec{justify-self:start} .newcard .nch{margin:10px 0 6px} }

@@ -65,6 +65,14 @@ npx serve .        # ou: python3 -m http.server 8000
 - Em 60+ os governadores pedem uma **Cúpula**; com a tensão em 25 ou menos dá para assinar o **Pacto Federativo**: o Sul vira **aliado** e manda uma divisão.
 - Se chegar a 100, a revolta começa **pequena** (só RS, exército de 15). Santa Catarina só adere se a tensão ficar acima de 85 por 2 meses. Baixar para 45 ou menos traz um **armistício**.
 
+### Dificuldade e duração (novo, fase 5)
+- Ao clicar em **Nova campanha** abre uma janela com a **dificuldade** e a **duração**. A escolha aparece no topo (selo ao lado da data) e em **⚙ Configurações → Campanha atual**, e não muda no meio da campanha.
+- **🌱 Fácil** (para quem não joga estratégia): inimigo 40% mais fraco, Tensão no Sul subindo bem mais devagar, +15 Recursos no início e +2 por mês, atributos iniciais um pouco maiores e uma pequena folga nos testes da história. Inclui o **modo simples**: os exércitos lutam sozinhos (ordens automáticas ligadas; o comando manual fica em "Comandar manualmente"), a conversão de Recursos fica escondida, Diplomacia e Facções vão para o botão **Mais ▾**, e as escolhas da história que encerram a campanha avisam antes se dão vitória, derrota ou um final intermediário. O modo simples pode ser desligado em Configurações.
+- **⚖️ Normal:** o jogo original, sem nenhuma mudança.
+- **🔥 Difícil:** inimigo 30% mais forte, −5 Recursos no início e −1 por mês, Sul 25% mais inquieto e testes da história um pouco mais exigentes.
+- **Duração:** **Campanha completa** ou **Partida rápida** (≈ 8 a 11 turnos, 20–30 minutos). Na rápida, depois de março de 2023 cada turno vale 6 meses (12 a partir de março de 2024), o racha militar e a guerra chegam antes, e a vitória militar do regime pede 21 estados e Apoio Militar 50 (em vez de 24 e 55).
+- Saves antigos continuam abrindo: viram Normal, campanha completa.
+
 ## Contas e saves na nuvem (Supabase)
 O login é **opcional**. Sem conta, offline ou se o Supabase estiver fora do ar, o jogo continua igual, com os saves no `localStorage`.
 
@@ -105,7 +113,10 @@ node tests/check.js 300      # igual, com 300 partidas por IA
 node tests/sim.js 300        # só a simulação de campanhas, com distribuição de finais por IA
 node tests/sim.js 300 brasil2022   # só um cenário
 node tests/sim.js 40 brasil1964    # cenário bloqueado: só roda se pedido pelo id
+node tests/sim.js 300 brasil2022 --dif=facil      # dificuldade Fácil (também: --dif=dificil)
+node tests/sim.js 300 brasil2022 --rapida         # partida rápida (combina com --dif)
 ```
+Com `--dif` ou `--rapida` o sim imprime também a linha **resultado** (vitória / intermediário / derrota, pelo campo `outcome` dos finais) e, no Fácil, roda a IA **iniciante** (aleatória que lê os avisos de derrota do modo simples). O `tests/check.js` roda esses modos com 80 partidas e falha se o Fácil não vencer bem mais que o Difícil.
 A simulação imprime uma linha **economia** por IA (AP médio, Recursos médio, pico, turnos com 60+, saldo final, ações de facção, conversões) e falha se os Recursos passarem do teto.
 O `tests/check.js` também valida os dados do 1964 (bloqueado) e roda um teste curto de integridade dele (40 partidas por IA), para o cenário não quebrar enquanto o motor muda. Esse teste não entra no balanceamento.
 `tests/check.js` termina com código 1 se houver qualquer problema. **Rode depois de qualquer mudança na história, nos eventos ou na árvore.**
@@ -184,6 +195,8 @@ Depois disso ela já pode aparecer nos efeitos (`fac: { policias: 5 }`). O check
 **Texto traduzido** em `js/i18n/en.js`: acrescente `"Texto em português": "English text",` dentro de `"exact"`. Para frases com números, use `"tpl"` com `{0}`, `{1}`: `"Faltam {0} meses": "{0} months left"`. O que não tiver tradução aparece em português.
 
 **Mudou o formato do save?** Suba `SAVE_VERSION` em `js/core/base.js` e escreva a migração em `js/core/saves.js`, para os saves antigos (locais e da nuvem) continuarem abrindo.
+
+**Ajustar a dificuldade** em `js/data/modos.js` (`DIFICULDADES`): `inimigo` e `sul` são multiplicadores, `dinheiro`/`renda` somam Recursos, `status` soma pontos nos atributos iniciais, `folga` afrouxa (ou aperta) os testes da história, `simples` liga o modo simples. A **partida rápida** fica em `js/data/2022/campanha.js`, no bloco `rapida` (ritmo dos turnos, atrasos dos eventos-chave e condições de vitória). O Normal nunca é afetado. Depois, rode `node tests/sim.js 300 brasil2022 --dif=facil` para ver as taxas de vitória.
 
 **Arquivo novo** (por exemplo `js/ui/aba-nova.js` ou `css/nova.css`): crie o arquivo com um comentário de topo e acrescente a tag no `index.html`, no grupo certo. Dados entram antes do núcleo, e o núcleo antes da tela.
 

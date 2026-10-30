@@ -105,7 +105,7 @@ function overviewPanel(){
       <div><span>Seus estados</span><b>${sides.player}</b></div><div><span>Inimigos</span><b>${sides.enemy}</b></div><div><span>Em disputa</span><b>${sides.contested}</b></div>
       ${hot.length ? `<div><span>Mais agitados</span><b>${hot.map(h => `${h} (${Math.round(G.uf[h].unrest)})`).join(", ")}</b></div>` : ""}</div>`;
   if (ph.noArmies) return sit + `<p class="muted">Nesta fase você não comanda tropas: o mapa mostra a disputa política. Use propaganda, investimentos e negociação.</p>`;
-  let html = `<h3>Meus exércitos</h3>${ph.war ? ordSumHTML() : `<p class="muted">Tempo de paz: exércitos só se reposicionam entre estados seus (guarnições reduzem a agitação).</p>`}
+  let html = G.simple && ph.war && !UI.manual ? simpleArmiesHTML() + recruitBoxHTML(null) : `${G.simple && ph.war ? `<button class="linkbtn" data-manual="0">← Voltar ao resumo simples</button>` : ""}<h3>Meus exércitos</h3>${ph.war ? ordSumHTML() : `<p class="muted">Tempo de paz: exércitos só se reposicionam entre estados seus (guarnições reduzem a agitação).</p>`}
     <div class="myarmies">${mine.length ? mine.map(armyCardHTML).join("") : `<p class="muted">Nenhum exército em campo. Recrute abaixo.</p>`}</div>
     ${ph.war && mine.length ? autoBoxHTML() : ""}${ph.war && mine.length ? ordLegendHTML(false) : ""}
     ${recruitBoxHTML(null)}`;

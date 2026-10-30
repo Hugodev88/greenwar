@@ -9,7 +9,7 @@ function tabHistoria(el, nextStory){
       html += `<div class="card story"><div class="chap">${esc(chapterKicker(node))} · Evento-chave</div><h2>${esc(node.title)}</h2>
         ${node.text.map(p => `<p>${esc(p)}</p>`).join("")}
         ${G.lastMapChanges.length ? `<div class="mapnotes">${changeNotes(G.lastMapChanges).map(t => `<div>Mapa: ${esc(t)}</div>`).join("")}</div>` : ""}
-        <div class="choices">${choices.map((c, i) => `<button class="choice" data-i="${i}" ${c.ok?"":"disabled"}>${esc(c.text)}${c.ok?"":`<small>${esc(describeReq(c.req))}</small>`}</button>`).join("")}</div></div>`;
+        <div class="choices">${choices.map((c, i) => `<button class="choice" data-i="${i}" ${c.ok?"":"disabled"}>${esc(c.text)}${c.ok ? endTagHTML(i) : `<small>${esc(describeReq(c.req))}</small>`}</button>`).join("")}</div></div>`;
     } else {
       const ev = findEvent(G, q.id), crisis = !!ev.crisisOf;
       html += `<div class="card event ${crisis ? "crisis" : ""}"><div class="chap">${esc(monthLabel(G.month))} · ${crisis ? "Crise de facção" : ev.chained ? "Desdobramento" : "Evento"}</div><h2>${esc(ev.title)}</h2>
@@ -40,6 +40,12 @@ function tabHistoria(el, nextStory){
     box.querySelectorAll("[data-bat]").forEach(btn => btn.onclick = () => openBattle(list[+btn.dataset.bat]));
   });
   el.querySelectorAll("[data-go]").forEach(a => a.onclick = e => { e.preventDefault(); UI.tab = a.dataset.go; renderGame(); });
+}
+// Modo simples (Fácil): avisa quando a escolha encerra a campanha agora, e com que resultado
+function endTagHTML(i){
+  if (!G.simple) return "";
+  const p = choicePreview(G, i); if (!p) return "";
+  return `<small class="endtag ${p.outcome}">${p.outcome === "derrota" ? "⚠" : "🏁"} Encerra a campanha agora: ${p.outcome === "vitoria" ? "vitória" : p.outcome === "derrota" ? "derrota" : "final intermediário"}</small>`;
 }
 function describeReq(req){
   if (!req) return "";

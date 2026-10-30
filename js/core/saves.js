@@ -1,4 +1,4 @@
-// js/core/saves.js — Núcleo: migração de saves antigos (v2 → v6). Ao mudar o formato do save, suba SAVE_VERSION (core/base.js) e migre aqui.
+// js/core/saves.js — Núcleo: migração de saves antigos (v2 → v7). Ao mudar o formato do save, suba SAVE_VERSION (core/base.js) e migre aqui.
 function migrateSave(g){
   if (!g || g.v === SAVE_VERSION) return g;
   if (!(g.v >= 2 && g.v < SAVE_VERSION) || !scOf(g)) return null;
@@ -6,6 +6,7 @@ function migrateSave(g){
   if (g.v === 3){ g.battleLog = (g.mil && g.mil.battles ? g.mil.battles.slice(-30) : []); g.mobPool = g.mobPool || 0; g.v = 4; }
   if (g.v === 4){ g.chains = Array.isArray(g.chains) ? g.chains : []; g.v = 5; }
   if (g.v === 5){ migrateSouth(g); g.autoOrders = "off"; g.v = 6; }
+  if (g.v === 6){ g.diff = "normal"; g.quick = false; g.simple = false; g.v = 7; } // saves antigos seguem no Normal, campanha completa
   return g.v === SAVE_VERSION ? g : null;
 }
 // v5 → v6: cria a Tensão no Sul em partidas já no regime. Se a Liga já controla estados, ela está em revolta.

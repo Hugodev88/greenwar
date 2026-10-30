@@ -17,6 +17,6 @@ function renderEnding(){
     <div class="choices"><button class="primary" id="btnAgain">Nova campanha</button><button class="secondary" id="btnBack2">← Outros cenários</button></div>
   </div></div>`;
   renderMap($("#mapEnd"), G.control, G.lastMapChanges, true, {});
-  $("#btnAgain").onclick = startNew;
+  $("#btnAgain").onclick = openNewCampaign;
   $("#btnBack2").onclick = renderMenu;
 }

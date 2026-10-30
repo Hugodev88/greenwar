@@ -12,7 +12,7 @@ function ecoStrip(){
   const C = SCEN.campaign, K = C.convert; if (!K && !Number.isFinite(moneyCap(G))) return "";
   const cap = moneyCap(G), used = G.used && G.used.convert, busy = G.queue.length > 0, why = used ? "já feito neste turno" : busy ? "resolva os eventos" : G.money < K.cost ? `faltam ${C.money.short}` : "uma vez por turno";
   return `<div class="ecostrip panel"><div class="eco-m"><span class="k">${esc(C.money.label)}</span><b>${Math.round(G.money)}${Number.isFinite(cap) ? `<small>/${cap}</small>` : ""}</b>${Number.isFinite(cap) ? `<div class="bar" aria-hidden="true"><i style="width:${Math.max(0, Math.min(100, 100 * G.money / cap))}%"></i></div>` : ""}</div>
-    ${K ? `<button class="secondary sm" id="btnConvert" ${used || busy || G.money < K.cost ? "disabled" : ""}>Converter ${K.cost} ${esc(C.money.short)} → +${K.ap} ação<small>${esc(why)}</small></button>` : ""}
+    ${K && !G.simple ? `<button class="secondary sm" id="btnConvert" ${used || busy || G.money < K.cost ? "disabled" : ""}>Converter ${K.cost} ${esc(C.money.short)} → +${K.ap} ação<small>${esc(why)}</small></button>` : ""}
     <button class="linkbtn" id="btnEcoHow">Como funcionam ações e ${esc(C.money.short)}?</button></div>`;
 }
 function bindEcoStrip(el){

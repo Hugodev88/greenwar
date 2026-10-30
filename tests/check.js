@@ -269,7 +269,7 @@ for (const sc of SCENARIOS) {
 }
 // ---- saves: migração v2 → v4 e v3 → v4, e um combate de teste ----
 {
-  const API = new Function(JOGO.codigo + "; return { SCENARIOS, newCampaign, migrateSave, SAVE_VERSION, endTurn, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices, battleReport };")();
+  const API = new Function(JOGO.codigo + "; return { SCENARIOS, scOf, newCampaign, migrateSave, SAVE_VERSION, endTurn, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices, battleReport };")();
   let n = 0;
   for (const sc of API.SCENARIOS){ if (sc.soon || !sc.campaign) continue;
     for (let seed = 1; seed <= 25; seed++){
@@ -318,6 +318,25 @@ for (const sc of SCENARIOS) {
     if (!API.endTurn(m) && !m.queue.length) err(`brasil2022#${seed}: save v4 migrado não avança`);
     n4++;
   }
+  // v6 → v7: saves antigos continuam no Normal, campanha completa; Fácil/Difícil/Rápida criam variantes sem mexer no cenário original
+  let n6 = 0;
+  { const sc22 = API.SCENARIOS.find(s => s.id === "brasil2022"), C0 = JSON.stringify(sc22.campaign.money) + sc22.campaign.enemyPower + JSON.stringify(sc22.campaign.pace);
+    for (let seed = 1; seed <= 10; seed++){
+      const g = API.newCampaign(sc22, seed); if (g.ended) continue;
+      const v6 = JSON.parse(JSON.stringify(g)); v6.v = 6; delete v6.diff; delete v6.quick; delete v6.simple;
+      const m = API.migrateSave(v6);
+      if (!m || m.v !== API.SAVE_VERSION || m.diff !== "normal" || m.quick !== false || m.simple !== false) { err(`brasil2022#${seed}: migração v6→v7 falhou`); continue; }
+      if (!API.endTurn(m) && !m.queue.length) err(`brasil2022#${seed}: save v6 migrado não avança`);
+      n6++;
+    }
+    for (const [diff, quick] of [["facil", false], ["dificil", false], ["normal", true], ["facil", true]]){
+      const g = API.newCampaign(sc22, 3, { diff, quick });
+      if (g.diff !== diff || g.quick !== quick || g.simple !== (diff === "facil")) err(`modo ${diff}${quick ? "+rápida" : ""}: campos do save errados`);
+      if (API.scOf(g) === sc22 || API.scOf(g).story !== sc22.story) err(`modo ${diff}: variante do cenário inválida`);
+    }
+    if (API.scOf(API.newCampaign(sc22, 3)) !== sc22) err("Normal precisa usar o cenário original");
+    if (JSON.stringify(sc22.campaign.money) + sc22.campaign.enemyPower + JSON.stringify(sc22.campaign.pace) !== C0) err("os modos alteraram o cenário original");
+  }
   // desdobramento: escolher "n_acampamentos" agenda "n_acampamentos_radical", que precisa aparecer em poucos meses
   {
     let okChain = 0;
@@ -346,7 +365,7 @@ for (const sc of SCENARIOS) {
   if (!(rec.rounds.length >= 1 && rec.rounds.length <= 5) || ![0, 1].includes(rec.win) || !(rec.margin >= 0 && rec.margin <= 1) || rec.loss.some(x => !(x >= 0))) err("combate de teste inválido");
   const BR = API.battleReport(rec);
   if (!BR.summary || !BR.tips.length || BR.rows.length < 3 || BR.won !== (rec.win === 0)) err("relatório de batalha de teste inválido");
-  console.log(`\nSaves: ${n} saves v2 e ${n3} saves v3 e ${n4} saves v4 sintéticos migrados para v${API.SAVE_VERSION} e jogados mais 1 mês; combate de teste OK (${rec.rounds.length} rodadas)`);
+  console.log(`\nSaves: ${n} saves v2 e ${n3} saves v3 e ${n4} saves v4 e ${n6} saves v6 sintéticos migrados para v${API.SAVE_VERSION} e jogados mais 1 mês; combate de teste OK (${rec.rounds.length} rodadas)`);
   console.log(`  relatório de teste: ${BR.summary}`);
 }
 // ---- organização dos arquivos: todo js/ e css/ listado uma vez no index.html, com comentário no topo ----
@@ -388,4 +407,14 @@ for (const sc of SCENARIOS.filter(s => s.locked && s.campaign)){
   console.log(`\n[${sc.year}] ${sc.title} (bloqueado): 40 partidas por IA — ${q.status === 0 ? "sem falhas" : "FALHOU"} · ${fin}`);
   if (q.status !== 0){ console.log(out.split("\n").filter(l => /falha|exceção|✗|!/.test(l)).slice(0, 10).join("\n")); lockedFail++; }
 }
-process.exit(r.status || (lockedFail ? 1 : 0));
+// Dificuldades e partida rápida: sem falhas, todos os finais alcançáveis no conjunto, e Fácil > Difícil em vitórias da IA aleatória
+let modeFail = 0; const winOf = {};
+for (const args of [["--dif=facil"], ["--dif=dificil"], ["--rapida"], ["--dif=facil", "--rapida"]]){
+  const q = require("child_process").spawnSync(process.execPath, [__dirname + "/sim.js", "80", "brasil2022", ...args], { encoding: "utf8" });
+  const out = (q.stdout || "") + (q.stderr || ""), fin = (out.match(/Finais alcançados: [^\n]*/) || ["?"])[0];
+  const rnd = out.split("IA aleatoria")[1] || "", w = +((rnd.match(/resultado: vitória (\d+)%/) || [])[1] || 0); winOf[args.join(" ")] = w;
+  console.log(`\n[modo ${args.join(" ")}] 80 partidas por IA — ${q.status === 0 ? "sem falhas" : "FALHOU"} · ${fin} · vitória da IA aleatória ${w}%`);
+  if (q.status !== 0){ console.log(out.split("\n").filter(l => /falha|exceção|✗|!/.test(l)).slice(0, 10).join("\n")); modeFail++; }
+}
+if (!(winOf["--dif=facil"] > winOf["--dif=dificil"] + 10)) { console.log("  ✗ Fácil deveria vencer bem mais que Difícil"); modeFail++; }
+process.exit(r.status || (lockedFail || modeFail ? 1 : 0));

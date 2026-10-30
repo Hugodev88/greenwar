@@ -73,12 +73,13 @@ function renderTitle(){
   const g0 = newCampaign(SCEN, 1);
   renderMap($("#mapTitle"), g0.control, [], false, { g: g0, military: true, arrows: [], static: true });
   if ($("#btnCont")) $("#btnCont").onclick = () => { G = info.save; delete G.focusMigrated; delete G.milMigrated; UI.selArmy = null; UI.selUF = null; UI.tab = "historia"; UI.selFocus = null; UI.fscroll = null; renderGame(); };
-  $("#btnNew").onclick = startNew;
+  $("#btnNew").onclick = openNewCampaign;
   $("#btnBack").onclick = renderMenu;
 }
-function startNew(){
-  UI.selFocus = null; UI.fscroll = null;
-  G = newCampaign(SCEN);
+// opts: { diff, quick } escolhidos na janela Nova campanha (js/ui/modos.js)
+function startNew(opts){
+  UI.selFocus = null; UI.fscroll = null; UI.manual = false; UI.moreTabs = false;
+  G = newCampaign(SCEN, 0, opts || lastNewChoice());
   Object.assign(UI, { tab: "historia", selUF: null, selArmy: null, selActor: null, req: [], off: [], dealMsg: null });
   save(); renderGame(); cloud("campaignStarted", SCEN.id); cloud("syncSave", SCEN.id);
 }

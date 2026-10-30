@@ -14,10 +14,10 @@ function sideCounts(g){
   for (const uf in g.control){ const s = sideOf(g, g.control[uf], ph); r[s]++; if (s==="player") r.wPlayer += UF_WEIGHT[uf]; if (s==="enemy") r.wEnemy += UF_WEIGHT[uf]; if (s==="contested") r.wContested += UF_WEIGHT[uf]; }
   return r;
 }
-function cond(g, c){
+function cond(g, c, slack){ // slack: folga da dificuldade nos mínimos (só nos testes de rumo da história)
   if (!c) return true;
   const S = g.stats;
-  if (c.min) for (const k in c.min) if ((S[k] ?? 0) < c.min[k]) return false;
+  if (c.min) for (const k in c.min) if ((S[k] ?? 0) + (slack || 0) < c.min[k]) return false;
   if (c.max) for (const k in c.max) if ((S[k] ?? 0) > c.max[k]) return false;
   if (c.flags) for (const f of c.flags) if (!g.flags.includes(f)) return false;
   if (c.noFlags) for (const f of c.noFlags) if (g.flags.includes(f)) return false;
@@ -47,21 +47,25 @@ function cond(g, c){
 function resolveNextG(next, g){
   if (next == null) return null;
   if (typeof next === "string") return next;
-  for (const b of next) if (cond(g, b.if)) return b.to;
+  const sl = diffSlack(g);
+  for (const b of next) if (cond(g, b.if, sl)) return b.to;
   return next[next.length-1].to;
 }
 
 /* ---------- Criação da partida ---------- */
-function newCampaign(sc, seed){
-  const S = sc.story, C = sc.campaign;
-  const g = { v: SAVE_VERSION, scen: sc.id, seed: (seed >>> 0) || ((Date.now() ^ 0x5bd1e995) >>> 0),
+// opts: { diff: "facil" | "normal" | "dificil", quick: true/false }. Sem opts = Normal, campanha completa (o jogo original).
+function newCampaign(sc, seed, opts){
+  opts = opts || {};
+  const diff = DIFICULDADES[opts.diff] ? opts.diff : "normal", quick = !!(opts.quick && sc.campaign.rapida), D = DIFICULDADES[diff];
+  const S = sc.story, C = scVariant(sc, diff, quick).campaign;
+  const g = { v: SAVE_VERSION, scen: sc.id, diff, quick, simple: !!D.simples, seed: (seed >>> 0) || ((Date.now() ^ 0x5bd1e995) >>> 0),
     month: parseYM(C.start), startMonth: parseYM(C.start), turn: 1,
     stats: {}, flags: [], visited: [], history: [], lastDelta: {}, control: {}, lastMapChanges: [],
     money: C.money.initial, ap: C.ap,
     uf: {}, actors: {}, fac: {}, debts: [], drains: [], queue: [], report: [], log: [], used: {}, dealtWith: {},
     eventSeen: {}, chains: [], ended: null, enemyMalus: 0, malusUntil: 0, ceasefire: 0, enemyBoost: 0, counter: null,
-    story: { node: null, due: 0 }, stat: { deals: 0, actions: 0, battles: 0 }, south: null, autoOrders: "off" };
-  for (const k in S.stats) g.stats[k] = S.stats[k].initial;
+    story: { node: null, due: 0 }, stat: { deals: 0, actions: 0, battles: 0 }, south: null, autoOrders: D.ordensAuto || "off" };
+  for (const k in S.stats) g.stats[k] = clamp(S.stats[k].initial + ((D.status || {})[k] || 0), 0, 100);
   for (const uf in MAP_DATA.states) g.control[uf] = S.defaultFaction || "federal";
   Object.assign(g.control, S.initialMap || {});
   for (const uf in MAP_DATA.states) g.uf[uf] = { unrest: (C.unrest && C.unrest[uf] !== undefined) ? C.unrest[uf] : (C.unrestBase ?? 25), enemy: 0, progress: 0, sway: 0 };

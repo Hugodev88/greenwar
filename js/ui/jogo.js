@@ -20,10 +20,13 @@ function renderGame(){
   const tabs = [["historia", `História${pend ? ` <b class="badge">${pend}</b>` : ""}`], ["mapa", "Mapa"], ["diplomacia", "Diplomacia"], ["faccoes", "Facções"], ["acoes", "Ações"]];
   if (C.focus){ focusInit(G); const idle = !G.focus.active && C.focus.nodes.some(F => focusStatus(G, F).state === "available"); tabs.splice(1, 0, ["decisoes", `Decisões${idle ? ` <b class="badge">!</b>` : ""}`]); }
   if (UI.tab === "decisoes" && !C.focus) UI.tab = "historia";
+  // interface simples (Fácil): Diplomacia e Facções ficam atrás do botão "Mais"
+  const extra = ["diplomacia", "faccoes"], hideExtra = G.simple && !UI.moreTabs && !extra.includes(UI.tab);
+  const shown = hideExtra ? tabs.filter(t => !extra.includes(t[0])) : tabs;
   const nextStory = G.story.pending ? Math.max(0, G.story.due - G.month) : null;
   $("#app").innerHTML = `
     <div class="hud">
-      <div class="hud-date"><strong>${esc(monthLabel(G.month))}</strong><small>Turno ${G.turn} · ${esc(ph.label)}${ph.war ? " · em guerra" : ""}</small></div>
+      <div class="hud-date"><strong>${esc(monthLabel(G.month))}</strong><small>Turno ${G.turn} · ${esc(ph.label)}${ph.war ? " · em guerra" : ""}</small>${diffBadgeHTML(G)}</div>
       <div class="hud-res">
         <div class="ecocell" data-eco="ap" role="button" tabindex="0" title="De onde vêm suas ações (clique)"><span class="k">Ações <i class="ecoi">i</i></span><span class="ap">${apDots}</span><b>${G.ap}</b>${apSrcLine()}</div>
         <div class="ecocell" data-eco="money" role="button" tabindex="0" title="${esc(C.money.label)}: renda, teto e usos (clique)"><span class="k">${esc(C.money.label)} <i class="ecoi">i</i></span><b class="${G.money < 0 ? "neg" : G.money >= moneyCap(G) ? "capped" : ""}">${Math.round(G.money)}${Number.isFinite(moneyCap(G)) ? `<small class="cap">/${moneyCap(G)}</small>` : ""}</b><small>${sgn(inc.total)}/mês${paceFor(G) > 1 ? ` (×${paceFor(G)} por turno)` : ""}</small></div>
@@ -33,11 +36,12 @@ function renderGame(){
     </div>
     <div class="stats">${stats}</div>
     ${southBarHTML()}
-    <nav class="tabs" role="tablist">${tabs.map(([id, l]) => `<button class="tab${UI.tab===id?" on":""}" data-tab="${id}" role="tab" aria-selected="${UI.tab===id}" tabindex="${UI.tab===id ? 0 : -1}">${l}</button>`).join("")}</nav>
+    <nav class="tabs" role="tablist">${shown.map(([id, l]) => `<button class="tab${UI.tab===id?" on":""}" data-tab="${id}" role="tab" aria-selected="${UI.tab===id}" tabindex="${UI.tab===id ? 0 : -1}">${l}</button>`).join("")}${G.simple ? `<button class="tab more" data-more aria-expanded="${!hideExtra}">${hideExtra ? "Mais ▾" : "Menos ▴"}</button>` : ""}</nav>
     ${pend && UI.tab !== "historia" ? `<div class="pendbar">Há ${pend} evento(s) aguardando decisão. <button class="linkbtn" data-tab="historia">Ir para História</button></div>` : ""}
     <div id="tabBody"></div>
     <div id="toast" class="toast"></div>`;
   document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { UI.tab = b.dataset.tab; renderGame(); });
+  document.querySelectorAll("[data-more]").forEach(b => b.onclick = () => { UI.moreTabs = hideExtra; if (!UI.moreTabs && extra.includes(UI.tab)) UI.tab = "historia"; renderGame(); });
   if ($("#btnSouth")) $("#btnSouth").onclick = openSouth;
   $("#btnEnd").onclick = () => {
     const snap = majorSnap();

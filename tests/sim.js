@@ -3,7 +3,8 @@
 // em cada cenário e verifica falhas, invariantes, finais alcançáveis e equilíbrio.
 // "golpista" segue o roteiro do golpe sem se preocupar com o Sul; "pacificador" segue o mesmo roteiro, mas usa as
 // ações e escolhas que baixam a Tensão no Sul (mede se dá para evitar a rebelião da Liga do Sul).
-// Uso: node tests/sim.js [partidas_por_IA=300] [cenário]
+// Uso: node tests/sim.js [partidas_por_IA=300] [cenário] [--dif=facil|normal|dificil] [--rapida]
+// Sem --dif/--rapida joga o modo Normal, campanha completa (o jogo original) e grava sim-resultados.json.
 const fs = require("fs");
 const JOGO = require("./carregar.js");
 const code = JOGO.codigo;
@@ -12,9 +13,12 @@ const API = new Function(code + `; return { SCENARIOS, MAP_DATA, convertMoney, a
   phaseOf, sideOf, sideCounts, playerUFs, findEvent, fxSummary, incomeFor, monthLabel, OFF_TYPES,
   focusTree, focusStatus, focusCheck, startFocus, focusDef,
   ADJ, ARMY_MAX, SAVE_VERSION, armiesOf, armyById, armyTargets, setOrder, recruitArmy, battleOdds, commandLimit, ordersUsed,
-  reinforceCost, recruitCost, armyAllowed, sideStr, migrateSave, knownIntents, battleReport,
+  reinforceCost, recruitCost, armyAllowed, sideStr, migrateSave, knownIntents, battleReport, choicePreview,
   ...(typeof southFactors === "function" ? { southFactors, southRate, southEta, autoOrders, clearOrders, setAutoOrders, nodeView } : {}) };`)();
-const N = +process.argv[2] || 300;
+const ARGS = process.argv.slice(2).filter(a => !a.startsWith("--")), FLAGS = process.argv.slice(2).filter(a => a.startsWith("--"));
+const OPTS = { diff: ((FLAGS.find(a => a.startsWith("--dif=")) || "").split("=")[1]) || "normal", quick: FLAGS.includes("--rapida") };
+const VARIANT = OPTS.diff !== "normal" || OPTS.quick; // modo diferente do original: imprime a taxa de vitória e não grava o JSON
+const N = +ARGS[0] || 300;
 let fails = 0;
 const fail = (m) => { fails++; if (fails < 25) console.log("  ✗ " + m); };
 
@@ -78,6 +82,10 @@ function resolveQueue(g, sc, r, greedy){
       const want = q0.type === "story" ? PAC[q0.node] : q0.id === "e_sul_cupula" || q0.id === "n_liga_proposta" || q0.id === "f_liga_exige" ? 0 : undefined;
       if (want !== undefined && ok.includes(want)){ if (!API.choose(g, want)) return "choose falhou"; continue; }
     }
+    if (g.simNovice && q0.type === "story"){ // iniciante: escolhe ao acaso, mas evita o que o aviso do modo Fácil marca como derrota
+      const safe = ok.filter(i => { const p = API.choicePreview(g, i); return !p || p.outcome !== "derrota"; });
+      if (!API.choose(g, pick(r, safe.length ? safe : ok))) return "choose falhou"; continue;
+    }
     const GP = COUPISH(greedy) && g.queue[0].type === "story" && sc.campaign.coupScript && sc.campaign.coupScript[g.queue[0].node];
     if (GP !== undefined && GP !== false && ok.includes(GP)) idx = GP;
     else if (greedy === "radical" && g.queue[0].type === "story" && r() < 0.75) idx = ok[ok.length - 1];
@@ -112,10 +120,10 @@ function spendAP(g, sc, r, greedy){
       const war = API.phaseOf(g).war || COUPISH(greedy), reserve = war ? 35 : 6;
       for (const f of C.factions.filter(f => g.fac[f.id].loyalty < (war ? 22 : 45) && g.fac[f.id].influence >= (war ? 25 : 20)).sort((a, b) => g.fac[a.id].loyalty - g.fac[b.id].loyalty))
         if (g.money >= C.facMoney.agradar + reserve && API.factionAction(g, f.id, "agradar").ok) E.facPaid = (E.facPaid || 0) + 1;
-      if (C.convert && g.money >= C.convert.cost + reserve + 10 && API.convertMoney(g).ok) E.conv = (E.conv || 0) + 1;
+      if (C.convert && !g.simple && g.money >= C.convert.cost + reserve + 10 && API.convertMoney(g).ok) E.conv = (E.conv || 0) + 1;
     } else {
       if (r() < 0.5){ const f = pick(r, C.factions); if (API.factionAction(g, f.id, r() < 0.8 ? "agradar" : "pressionar").ok) E.facPaid = (E.facPaid || 0) + 1; }
-      if (C.convert && r() < 0.3 && API.convertMoney(g).ok) E.conv = (E.conv || 0) + 1;
+      if (C.convert && !g.simple && r() < 0.3 && API.convertMoney(g).ok) E.conv = (E.conv || 0) + 1;
     }
   }
   pickFocus(g, sc, r, greedy);
@@ -160,6 +168,7 @@ function spendAP(g, sc, r, greedy){
 function giveOrders(g, sc, r, greedy){
   if (g.ended || g.queue.length) return;
   const ph = API.phaseOf(g), mine = API.armiesOf(g, "player");
+  if (g.simple){ if (ph.war && g.money >= API.recruitCost(g) + (greedy ? 15 : 0) && r() < (greedy ? 0.5 : 0.15)) API.recruitArmy(g); return; } // interface simples: só ordens automáticas
   if (!greedy){
     for (const a of mine){ const roll = r();
       if (roll < 0.5){ const t = API.armyTargets(g, a); if (t.length){ const x = pick(r, t); if (API.setOrder(g, a.id, x.type, x.uf).ok) g.stat.orders++; } }
@@ -204,10 +213,10 @@ function calmSouth(g){
   if (st.t + rate > 70 || st.state === "revolta") tryAct("s_autonomia");
   if (st.t + rate > 60) tryAct("s_investir");
 }
-function play(sc, seed, greedy){
+function play(sc, seed, greedy, novice){
   const r = rng(seed * 7919 + (greedy === "pacificador" ? 4 : greedy === "golpista" ? 3 : greedy === "radical" ? 2 : greedy ? 1 : 0));
-  const g = API.newCampaign(sc, seed);
-  g.stat.orders = 0;
+  const g = API.newCampaign(sc, seed, OPTS);
+  g.stat.orders = 0; if (novice) g.simNovice = true;
   const E = g.simEco = { turns: 0, apSum: 0, moneySum: 0, moneyMax: g.money, rich: 0, facPaid: 0, conv: 0 };
   const SS = g.simSouth = { rebel: false, peak: 0 };
   const W = g.simWar = { months: 0, bat: 0, won: 0, att: 0, attWon: 0, peak: 0, recruits: 0, statesStart: null, statesEnd: null };
@@ -248,12 +257,12 @@ const PAC = { golpe_inicial: 0, reacao_internacional: 0 };
 function COUPISH(m){ return m === "golpista" || m === "pacificador"; }
 for (const sc of API.SCENARIOS){
   if (sc.soon || !sc.campaign) continue;
-  if (process.argv[3] && sc.id !== process.argv[3]) continue;
-  if (sc.locked && process.argv[3] !== sc.id) continue; // cenário bloqueado: só roda se pedido explicitamente (node sim.js N brasil1964)
+  if (ARGS[1] && sc.id !== ARGS[1]) continue;
+  if (sc.locked && ARGS[1] !== sc.id) continue; // cenário bloqueado: só roda se pedido explicitamente (node sim.js N brasil1964)
   const endings = Object.entries(sc.story.nodes).filter(([, n]) => n.ending).map(([id]) => id);
-  console.log(`\n[${sc.year}] ${sc.title}${sc.locked ? " (bloqueado — teste de integridade)" : ""}`);
+  console.log(`\n[${sc.year}] ${sc.title}${VARIANT ? ` — dificuldade ${OPTS.diff}${OPTS.quick ? ", partida rápida" : ""}` : ""}${sc.locked ? " (bloqueado — teste de integridade)" : ""}`);
   const R = report[sc.id] = {}; FC[sc.id] = {}; const EVC = {};
-  for (const mode of ["aleatoria", "gulosa", "radical", ...(COUP[sc.id] ? ["golpista", ...(sc.campaign.south ? ["pacificador"] : [])] : [])]){
+  for (const mode of ["aleatoria", ...(OPTS.diff === "facil" ? ["iniciante"] : []), "gulosa", "radical", ...(COUP[sc.id] ? ["golpista", ...(sc.campaign.south ? ["pacificador"] : [])] : [])]){
     if (COUPISH(mode)) sc.campaign.coupScript = COUP[sc.id];
     const dist = {}, turnsArr = [], monthsArr = [], via = { historia: 0, campanha: 0 }; let crashes = 0, deals = 0, battles = 0, focusDone = 0, orders = 0, evN = 0, evMonths = 0, evMaxGap = 0;
     const ES = { turns: 0, ap: 0, money: 0, max: 0, maxAll: 0, rich: 0, endMoney: 0, fac: 0, conv: 0 };
@@ -261,7 +270,7 @@ for (const sc of API.SCENARIOS){
     const WS = { n: 0, months: 0, bat: 0, won: 0, att: 0, attWon: 0, peak: 0, s0: 0, s1: 0, gained: 0, end: {} };
     for (let i = 1; i <= N; i++){
       let res;
-      try { res = play(sc, i, mode === "aleatoria" ? false : mode === "gulosa" ? true : mode); } catch (e) { crashes++; fail(`${sc.id}/${mode}#${i}: exceção ${e.stack.split("\n").slice(0,2).join(" ")}`); continue; }
+      try { res = play(sc, i, mode === "aleatoria" || mode === "iniciante" ? false : mode === "gulosa" ? true : mode, mode === "iniciante"); } catch (e) { crashes++; fail(`${sc.id}/${mode}#${i}: exceção ${e.stack.split("\n").slice(0,2).join(" ")}`); continue; }
       if (res.err){ crashes++; fail(`${sc.id}/${mode}#${i}: ${res.err} em ${API.monthLabel(res.g.month)}`); continue; }
       const g = res.g;
       dist[g.ended.node] = (dist[g.ended.node] || 0) + 1;
@@ -277,11 +286,13 @@ for (const sc of API.SCENARIOS){
     }
     const avg = a => a.length ? (a.reduce((s, x) => s + x, 0) / a.length).toFixed(1) : "-";
     const sorted = Object.entries(dist).sort((a, b) => b[1] - a[1]);
-    console.log(`  IA ${mode}${mode === "golpista" ? " (roteiro do golpe, ignora o Sul)" : mode === "pacificador" ? " (roteiro do golpe + evita a rebelião do Sul)" : ""}: ${N} partidas · falhas ${crashes} · turnos médios ${avg(turnsArr)} (min ${Math.min(...turnsArr)}, máx ${Math.max(...turnsArr)}) · meses médios ${avg(monthsArr)} · acordos/partida ${(deals/N).toFixed(1)} · ordens/partida ${(orders/N).toFixed(1)} · batalhas/partida ${(battles/N).toFixed(1)} · fim por estado da campanha ${via.campanha}`);
+    console.log(`  IA ${mode}${mode === "iniciante" ? " (aleatória, mas lê os avisos de derrota do modo Fácil)" : mode === "golpista" ? " (roteiro do golpe, ignora o Sul)" : mode === "pacificador" ? " (roteiro do golpe + evita a rebelião do Sul)" : ""}: ${N} partidas · falhas ${crashes} · turnos médios ${avg(turnsArr)} (min ${Math.min(...turnsArr)}, máx ${Math.max(...turnsArr)}) · meses médios ${avg(monthsArr)} · acordos/partida ${(deals/N).toFixed(1)} · ordens/partida ${(orders/N).toFixed(1)} · batalhas/partida ${(battles/N).toFixed(1)} · fim por estado da campanha ${via.campanha}`);
     console.log(`    economia: AP médio/turno ${(ES.ap / Math.max(1, ES.turns)).toFixed(2)} · ${sc.campaign.money.short} médio ${(ES.money / Math.max(1, ES.turns)).toFixed(0)} · pico médio ${(ES.max / N).toFixed(0)} (máx. ${ES.maxAll}) · turnos com 60+ ${Math.round(100 * ES.rich / Math.max(1, ES.turns))}% · saldo final médio ${(ES.endMoney / N).toFixed(0)} · ações de facção/partida ${(ES.fac / N).toFixed(1)} · conversões/partida ${(ES.conv / N).toFixed(1)}`);
     if (sc.campaign.focus) console.log(`    focos concluídos/partida: ${(focusDone / N).toFixed(1)}`);
     console.log(`    eventos/partida: ${(evN / N).toFixed(1)} (1 a cada ${(evMonths / Math.max(1, evN)).toFixed(1)} meses; maior intervalo ${evMaxGap} meses)`);
     console.log("    " + sorted.map(([k, v]) => `${k} ${(100*v/N).toFixed(0)}%`).join(" · "));
+    if (VARIANT){ const T = { vitoria: 0, parcial: 0, derrota: 0 }; for (const k in dist) T[sc.story.nodes[k].outcome || "parcial"] += dist[k]; // outcome dos finais (historia.js)
+      console.log(`    resultado: vitória ${(100 * T.vitoria / N).toFixed(0)}% · intermediário ${(100 * T.parcial / N).toFixed(0)}% · derrota ${(100 * T.derrota / N).toFixed(0)}% · meses médios ${avg(monthsArr)}`); }
     if (WS.n){
       const pc = (a, b) => b ? Math.round(100 * a / b) + "%" : "-";
       console.log(`    guerra: ${WS.n} partidas com guerra · ${(WS.months / WS.n).toFixed(1)} meses · batalhas vencidas ${pc(WS.won, WS.bat)} (seus ataques ${pc(WS.attWon, WS.att)}) · força máx. média ${(WS.peak / WS.n).toFixed(0)} · estados ${(WS.s0 / WS.n).toFixed(1)} → ${(WS.s1 / WS.n).toFixed(1)} (ganhou território em ${pc(WS.gained, WS.n)}) · finais: ${Object.entries(WS.end).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + " " + pc(v, WS.n)).join(", ")}`);
@@ -301,16 +312,16 @@ for (const sc of API.SCENARIOS){
     const soft = e => e.crisisOf || ((e.if || {}).flags || []).some(f => f.startsWith("fo_"));
     const hard = never.filter(id => !soft(sc.campaign.events.find(e => e.id === id) || {}));
     if (never.length > hard.length) console.log(`  (aviso, não é falha: crises de facção e eventos de focos raros não vistos: ${never.filter(id => !hard.includes(id)).join(", ")})`);
-    if (hard.length && !sc.locked) fail(`${sc.id}: eventos nunca disparados: ${hard.join(", ")}`); }
+    if (hard.length && !sc.locked && !VARIANT) fail(`${sc.id}: eventos nunca disparados: ${hard.join(", ")}`); }
   if (sc.campaign.focus){
     const never = sc.campaign.focus.nodes.filter(F => !FC[sc.id][F.id]).map(F => F.id);
     const top = Object.entries(FC[sc.id]).sort((a, b) => b[1] - a[1]);
     console.log(`  Focos concluídos em alguma partida: ${sc.campaign.focus.nodes.length - never.length}/${sc.campaign.focus.nodes.length}${never.length ? " — nunca: " + never.join(", ") : ""}`);
     console.log(`  Mais comuns: ${top.slice(0, 6).map(([k, v]) => `${k} ${v}`).join(", ")} · mais raros: ${top.slice(-5).map(([k, v]) => `${k} ${v}`).join(", ")}`);
     R.focusCoverage = FC[sc.id]; R.focusNever = never;
-    if (never.length) fail(`${sc.id}: focos nunca concluídos: ${never.join(", ")}`);
+    if (never.length && !VARIANT) fail(`${sc.id}: focos nunca concluídos: ${never.join(", ")}`);
   }
 }
-if (!process.argv[3]) fs.writeFileSync(JOGO.RAIZ + "/sim-resultados.json", JSON.stringify(report, null, 1));
+if (!ARGS[1] && !VARIANT) fs.writeFileSync(JOGO.RAIZ + "/sim-resultados.json", JSON.stringify(report, null, 1));
 console.log(fails ? `\n${fails} falha(s).` : "\nSimulação OK: nenhuma falha.");
 process.exitCode = fails ? 1 : 0;

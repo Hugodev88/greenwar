@@ -41,6 +41,7 @@ function openSettings(){
   m.innerHTML = `<div class="modal-card setcard"><h2 id="setT">Configurações</h2>
     <fieldset><legend>Idioma / Language</legend><div class="opts">${rad("lang", "pt", SET.lang, "Português (Brasil)")}${rad("lang", "en", SET.lang, "English")}</div>
       <p class="muted sm">Em inglês: interface, tutorial e grandes eventos estão traduzidos; os demais eventos da história ainda aparecem em português.</p></fieldset>
+    ${settingsCampaignHTML()}
     <fieldset><legend>Acessibilidade</legend>
       <label class="tgl"><input type="checkbox" id="sCb" ${SET.cb ? "checked" : ""}> <span><b>Modo daltônico</b> — texturas (listras, pontos, xadrez) em cada facção do mapa, além da cor</span></label>
       <label class="tgl"><input type="checkbox" id="sHc" ${SET.hc ? "checked" : ""}> <span><b>Alto contraste</b> — textos mais claros, bordas fortes e foco bem visível</span></label>
@@ -69,6 +70,7 @@ function openSettings(){
   const rerender = () => { if (G && !G.ended) renderGame(); else if (G && G.ended) renderGame(); else if (SCEN) renderTitle(); else renderMenu(); };
   m.querySelectorAll("input[name=lang]").forEach(i => i.onchange = () => { SET.lang = i.value; saveSet(); i18nSwitch(); rerender(); });
   m.querySelectorAll("input[name=fs]").forEach(i => i.onchange = () => { SET.fs = +i.value; saveSet(); });
+  bindSettingsCampaign(rerender);
   $("#sCb").onchange = e => { SET.cb = e.target.checked; saveSet(); rerender(); };
   $("#sHc").onchange = e => { SET.hc = e.target.checked; saveSet(); };
   $("#sRm").onchange = e => { SET.motion = e.target.checked; saveSet(); };
