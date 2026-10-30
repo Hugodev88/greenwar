@@ -349,6 +349,33 @@ for (const sc of SCENARIOS) {
   console.log(`\nSaves: ${n} saves v2 e ${n3} saves v3 e ${n4} saves v4 sintéticos migrados para v${API.SAVE_VERSION} e jogados mais 1 mês; combate de teste OK (${rec.rounds.length} rodadas)`);
   console.log(`  relatório de teste: ${BR.summary}`);
 }
+// ---- organização dos arquivos: todo js/ e css/ listado uma vez no index.html, com comentário no topo ----
+{
+  const path = require("path"), html = fs.readFileSync(path.join(JOGO.RAIZ, "index.html"), "utf8");
+  const walk = d => fs.readdirSync(path.join(JOGO.RAIZ, d), { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(d + "/" + e.name) : [d + "/" + e.name]);
+  const css = [...html.matchAll(/<link rel="stylesheet" href="([^"]+)">/g)].map(m => m[1]);
+  const listed = [...JOGO.scripts, ...css, "js/nuvem/cloud.js", "js/nuvem/config.js"];
+  for (const f of listed){ if (!fs.existsSync(path.join(JOGO.RAIZ, f))) err("index.html aponta para arquivo que não existe: " + f); if (listed.indexOf(f) !== listed.lastIndexOf(f)) err("arquivo listado duas vezes no index.html: " + f); }
+  for (const f of [...walk("js"), ...walk("css")]){
+    if (!listed.includes(f)) err(`arquivo fora do index.html (não carrega no jogo): ${f}`);
+    const top = fs.readFileSync(path.join(JOGO.RAIZ, f), "utf8").slice(0, 3);
+    if (!/^(\/\/|\/\*)/.test(top)) err(`${f}: falta o comentário de topo explicando o arquivo`);
+  }
+  // nomes globais declarados duas vezes quebrariam o jogo (scripts clássicos dividem o mesmo escopo)
+  const decl = {};
+  for (const f of JOGO.scripts) for (const m of fs.readFileSync(path.join(JOGO.RAIZ, f), "utf8").matchAll(/^(?:function\s+([\w$]+)|(?:const|let|var)\s+([\w$]+)\s*=)/gm)){
+    const n = m[1] || m[2]; if (decl[n]) err(`nome global repetido: ${n} (${decl[n]} e ${f})`); else decl[n] = f; }
+  console.log(`\nArquivos: ${JOGO.scripts.length} scripts e ${css.length} CSS no index.html; ${Object.keys(decl).length} nomes globais sem repetição`);
+}
+// ---- tradução (aviso, não falha): nomes de ações e focos sem inglês em js/i18n/en.js ----
+{
+  const t = fs.readFileSync(JOGO.RAIZ + "/js/i18n/traducao.js", "utf8") + fs.readFileSync(JOGO.RAIZ + "/js/i18n/en.js", "utf8");
+  const trCore = new Function('const SET = { lang: "en" }; const document = { title: "" };' + t + "; return trCore;")();
+  for (const sc of SCENARIOS.filter(s => !s.locked && !s.soon && s.campaign)){
+    const C = sc.campaign, falta = [...C.actions.map(a => a.name), ...((C.focus && C.focus.nodes) || []).map(f => f.name)].filter(x => trCore(x) == null);
+    console.log(`Tradução [${sc.year}]: ${falta.length ? `${falta.length} nomes de ações/focos sem inglês (aparecem em português): ${falta.slice(0, 5).join(" · ")}${falta.length > 5 ? " …" : ""}` : "todas as ações e focos têm inglês"}`);
+  }
+}
 console.log(errors ? `\nFALHOU (${errors} problemas)` : "\nOK: todos os cenários íntegros, todos os nós e finais alcançáveis.");
 if (errors) process.exit(1);
 console.log("\n=== Simulação de campanhas (sim.js) ===");

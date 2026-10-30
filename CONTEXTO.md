@@ -5,7 +5,7 @@ Documentação de design e arquitetura do projeto. **Leia até o fim antes de al
 ## 1. O que é
 "Greenwar / Crônicas da Separação": jogo de estratégia narrativa sobre o Brasil, em **português**, inspirado em Hearts of Iron (HoI4). Hoje só o cenário de **2022** é jogável (o de 1964 aparece bloqueado no menu). O jogador toma decisões na história e administra uma campanha mês a mês, com um mapa dos 27 estados mostrando quem controla cada um.
 
-Hoje é **um único arquivo** `index.html` (~350 KB, ~3750 linhas, HTML + CSS + JS puro, sem dependências e sem build). Funciona offline e salva no `localStorage`.
+É um site estático em HTML + CSS + JS puro, **sem dependências e sem build**: o `index.html` carrega arquivos de `css/` e `js/` (veja a seção 4). Funciona offline e salva no `localStorage`.
 
 ## 2. Cenários
 | id | Ano | Título | Personagem / premissa | Fases da campanha |
@@ -59,18 +59,26 @@ Fica no fim do CORE (procure `const ADJ`). Compartilhado pelos cenários (2022 e
 - **Integrações:** acordos de armas dão +20 de força e `armsAid`; lealdade militar afeta moral máxima e limite de comando; focos com `reserve` dão força; viradas de mapa da história passam por `syncMilitary` (exércitos em território que deixou de ser permitido são realocados).
 - **UI (fora do CORE):** `militaryLayers`/`mapSVG` (frentes via `sharedBorder`, setas `arrowSVG`, contadores `counterSVG`), `tabMapa` (fluxo selecionar exército → alvo, painéis `armyPanel`/`overviewPanel`/`ufPanel`), `openBattle`/`openForecast` (tela de batalha), `playResolution` (animação pulável do Encerrar mês). Tudo em CSS/SVG, com `prefers-reduced-motion`.
 
-## 4. Arquitetura do `index.html`
-As linhas são aproximadas; procure pelos marcadores.
+## 4. Arquitetura (arquivos)
+O `index.html` tem só a marcação e a lista de `<link>`/`<script>`. **Os scripts são clássicos (não são módulos) e dividem o mesmo escopo global**, como se fossem um só arquivo. Por isso **a ordem das tags no `index.html` importa**: dados → núcleo → idioma/som → tela → `js/ui/iniciar.js` (sempre por último). O único módulo é `js/nuvem/cloud.js`, que importa `./config.js`.
 
-| Trecho | Onde | Conteúdo |
-|---|---|---|
-| `<style>` | início | Todo o CSS, incluindo mobile (`@media max-width:700/860px`) e o da árvore (`.focuslayout`, `.fnode`, `.ftree*`) |
-| `/*SCENARIOS_START*/ … /*SCENARIOS_END*/` | ~483–1660 | Todos os dados: `STORY_1964`, `STORY_2022`; `CAMPAIGN_1964`, `CAMPAIGN_2022`; `CAMPAIGN_2022.focus` (a árvore); e a lista **`const SCENARIOS = [...]`** |
-| `/*MAP_START*/ … /*MAP_END*/` | ~1662 | `MAP_DATA`: SVG paths dos 27 estados, gerado por `tools/build-map.js` |
-| `/*CORE_START*/ … /*CORE_END*/` | ~1704–3047 | Lógica pura, sem DOM: `SAVE_VERSION`, `cond()`, `applyFx()`, `newCampaign()`, ações, diplomacia (`dealScore`), eventos, focos (`focusStatus`, `startFocus`, `focusTick`, `completeFocus`, `focusStoryGrant`), `endTurn()`; no fim, o sistema militar (`ADJ`, `TERRAIN`, `fight`, `militaryMonth`, `planEnemy`, `setOrder`, `migrateSave`…) |
-| depois do CORE | ~2877–fim | UI: ponte `cloud()` e `window.GWGame` (no fim), além de `UI` (estado da interface), `loadInfo` (carregar e migrar save), `playable`/`setScenario`/`renderMenu` (menu: card grande de 2022 com mapa, cards bloqueados "Em breve"), `renderTitle` (tela de título do cenário), `renderGame` (abas), `tabMapa` (exércitos e ordens), `openBattle`/`playResolution` (combate visual), `tabDecisoes` (árvore), `openHelp` etc. |
+| Pasta | Conteúdo |
+|---|---|
+| `css/` | Estilos por área. A ordem dos `<link>` preserva a cascata original; o mobile fica junto de cada área (`@media max-width:700/860px`) |
+| `js/data/` | **Só dados.** `ajudantes.js` (`act`, `ev`), `2022/` (`historia.js` = `STORY_2022`, `acoes.js` = `ACOES_2022`, `eventos.js` = `EVENTOS_2022`, `campanha.js` = `CAMPAIGN_2022`, `focos.js` = `CAMPAIGN_2022.focus`), `1964/` (bloqueado), `cenarios.js` (`SCENARIOS`), `estados.js` (`ADJ`, `TERRAIN`, `TERRAIN_TYPES`), `mapa-brasil.js` (`MAP_DATA`, gerado por `tools/build-map.js`) |
+| `js/core/` | **Lógica pura, sem DOM** (roda no Node): `base` (`SAVE_VERSION`, `rnd`, chaves de efeito), `estado` (`newCampaign`), `efeitos` (`cond`, `applyFx`), `historia`, `eventos`, `acoes`, `economia`, `faccoes`, `diplomacia` (`dealScore`), `focos`, `turno` (`endTurn`), `sul`, `ordens-automaticas`, `exercitos`, `combate`, `inimigo`, `ordens`, `saves` (`migrateSave` e afins) |
+| `js/i18n/` | `traducao.js` (camada PT→EN que traduz o DOM) e `en.js` (`I18N_EN`, com `exact` e `tpl`) |
+| `js/audio/` | `audio.js` (trilha e efeitos sintetizados) |
+| `js/ui/` | Tela: `base` (`UI`, `esc`), `saves` (`save`, `loadInfo`, ponte `cloud()`), `menu`, `jogo` (HUD e abas), `aba-*.js` (uma por aba), `mapa`, `exercitos`, `batalha`, `resolucao`, `final`, `tutorial`, `grandes-eventos`, `ajuda`, `janelas`, `economia`, `configuracoes`, `acessibilidade`, `sul`, `iniciar` (liga tudo e expõe `window.GWGame`) |
+| `js/nuvem/` | `cloud.js` e `config.js` (Supabase, opcional) |
+| `tests/` | `carregar.js` lê as tags `<script>` do `index.html` e junta `js/data/` + `js/core/` para o Node; `check.js` e `sim.js` usam isso |
 
-**Os marcadores são usados por `check.js` e `sim.js`,** que extraem esses trechos e executam em Node. Não os remova. Mantenha o CORE livre de DOM.
+**Regras da organização:**
+- Cada arquivo começa com um comentário curto em português dizendo o que faz.
+- Arquivo novo: crie com comentário de topo e acrescente a tag no `index.html`, no grupo certo. O `tests/check.js` falha se um arquivo de `js/`/`css/` estiver fora do `index.html` (ou listado duas vezes), sem comentário de topo, ou se dois scripts declararem o mesmo nome global.
+- `js/core/` não pode usar `document`/`window`: ele roda nos testes do Node.
+- Os nomes de funções e campos ficaram em inglês, como antes, porque saves e nuvem dependem deles. Os nomes de arquivos e pastas são em português.
+- Passo a passo para adicionar evento, ação, foco, facção, tradução ou arquivo: veja "Como atualizar o jogo" no README.
 
 ### Objetos principais
 - **`SCENARIOS[i]`:** `{ id, year, date, title, tag, character, description, saveKey, endingsKey, intro, story: STORY_X, campaign: CAMPAIGN_X }`.
@@ -86,7 +94,7 @@ As linhas são aproximadas; procure pelos marcadores.
 - **Efeitos (`applyFx`):** `s` (atributos), `money`, `reserve` (+10 de força militar por ponto), `fac`, `infl`, `unrest`, `unrestAll`, `unrestUF`, `act`, `actAll`, `enemy`, `flag`, `map`, `ap`, `ceasefire`, `malus {v, months}`.
 
 ### Saves e localStorage
-- `SAVE_VERSION = 5` (5: `chains`, os desdobramentos agendados; 4: `battleLog` e `mobPool`; 3: exércitos). Saves v4 ganham `chains = []`. Saves v3 ganham `battleLog` (das batalhas do último mês) e `mobPool = 0`. Saves **v2** são migrados em `loadInfo` por `migrateSave` (CORE): `reserve` e `u.force` viram exércitos (10 de força por unidade), as forças inimigas ficam como guarnições/milícias, e aparece um aviso no menu (`milMigrated`). Saves de versão desconhecida ou formato antigo são arquivados em `<saveKey>_legacy`, e o jogador vê um aviso.
+- `SAVE_VERSION = 6` (em `js/core/base.js`; a migração fica em `js/core/saves.js` e é chamada por `loadInfo` em `js/ui/saves.js`) (6: Tensão no Sul e ordens automáticas; 5: `chains`, os desdobramentos agendados; 4: `battleLog` e `mobPool`; 3: exércitos). Saves v4 ganham `chains = []`. Saves v3 ganham `battleLog` (das batalhas do último mês) e `mobPool = 0`. Saves **v2** são migrados em `loadInfo` por `migrateSave` (CORE): `reserve` e `u.force` viram exércitos (10 de força por unidade), as forças inimigas ficam como guarnições/milícias, e aparece um aviso no menu (`milMigrated`). Saves de versão desconhecida ou formato antigo são arquivados em `<saveKey>_legacy`, e o jogador vê um aviso.
 - Saves de 2022 sem `g.focus` (anteriores à árvore) são **migrados** em `loadInfo`: `focusInit` aplica as concessões da história já vividas e marca `focusMigrated`, e aparece um aviso no menu.
 - **Se mudar o formato do save, aumente a versão ou escreva uma migração em `loadInfo`.**
 - Chaves do localStorage:
@@ -98,11 +106,11 @@ As linhas são aproximadas; procure pelos marcadores.
   - `gw_tut_v3`: progresso do tutorial contextual `{ off, seen: { hud, historia, mapa, exercitos, decisoes, faccoes, diplomacia, acoes } }` (a antiga `jogo_br_tutorial_v2` não é mais lida).
 - Cada `save()` grava `G.savedAt = Date.now()`, usado para dizer qual save é mais recente na mesclagem com a nuvem.
 
-### Camada de nuvem (Supabase): `config.js`, `cloud.js` e `supabase/migrations/001_init.sql`
-- **Opcional e isolada.** `index.html` carrega `<script type="module" src="cloud.js">` no fim. Se o módulo ou a biblioteca não carregarem (offline, `file://`, CDN bloqueada), nada quebra e os saves seguem no `localStorage`.
+### Camada de nuvem (Supabase): `js/nuvem/config.js`, `js/nuvem/cloud.js` e `supabase/migrations/001_init.sql`
+- **Opcional e isolada.** `index.html` carrega `<script type="module" src="js/nuvem/cloud.js">` no fim. Se o módulo ou a biblioteca não carregarem (offline, `file://`, CDN bloqueada), nada quebra e os saves seguem no `localStorage`.
 - **Biblioteca:** `cloud.js` importa `@supabase/supabase-js@2` (versão fixa) do jsDelivr, com o esm.sh como alternativa.
 - **`config.js`:** `SUPABASE_URL`, `SUPABASE_KEY` (a *publishable key*, pública por design) e `FEATURES.googleLogin` (o botão do Google fica escondido até o provedor ser ativado). Nunca coloque ali a secret key ou a service_role.
-- **Ponte jogo → nuvem:** no `index.html`, `cloud("syncSave", id)`, `cloud("syncEndings", id)`, `cloud("campaignStarted", id)` e `cloud("deleteSave", id)` chamam `window.GWCloud.*` se ele existir e não fazem nada se não existir. Os pontos de chamada:
+- **Ponte jogo → nuvem:** em `js/ui/saves.js`, `cloud("syncSave", id)`, `cloud("syncEndings", id)`, `cloud("campaignStarted", id)` e `cloud("deleteSave", id)` chamam `window.GWCloud.*` se ele existir e não fazem nada se não existir. Os pontos de chamada:
   - `startNew` dispara `campaignStarted` e `syncSave`;
   - "Encerrar mês" e `renderEnding` disparam `syncSave`;
   - `addEnding`, quando o final é novo, dispara `syncEndings`;
@@ -149,15 +157,17 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 
 - **Travas:** o caminho democrático trava a ruptura e vice-versa, via `excl` e `lockIf`. `grants: { golpe_inicial: ["c_ruptura"] }` conclui a ruptura à força se a história der o golpe.
 
 ## 6. Validação (rode sempre)
-- **`node check.js [N]`:** valida links e nós alcançáveis da história, as referências de mapa, facções, atores, ações e eventos, e a árvore:
+- **`node tests/check.js [N]`:** valida links e nós alcançáveis da história, as referências de mapa, facções, atores, ações e eventos, e a árvore:
   - ids únicos e referências existentes;
   - `excl` simétrico, sem ciclos, raiz única;
   - todo foco alcançável por algum caminho;
   - chaves de efeito válidas e flags `fo_*` válidas;
   - sistema militar: `ADJ` simétrico, 27 UFs, conexo e conferido com a geometria do mapa; terreno completo; `C.army` de cada cenário; ações de recrutamento com `ap: 0`; migração de 50 saves v2, 30 saves v3 e 15 saves v4 sintéticos e um teste de `fight()` + `battleReport()`.
   - eventos: textos não vazios, escolhas sem repetição e ao menos uma sem requisito, chaves em `EVENT_FX_KEYS`, valores numéricos, flags exigidas que algum foco/história/efeito produz, `from ≤ until`, todo `chain` aponta para um evento `chained` e todo `chained` é disparado por alguém; teste de que `n_acampamentos` → `n_acampamentos_radical` aparece de fato (≥ 8/10 campanhas).
+  - organização: todo arquivo de `js/` e `css/` listado uma vez no `index.html`, com comentário de topo, sem nomes globais repetidos entre scripts;
+  - aviso (não falha) para nomes de ações/focos sem tradução em `js/i18n/en.js`;
   - Depois roda o `sim.js`.
-- **`node sim.js [N] [cenário]`:** partidas automáticas com as IAs aleatória, gulosa e radical, e a "golpista" (roteiro só de cobertura, em 2022). As IAs também dão ordens aos exércitos (`giveOrders`: aleatória ao acaso; gulosa recruta, reforça e ataca em grupo com razão de forças ≥ 1,2) e o sim confere invariantes do exército (ordens limpas, território permitido, limites). Mostra a distribuição de finais, os focos concluídos por partida e quais focos nunca são concluídos. Falha se algum final ou foco ficar inalcançável ou se o relatório de alguma batalha sair inválido (NaN, sem resumo/dica). Imprime `eventos/partida` (frequência e maior intervalo sem evento) e a cobertura de eventos; **falha se algum evento nunca aparecer**, exceto crises de facção e eventos presos a focos raros (`fo_*`), que só geram aviso. Nas partidas com guerra imprime a linha `guerra:` (meses, % de batalhas vencidas, % dos seus ataques vencidos, força máxima média, estados no início → fim da guerra, % de partidas em que ganhou território, finais).
+- **`node tests/sim.js [N] [cenário]`:** partidas automáticas com as IAs aleatória, gulosa e radical, e a "golpista" (roteiro só de cobertura, em 2022). As IAs também dão ordens aos exércitos (`giveOrders`: aleatória ao acaso; gulosa recruta, reforça e ataca em grupo com razão de forças ≥ 1,2) e o sim confere invariantes do exército (ordens limpas, território permitido, limites). Mostra a distribuição de finais, os focos concluídos por partida e quais focos nunca são concluídos. Falha se algum final ou foco ficar inalcançável ou se o relatório de alguma batalha sair inválido (NaN, sem resumo/dica). Imprime `eventos/partida` (frequência e maior intervalo sem evento) e a cobertura de eventos; **falha se algum evento nunca aparecer**, exceto crises de facção e eventos presos a focos raros (`fo_*`), que só geram aviso. Nas partidas com guerra imprime a linha `guerra:` (meses, % de batalhas vencidas, % dos seus ataques vencidos, força máxima média, estados no início → fim da guerra, % de partidas em que ganhou território, finais).
 - **Referência atual (300 partidas por IA, 2022, depois dos 46 eventos novos):**
   - aleatória: ostracismo 30%, oposição 22%, retorno 20%, exílio 9%, golpe fracassado 7%…; 6,6 eventos/partida (1 a cada 3,2 meses, maior intervalo 12);
   - gulosa: retorno 83%; 10,9 eventos/partida (1 a cada 3,8 meses, maior intervalo 18);
@@ -171,9 +181,9 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 
 2. **Aviso de ficção** visível (menu e introdução). Não remova.
 3. **Pessoas reais tratadas de forma neutra,** sem caricatura nem juízo editorial. **Nunca inventar citações** atribuídas a pessoas reais.
 4. **Caminhos autoritários ou golpistas têm consequências sóbrias e pesadas** (isolamento, violência, colapso econômico, chance de fracasso), sem glorificação. O jogo não deve parecer um manual nem uma propaganda.
-5. Mudou história, eventos ou árvore? **Rode `node check.js`** e confira a distribuição de finais.
-6. Não quebre saves: migre em `loadInfo` ou aumente `SAVE_VERSION`.
-7. Mantenha o CORE testável em Node (sem `document`/`window`).
+5. Mudou história, eventos ou árvore? **Rode `node tests/check.js`** e confira a distribuição de finais.
+6. Não quebre saves: aumente `SAVE_VERSION` e migre em `js/core/saves.js`.
+7. Mantenha `js/core/` testável em Node (sem `document`/`window`).
 8. Mobile importa: teste em largura de ~400 px.
 
 ## 7b. Camada de UI da fase 1 (out/2026) — tudo fora do CORE
@@ -203,6 +213,12 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 
 - **Save v6:** migração v5→v6 cria `g.south` (em revolta se a Liga já controla estados).
 - **sim.js:** IA `pacificador` (evita a rebelião). 300 partidas: golpista (ignora o Sul) rebelião 98%, vitória 26%; pacificador rebelião 0%, Sul aliado 94%, vitória 68%, tensão máx. média 19. IA aleatória: rebelião nas partidas com guerra caiu de 100% para ~50%.
 
+## 7f. Organização do código (out/2026)
+- O `index.html` único (~3.900 linhas) foi dividido em 17 CSS e 56 scripts (seção 4), sem mudar regras, textos nem visual.
+- Prova: `tests/sim.js 300` com números idênticos antes e depois; `tests/check.js` sem falhas; capturas de tela (PT e EN, desktop e celular) idênticas pixel a pixel; saves v5 e v6 antigos abrem igual.
+- Foram removidas 4 regras de CSS sem uso (`.tutskip`, `.ordbtns`, `.fdetail.empty`, `.sans`).
+- Os marcadores `/*CORE_START*/` e afins não existem mais: os testes carregam os arquivos pela lista do `index.html`.
+
 ## 8. Limitações conhecidas
 - Modo English: cobre interface, tutorial, os grandes eventos e o evento de abertura; os demais textos de eventos, os epílogos e o cenário 1964 seguem em português.
 - A trilha sonora é sintetizada (Web Audio), não há música gravada.
@@ -216,7 +232,6 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 
   - em 2022, nos turnos de 3 meses, os exércitos agem uma vez por turno;
   - as frentes são calculadas pelos vértices compartilhados do mapa simplificado; em litorais recortados podem ficar trechos curtos.
 - No desktop o tooltip dos nós é o `title` nativo do navegador.
-- Tudo num arquivo só fica difícil de manter conforme cresce.
 - **Nuvem:**
   - as estatísticas e os finais do perfil são gravados pelo cliente, então dá para forjá-los (o ranking é "de confiança");
   - há um só slot de save por cenário;
@@ -233,8 +248,5 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 
    - vários slots de save;
    - login com Google (ligar o provedor e `FEATURES.googleLogin`);
    - SMTP próprio.
-4. **Separar o arquivo único num projeto Vite** quando entrar a autenticação:
-   - `src/data/` (um arquivo por cenário: `story2022.js`, `campaign2022.js`, `focus2022.js`), `src/core/` (lógica pura, testável), `src/ui/` e `src/styles/`;
-   - adaptar `check.js` e `sim.js` para importar os módulos em vez de recortar os marcadores;
-   - opcionalmente TypeScript nos tipos de `STORY`, `CAMPAIGN` e `focus`.
+4. ~~Separar o arquivo único~~ **feito** (out/2026, sem build: pastas `css/`, `js/data`, `js/core`, `js/ui`… e testes em `tests/`). Um bundler (Vite) ou TypeScript continua opcional para o futuro.
 5. Depois: ranking ou compartilhamento de finais, novos cenários, e talvez escolhas votadas por amigos.

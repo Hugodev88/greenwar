@@ -1,6 +1,6 @@
 # Greenwar — Crônicas da Separação
 
-Jogo de estratégia e história interativa sobre o Brasil, inspirado em Hearts of Iron. Funciona offline, num único arquivo HTML. Você toma decisões mês a mês e vê no mapa quem controla cada estado.
+Jogo de estratégia e história interativa sobre o Brasil, inspirado em Hearts of Iron. Funciona offline, é um site estático simples (HTML, CSS e JavaScript, sem instalação nem build). Você toma decisões mês a mês e vê no mapa quem controla cada estado.
 
 > **Aviso:** este jogo é uma **obra de ficção**. Eventos, diálogos e desfechos são hipotéticos. Pessoas reais são tratadas de forma neutra, sem citações inventadas atribuídas a elas. Caminhos autoritários ou de ruptura têm consequências sérias dentro do jogo: o jogo não endossa nenhum deles.
 
@@ -70,7 +70,7 @@ O login é **opcional**. Sem conta, offline ou se o Supabase estiver fora do ar,
 
 **O que existe:**
 - cadastro e login por e-mail e senha, link mágico, "Esqueci a senha" e troca de senha;
-- botão do Google pronto, mas escondido (`FEATURES.googleLogin` em `config.js`);
+- botão do Google pronto, mas escondido (`FEATURES.googleLogin` em `js/nuvem/config.js`);
 - perfil com nome de exibição, `@usuário`, emblema (ícones embutidos ou iniciais, sem upload) e bio;
 - estatísticas: campanhas iniciadas e finais desbloqueados por cenário;
 - aba **Jogadores**, com o ranking por finais e os perfis públicos;
@@ -78,8 +78,8 @@ O login é **opcional**. Sem conta, offline ou se o Supabase estiver fora do ar,
 - ao entrar, o jogo junta os saves deste aparelho com os da nuvem. Se os dois forem diferentes, ele pergunta qual manter e mostra qual é o mais recente. Os finais são unidos nos dois sentidos.
 
 **Arquivos:**
-- `config.js`: URL do projeto e a *publishable key* (pública por design; quem protege os dados é o RLS);
-- `cloud.js`: módulo carregado pelo `index.html`;
+- `js/nuvem/config.js`: URL do projeto e a *publishable key* (pública por design; quem protege os dados é o RLS);
+- `js/nuvem/cloud.js`: módulo carregado pelo `index.html`;
 - `supabase/migrations/001_init.sql`: tabelas, RLS e gatilhos.
 
 ### Configurar o projeto Supabase (uma vez)
@@ -90,9 +90,9 @@ O login é **opcional**. Sem conta, offline ou se o Supabase estiver fora do ar,
 
    Os links de confirmação, o link mágico e a recuperação de senha voltam para esse endereço.
 3. **Opcional, para testar mais rápido:** em **Authentication → Sign In / Providers → Email**, desligue **Confirm email**. Assim a conta entra direto, sem o e-mail de confirmação. Religue antes de divulgar o jogo.
-4. **Opcional, Google:** ative o provedor em **Authentication → Sign In / Providers → Google** (precisa de um Client ID/Secret do Google Cloud) e mude `googleLogin: true` em `config.js`.
+4. **Opcional, Google:** ative o provedor em **Authentication → Sign In / Providers → Google** (precisa de um Client ID/Secret do Google Cloud) e mude `googleLogin: true` em `js/nuvem/config.js`.
 
-**Qual chave vai no `config.js`?** A **Publishable key** (`sb_publishable_…`), em **Project Settings → API Keys**. A antiga chave "anon public" também funciona. **Nunca** use a *secret key* (`sb_secret_…`), a `service_role` nem a senha do banco no front-end.
+**Qual chave vai no `js/nuvem/config.js`?** A **Publishable key** (`sb_publishable_…`), em **Project Settings → API Keys**. A antiga chave "anon public" também funciona. **Nunca** use a *secret key* (`sb_secret_…`), a `service_role` nem a senha do banco no front-end.
 
 O e-mail padrão do Supabase tem limite baixo de envios por hora. Para muitos jogadores, configure um SMTP próprio em **Authentication → Emails → SMTP Settings**.
 
@@ -100,23 +100,92 @@ Para testar localmente com contas, sirva a pasta por HTTP (`python3 -m http.serv
 
 ## Validação e simulação (Node.js 18 ou mais novo)
 ```bash
-node check.js          # valida história, mapa, campanha e árvore de decisões, e roda a simulação (150 partidas por IA)
-node check.js 300      # igual, com 300 partidas por IA
-node sim.js 300        # só a simulação de campanhas, com distribuição de finais por IA
-node sim.js 300 brasil2022   # só um cenário
-node sim.js 40 brasil1964    # cenário bloqueado: só roda se pedido pelo id
+node tests/check.js          # valida história, mapa, campanha e árvore de decisões, e roda a simulação (150 partidas por IA)
+node tests/check.js 300      # igual, com 300 partidas por IA
+node tests/sim.js 300        # só a simulação de campanhas, com distribuição de finais por IA
+node tests/sim.js 300 brasil2022   # só um cenário
+node tests/sim.js 40 brasil1964    # cenário bloqueado: só roda se pedido pelo id
 ```
 A simulação imprime uma linha **economia** por IA (AP médio, Recursos médio, pico, turnos com 60+, saldo final, ações de facção, conversões) e falha se os Recursos passarem do teto.
-O `check.js` também valida os dados do 1964 (bloqueado) e roda um teste curto de integridade dele (40 partidas por IA), para o cenário não quebrar enquanto o motor muda. Esse teste não entra no balanceamento.
-`check.js` termina com código 1 se houver qualquer problema. **Rode depois de qualquer mudança na história, nos eventos ou na árvore.**
+O `tests/check.js` também valida os dados do 1964 (bloqueado) e roda um teste curto de integridade dele (40 partidas por IA), para o cenário não quebrar enquanto o motor muda. Esse teste não entra no balanceamento.
+`tests/check.js` termina com código 1 se houver qualquer problema. **Rode depois de qualquer mudança na história, nos eventos ou na árvore.**
 
-`tools/build-map.js` gera a geometria simplificada dos estados (`tools/brazil-map.json`, já embutida no `index.html`) a partir de um GeoJSON do IBGE. O GeoJSON tem 3,3 MB e não está no repositório. Para regerar o mapa, baixe `brazil-states.geojson` do projeto codeforamerica/click_that_hood, salve como `tools/brazil-states.geojson.json` e rode `node tools/build-map.js`.
+`tools/build-map.js` gera a geometria simplificada dos estados (`tools/brazil-map.json`, copiada para `js/data/mapa-brasil.js`) a partir de um GeoJSON do IBGE. O GeoJSON tem 3,3 MB e não está no repositório. Para regerar o mapa, baixe `brazil-states.geojson` do projeto codeforamerica/click_that_hood, salve como `tools/brazil-states.geojson.json` e rode `node tools/build-map.js`.
 
 ## Hospedar de graça
 O jogo é um site estático, então qualquer hospedagem estática serve:
 - **GitHub Pages:** no repositório, abra *Settings → Pages → Deploy from a branch*, escolha `main` e a pasta `/ (root)`. O endereço fica `https://hugodev88.github.io/greenwar/`.
 - **Netlify:** use *Add new site → Import from Git*, escolha este repositório e deixe o comando de build vazio, com a pasta de publicação `.`. Também dá para arrastar a pasta em app.netlify.com/drop.
 - **Cloudflare Pages:** use *Create → Pages → Connect to Git*, sem framework, sem comando de build, com a pasta de saída `/`.
+
+## Estrutura do projeto
+Site estático, **sem etapa de build**: o GitHub Pages publica os arquivos como estão. O `index.html` só tem a marcação e carrega os estilos e os scripts em ordem. Os scripts são clássicos e dividem o mesmo escopo global, então a ordem das tags importa.
+
+```
+index.html              marcação + lista de <link>/<script> (a ordem importa)
+css/                    estilos por área: base, menu, mapa, campanha, mapa-guerra, batalha, paineis,
+                        decisoes, tutorial, ajuda, grandes-eventos, faccoes, acessibilidade, sul, exercitos…
+js/
+  data/                 DADOS PUROS (o que mais se edita)
+    ajudantes.js          act() e ev(), atalhos para escrever ações e eventos
+    2022/                 historia.js · acoes.js · eventos.js · campanha.js (facções, atores, fases, Sul) · focos.js
+    1964/                 historia.js · campanha.js (cenário BLOQUEADO, não editar)
+    cenarios.js           lista do menu (SCENARIOS)
+    estados.js            fronteiras (ADJ) e terreno das UFs
+    mapa-brasil.js        geometria dos 27 estados (gerada por tools/build-map.js)
+  core/                 REGRAS do jogo, sem tela: estado, efeitos, história, eventos, ações, economia,
+                        facções, diplomacia, focos, turno, sul, exércitos, combate, inimigo, ordens, saves
+  ui/                   TELA: menu, jogo, abas (aba-*.js), mapa, exércitos, batalha, resolução, tutorial,
+                        grandes-eventos, ajuda, economia, janelas, configurações, acessibilidade, iniciar.js (último)
+  i18n/                 traducao.js (camada PT→EN) e en.js (dicionário)
+  audio/                audio.js (trilha e efeitos gerados no navegador)
+  nuvem/                cloud.js e config.js (contas e saves na nuvem, opcional)
+tests/                  check.js (validação), sim.js (simulação), carregar.js (carrega o jogo no Node)
+supabase/  tools/       SQL do banco · gerador do mapa
+```
+Cada arquivo começa com um comentário curto dizendo o que faz. Os testes leem a lista de `<script>` do `index.html`, então um arquivo novo entra no jogo e nos testes no mesmo lugar.
+
+## Como atualizar o jogo (guia rápido)
+Depois de qualquer mudança: `node tests/check.js` (tem que terminar com "OK" e "Simulação OK"). O check acusa ids repetidos, referências quebradas, arquivos fora do `index.html`, nomes globais repetidos e textos de ações/focos sem inglês (este último só como aviso).
+
+**Novo evento** em `js/data/2022/eventos.js`, dentro da lista `EVENTOS_2022`:
+```js
+ev("e_greve_caminhoes", "Greve dos caminhoneiros", "Rodovias bloqueadas em vários estados.", [
+  { text: "Negociar o preço do diesel.", fx: { money: -5, s: { apoio: 2 }, fac: { agro: 4 } } },
+  { text: "Mandar a PRF liberar as estradas.", fx: { s: { apoio: -3, militar: 2 }, unrestAll: 5 } } ],
+  { if: { phase: "oposicao" }, weight: 1, once: true }),
+```
+`if` usa as mesmas condições do resto do jogo (`phase`, `min`, `max`, `flags`, `fac`…). `once: true` faz o evento sair uma vez só, e `cooldown: 6` faz ele esperar 6 meses para voltar.
+
+**Nova ação** em `js/data/2022/acoes.js` (a categoria escolhe o grupo na aba Ações: `dip`, `eco`, `mil`, `pol`, `sul`):
+```js
+act("e_feira_agro", "eco", "Visitar a feira do agro", "Fotos com produtores; mercado gosta.", { ap: 1, cost: 2, fx: { fac: { agro: 6 }, money: 3 } }),
+```
+
+**Novo foco** (árvore de Decisões) em `js/data/2022/focos.js`, dentro de `nodes`:
+```js
+{ id: "s_feira", name: "Circuito das feiras", branch: "soc", x: 17, y: 4, months: 2, req: ["s_igrejas"],
+  desc: "Agenda pelo interior.", fx: { s: { apoio: 3 }, fac: { agro: 5 } } },
+```
+`x`/`y` são a posição na árvore, `req` são os pré-requisitos e `excl` os focos exclusivos. Ao concluir, o foco liga a flag `fo_<id>`, que pode liberar ações ou eventos (`show: { flags: ["fo_s_feira"] }`).
+
+**Nova facção** em `js/data/2022/campanha.js`, em `factions`:
+```js
+{ id: "policias", name: "Polícias estaduais", short: "Polícias", desc: "Pesam na ordem pública.", loyalty: 50, influence: 40, links: { militar: 0.5 } },
+```
+Toda facção precisa de um **evento de crise** (sai quando a lealdade dela despenca). Ponha em `eventos.js`:
+```js
+ev("cr_policias", "Motim nas polícias", "Batalhões cruzam os braços.", [
+  { text: "Dar o reajuste.", fx: { money: -6, fac: { policias: 10 } } },
+  { text: "Endurecer.", fx: { s: { apoio: -2 }, fac: { policias: -5 } } } ], { crisisOf: "policias" }),
+```
+Depois disso ela já pode aparecer nos efeitos (`fac: { policias: 5 }`). O check avisa se faltar o evento de crise ou se algum efeito citar uma facção que não existe.
+
+**Texto traduzido** em `js/i18n/en.js`: acrescente `"Texto em português": "English text",` dentro de `"exact"`. Para frases com números, use `"tpl"` com `{0}`, `{1}`: `"Faltam {0} meses": "{0} months left"`. O que não tiver tradução aparece em português.
+
+**Mudou o formato do save?** Suba `SAVE_VERSION` em `js/core/base.js` e escreva a migração em `js/core/saves.js`, para os saves antigos (locais e da nuvem) continuarem abrindo.
+
+**Arquivo novo** (por exemplo `js/ui/aba-nova.js` ou `css/nova.css`): crie o arquivo com um comentário de topo e acrescente a tag no `index.html`, no grupo certo. Dados entram antes do núcleo, e o núcleo antes da tela.
 
 ## Para quem vai desenvolver
 Leia o [`CONTEXTO.md`](CONTEXTO.md): arquitetura, regras de conteúdo, a camada de nuvem e os próximos passos.

@@ -16,4 +16,3 @@
   .coach .cskip:hover{border-color:var(--gold);color:var(--ink)}
   .coach .cnext{padding:7px 14px;font-size:.84rem}
   .coach .cprev{padding:7px 10px;font-size:.84rem}
-  .tutskip{position:fixed;right:12px;bottom:12px;z-index:71;background:#1f1b16;border:1px solid var(--gold);color:var(--ink);border-radius:20px;padding:8px 14px;font-family:system-ui,sans-serif;font-size:.8rem;cursor:pointer;box-shadow:0 4px 16px #000}
