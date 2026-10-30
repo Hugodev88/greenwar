@@ -16,7 +16,7 @@ function endingStoryHTML(gr){
   lines.push(`Você tomou ${G.stat.actions} ações, fechou ${G.stat.deals} acordos e concluiu ${G.focus ? G.focus.done.length : 0} decisões nacionais.`);
   const moments = endingMoments(G, 6);
   return `<section class="endsec"><h3>Sua história</h3>
-    <div class="endchips"><span class="chip">${esc(D.icone || "")} ${esc(D.label)}</span>${G.quick ? `<span class="chip">⏱️ Partida rápida</span>` : ""}
+    <div class="endchips"><span class="chip">${esc(D.icone || "")} ${esc(D.label)}</span>
       ${hi ? `<span class="chip good">Ponto forte: <b>${esc(st[hi].label)}</b> ${Math.round(G.stats[hi])}</span>` : ""}
       ${lo && lo !== hi ? `<span class="chip bad">Ponto fraco: <b>${esc(st[lo].label)}</b> ${Math.round(G.stats[lo])}</span>` : ""}</div>
     ${lines.map(l => `<p>${esc(l)}</p>`).join("")}
@@ -54,7 +54,7 @@ function renderEnding(){
     <div class="gradeline">${esc(GRADE_LINE[gr.letter])}</div>
     ${G.ended.why ? `<div class="why">Desfecho da campanha: ${esc(G.ended.why)}</div>` : ""}
     ${node.text.map(p => `<p>${esc(p)}</p>`).join("")}
-    <div class="choices endbtns"><button class="primary" id="btnReplay">↻ Jogar de novo</button><button class="secondary" id="btnOther">🔀 Tentar outro final</button><button class="secondary" id="btnShare">📣 Compartilhar</button></div>
+    <div class="choices endbtns"><button class="primary" id="btnReplay">↻ Jogar de novo</button><button class="secondary" id="btnOther">🔀 Tentar outro final</button><button class="secondary" id="btnShare">📣 Compartilhar</button><button class="secondary" id="btnScene"><span aria-hidden="true">🎬</span> <span>Rever cena</span></button></div>
     <div id="endHints" class="endsec hintsbox" hidden></div>
     ${endingStoryHTML(gr)}
     ${endingAchHTML(fresh)}
@@ -65,9 +65,11 @@ function renderEnding(){
     <div class="choices"><button class="secondary" id="btnAgain">Nova campanha (escolher modo)</button><button class="secondary" id="btnBack2">← Outros cenários</button></div>
   </div></div><div id="toast" class="toast" role="status"></div>`;
   renderMap($("#mapEnd"), G.control, G.lastMapChanges, true, {});
-  $("#btnReplay").onclick = () => startNew({ diff: G.diff || "normal", quick: !!G.quick });
+  $("#btnReplay").onclick = () => startNew({ diff: G.diff || "normal" });
   $("#btnOther").onclick = () => { const b = $("#endHints"); b.innerHTML = otherEndingsHTML(); b.hidden = false; $("#btnHintGo").onclick = openNewCampaign; b.scrollIntoView({ behavior: "smooth", block: "start" }); };
   $("#btnShare").onclick = () => shareEnding(shareText(node, gr, nAch));
   $("#btnAgain").onclick = openNewCampaign;
   $("#btnBack2").onclick = renderMenu;
+  $("#btnScene").onclick = () => playEndingScene(G);
+  if (!G.ended.anim) playEndingScene(G); // cena animada do final (js/ui/finais-animados.js), uma vez por campanha
 }

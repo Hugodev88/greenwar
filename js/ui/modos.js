@@ -1,15 +1,15 @@
-// js/ui/modos.js — Interface: janela "Nova campanha" (dificuldade e duração), selo de dificuldade no HUD e o modo simples do Fácil.
-const NEWC_KEY = "gw_newcamp_v1"; // última escolha na janela Nova campanha (dificuldade e duração)
-function lastNewChoice(){ try{ return Object.assign({ diff: "normal", quick: false }, JSON.parse(localStorage.getItem(NEWC_KEY)) || {}); }catch(e){ return { diff: "normal", quick: false }; } }
-// Selo no HUD: ícone + nome da dificuldade (+ "Rápida")
+// js/ui/modos.js — Interface: janela "Nova campanha" (só a dificuldade: existe uma duração, a campanha completa), selo de dificuldade no HUD e o modo simples do Fácil.
+const NEWC_KEY = "gw_newcamp_v1"; // última dificuldade escolhida na janela Nova campanha
+function lastNewChoice(){ try{ return Object.assign({ diff: "normal" }, JSON.parse(localStorage.getItem(NEWC_KEY)) || {}); }catch(e){ return { diff: "normal" }; } }
+// Selo no HUD: ícone + nome da dificuldade
 function diffBadgeHTML(g){
   const D = diffOf(g);
-  return `<span class="dbadge d-${esc(g.diff || "normal")}" title="Dificuldade (veja em Configurações)"><i aria-hidden="true">${D.icone}</i><span>${esc(D.label)}</span>${g.quick ? `<span class="dq">Rápida</span>` : ""}</span>`;
+  return `<span class="dbadge d-${esc(g.diff || "normal")}" title="Dificuldade (veja em Configurações)"><i aria-hidden="true">${D.icone}</i><span>${esc(D.label)}</span></span>`;
 }
 function openNewCampaign(){
   document.querySelectorAll("#newModal").forEach(x => x.remove());
-  const last = lastNewChoice(), hasQuick = !!SCEN.campaign.rapida, info = loadInfo(), sv = info.save && !info.save.ended;
-  const pick = { diff: DIFICULDADES[last.diff] ? last.diff : "normal", quick: hasQuick && !!last.quick };
+  const last = lastNewChoice(), info = loadInfo(), sv = info.save && !info.save.ended;
+  const pick = { diff: DIFICULDADES[last.diff] ? last.diff : "normal" };
   const m = document.createElement("div");
   m.className = "modal"; m.id = "newModal"; m.setAttribute("role", "dialog"); m.setAttribute("aria-modal", "true"); m.setAttribute("aria-labelledby", "newT");
   const close = () => { m.remove(); document.removeEventListener("keydown", key, true); };
@@ -20,14 +20,10 @@ function openNewCampaign(){
       <h3 class="nch">Dificuldade</h3>
       <div class="diffs" role="radiogroup" aria-label="Dificuldade">${DIF_ORDEM.map(id => { const D = DIFICULDADES[id];
         return card(pick.diff === id, `data-diff="${id}"`, D.icone, D.label, D.resumo, id === "facil" ? `<em class="rec">Recomendado para começar</em>` : ""); }).join("")}</div>
-      ${hasQuick ? `<h3 class="nch">Duração</h3><div class="diffs two" role="radiogroup" aria-label="Duração">
-        ${card(!pick.quick, `data-quick="0"`, "📜", "Campanha completa", "Cerca de 12 a 20 meses de jogo (turnos). A história no ritmo normal.")}
-        ${card(pick.quick, `data-quick="1"`, "⏱", "Partida rápida", "Cerca de 8 a 11 turnos (20 a 30 minutos). O tempo passa mais depressa e os eventos-chave chegam antes.")}</div>` : ""}
       <p class="muted sm newnote">${pick.diff === "facil" ? "No Fácil, a interface fica mais simples: os exércitos agem sozinhos, a conversão de Recursos some e as escolhas que encerram a campanha avisam antes." : "A dificuldade fica fixa até o fim da campanha. Você pode conferir qual é em Configurações."}</p>
       ${sv ? `<p class="notice">Começar uma nova campanha substitui a campanha salva.</p>` : ""}
       <div class="row2"><button class="primary" id="btnNewGo">Começar</button><button class="secondary" id="btnNewCancel">Cancelar</button></div></div>`;
     m.querySelectorAll("[data-diff]").forEach(b => b.onclick = () => { pick.diff = b.dataset.diff; draw(); const x = m.querySelector(`[data-diff="${pick.diff}"]`); if (x) x.focus(); });
-    m.querySelectorAll("[data-quick]").forEach(b => b.onclick = () => { pick.quick = b.dataset.quick === "1"; draw(); const x = m.querySelector(`[data-quick="${pick.quick ? 1 : 0}"]`); if (x) x.focus(); });
     $("#btnNewCancel").onclick = close;
     $("#btnNewGo").onclick = () => { try{ localStorage.setItem(NEWC_KEY, JSON.stringify(pick)); }catch(e){} close(); startNew(pick); };
   };
@@ -42,9 +38,8 @@ function settingsCampaignHTML(){
   const D = diffOf(G);
   return `<fieldset><legend>Campanha atual</legend>
     <div class="frow"><span>Dificuldade</span><b>${D.icone} ${esc(D.label)}</b></div>
-    <div class="frow"><span>Duração</span><b>${G.quick ? "Partida rápida" : "Campanha completa"}</b></div>
     <label class="tgl"><input type="checkbox" id="sSimple" ${G.simple ? "checked" : ""}> <span><b>Interface simples</b> — exércitos no automático, conversão de Recursos escondida e Diplomacia/Facções em “Mais”</span></label>
-    <p class="muted sm">A dificuldade e a duração são escolhidas ao começar uma campanha e não mudam no meio dela.</p></fieldset>`;
+    <p class="muted sm">A dificuldade é escolhida ao começar uma campanha e não muda no meio dela.</p></fieldset>`;
 }
 function bindSettingsCampaign(rerender){
   const s = $("#sSimple"); if (!s) return;

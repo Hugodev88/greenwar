@@ -58,3 +58,12 @@ Chinês usa pontuação de largura total (，。：（）“”) e —— para t
 | Contestação das urnas | Ballot challenge | 选举结果质疑 | Оспаривание выборов |
 | Progresso / Credibilidade / Escalada | Progress / Credibility / Escalation | 进度 / 公信力 / 升级值 | Прогресс / Доверие / Эскалация |
 | Inelegível | Ineligible | 失去参选资格 | Лишён права избираться |
+| Divisão (exército novo, por região) | Division | 师 | дивизия |
+| Juntar / Dividir em dois / Renomear (exércitos) | Join up / Split in two / Rename | 会合 / 一分为二 / 改名 | Соединиться / Разделить надвое / Переименовать |
+| Próximo exército (sem ordem) | Next army | 下一支军队 | Следующая армия |
+| Ordens do mês | This month's orders | 本月命令 | Приказы месяца |
+| Soldo (das tropas) / soldo atrasado | Troop pay / late pay | 军饷 / 欠饷 | жалованье войскам / задержка жалованья |
+| Motim (final por falta de soldo) | Mutiny | 哗变 | бунт |
+| Rever cena (final animado) | Replay scene | 重看场景 | Пересмотреть сцену |
+| Novidades / Ver todas as novidades | What's new / See all updates | 更新内容 / 查看全部更新 | Что нового / Все обновления |
+| Sugestão da Marta | Marta's suggestion | 玛尔塔的建议 | Совет Марты |

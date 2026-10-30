@@ -51,32 +51,37 @@ function applyFx(g, fx, rep){
   if (fx.southAlly) southAlly(g, rep ? (t, k) => rep.push({ t, k: k || "info" }) : null);
   syncActorStats(g);
 }
-function fxSummary(g, fx){
-  if (!fx) return "";
+// Partes do efeito, cada uma com o tom para o jogador (good: true/false/null). fxSummary junta com " · "; a aba Ações (fase 16) mostra como chips.
+function fxParts(g, fx){
+  if (!fx) return [];
   const sc = scOf(g), S = sc.story, C = sc.campaign, out = [], sg = v => (v > 0 ? "+" : "") + v;
-  if (fx.south && g.south && ["calmo", "revolta"].includes(g.south.state)) out.push(`Tensão no Sul ${sg(fx.south)}`);
-  if (fx.urna){ const u = fx.urna; if (u.prog) out.push(`Contestação ${sg(u.prog)}`); if (u.cred) out.push(`Credibilidade ${sg(u.cred)}`); if (u.esc) out.push(`Escalada ${sg(u.esc)}`); }
-  if (fx.southAlly) out.push(`O Sul vira aliado (+1 exército de ${C.south ? C.south.allyStr : 20})`);
-  if (fx.s) for (const k in fx.s) out.push(`${S.stats[k] ? S.stats[k].label : k} ${sg(fx.s[k])}`);
-  if (fx.money) out.push(`${C.money.short} ${sg(fx.money)}`);
-  if (fx.reserve) out.push(`Força militar ${sg(fx.reserve * STR_UNIT)}`);
-  if (fx.fac) for (const id in fx.fac){ const f = C.factions.find(x => x.id === id); out.push(`${f ? f.short || f.name : id} ${sg(fx.fac[id])}`); }
-  if (fx.infl) for (const id in fx.infl){ const f = C.factions.find(x => x.id === id); out.push(`Influência ${f ? f.short || f.name : id} ${sg(fx.infl[id])}`); }
-  if (fx.unrest) out.push(`Agitação nos seus estados ${sg(fx.unrest)}`);
-  if (fx.unrestAll) out.push(`Agitação geral ${sg(fx.unrestAll)}`);
-  if (fx.act) for (const id in fx.act){ const a = C.actors.find(x => x.id === id); out.push(`Opinião ${a ? a.short || a.name : id} ${sg(fx.act[id])}`); }
-  if (fx.actAll) out.push(`Opinião de todos os atores ${sg(fx.actAll)}`);
-  if (fx.enemy) out.push(`Força inimiga ${sg(fx.enemy)}`);
-  if (fx.unrestUF) out.push(`Agitação em ${Object.keys(fx.unrestUF).join("/")} ${sg(Object.values(fx.unrestUF)[0])}`);
-  if (fx.ceasefire) out.push(`Trégua de ${fx.ceasefire} ${fx.ceasefire === 1 ? "mês" : "meses"}`);
-  if (fx.malus) out.push(`Inimigo enfraquecido por ${fx.malus.months} meses`);
-  if (fx.front) out.push(`Frentes ${sg(fx.front)}`);
-  if (fx.org) out.push(`Moral dos seus exércitos ${sg(fx.org)}`);
-  if (fx.enemyLoss) out.push(`Força inimiga −${fx.enemyLoss}`);
-  if (fx.chain) out.push("Pode ter desdobramentos");
-  if (fx.opp) out.push(`Abre a oportunidade “${focusName(g, fx.opp)}”`);
-  return out.join(" · ");
+  const push0 = out.push.bind(out); let inv = false, val = 0;
+  out.push = t => push0({ t, good: val === null ? null : inv ? val < 0 : val > 0 });
+  const V = (v, i) => { val = v; inv = !!i; return true; };
+  if (fx.south && g.south && ["calmo", "revolta"].includes(g.south.state) && V(fx.south, true)) out.push(`Tensão no Sul ${sg(fx.south)}`);
+  if (fx.urna){ const u = fx.urna; if (u.prog && V(u.prog)) out.push(`Contestação ${sg(u.prog)}`); if (u.cred && V(u.cred)) out.push(`Credibilidade ${sg(u.cred)}`); if (u.esc && V(u.esc, true)) out.push(`Escalada ${sg(u.esc)}`); }
+  if (fx.southAlly && V(1, false)) out.push(`O Sul vira aliado (+1 exército de ${C.south ? C.south.allyStr : 20})`);
+  if (fx.s) for (const k in fx.s) V(fx.s[k], false) && out.push(`${S.stats[k] ? S.stats[k].label : k} ${sg(fx.s[k])}`);
+  if (fx.money && V(fx.money, false)) out.push(`${C.money.short} ${sg(fx.money)}`);
+  if (fx.reserve && V(fx.reserve * STR_UNIT, false)) out.push(`Força militar ${sg(fx.reserve * STR_UNIT)}`);
+  if (fx.fac) for (const id in fx.fac){ const f = C.factions.find(x => x.id === id); V(fx.fac[id], false) && out.push(`${f ? f.short || f.name : id} ${sg(fx.fac[id])}`); }
+  if (fx.infl) for (const id in fx.infl){ const f = C.factions.find(x => x.id === id); V(fx.infl[id], false) && out.push(`Influência ${f ? f.short || f.name : id} ${sg(fx.infl[id])}`); }
+  if (fx.unrest && V(fx.unrest, true)) out.push(`Agitação nos seus estados ${sg(fx.unrest)}`);
+  if (fx.unrestAll && V(fx.unrestAll, true)) out.push(`Agitação geral ${sg(fx.unrestAll)}`);
+  if (fx.act) for (const id in fx.act){ const a = C.actors.find(x => x.id === id); V(fx.act[id], false) && out.push(`Opinião ${a ? a.short || a.name : id} ${sg(fx.act[id])}`); }
+  if (fx.actAll && V(fx.actAll, false)) out.push(`Opinião de todos os atores ${sg(fx.actAll)}`);
+  if (fx.enemy && V(fx.enemy, true)) out.push(`Força inimiga ${sg(fx.enemy)}`);
+  if (fx.unrestUF && V(Object.values(fx.unrestUF)[0], true)) out.push(`Agitação em ${Object.keys(fx.unrestUF).join("/")} ${sg(Object.values(fx.unrestUF)[0])}`);
+  if (fx.ceasefire && V(1, false)) out.push(`Trégua de ${fx.ceasefire} ${fx.ceasefire === 1 ? "mês" : "meses"}`);
+  if (fx.malus && V(1, false)) out.push(`Inimigo enfraquecido por ${fx.malus.months} meses`);
+  if (fx.front && V(fx.front, false)) out.push(`Frentes ${sg(fx.front)}`);
+  if (fx.org && V(fx.org, false)) out.push(`Moral dos seus exércitos ${sg(fx.org)}`);
+  if (fx.enemyLoss && V(1, false)) out.push(`Força inimiga −${fx.enemyLoss}`);
+  if (fx.chain && V(null, false)) out.push("Pode ter desdobramentos");
+  if (fx.opp && V(1, false)) out.push(`Abre a oportunidade “${focusName(g, fx.opp)}”`);
+  return out;
 }
+function fxSummary(g, fx){ return fxParts(g, fx).map(p => p.t).join(" · "); }
 
 /* ---------- Mapa ---------- */
 function mapChange(g, spec){

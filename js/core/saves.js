@@ -1,4 +1,4 @@
-// js/core/saves.js — Núcleo: migração de saves antigos (v2 → v14). Ao mudar o formato do save, suba SAVE_VERSION (core/base.js) e migre aqui.
+// js/core/saves.js — Núcleo: migração de saves antigos (v2 → v15). Ao mudar o formato do save, suba SAVE_VERSION (core/base.js) e migre aqui.
 function migrateSave(g){
   if (!g || g.v === SAVE_VERSION) return g;
   if (!(g.v >= 2 && g.v < SAVE_VERSION) || !scOf(g)) return null;
@@ -11,7 +11,15 @@ function migrateSave(g){
   if (g.v === 8){ if (g.focus) focusInit(g); if (g.war) g.war.months = g.war.months || 0; g.v = 9; } // oportunidades e cansaço da guerra (campos novos começam vazios)
   if (g.v >= 9 && g.v <= 12){ migrateV13(g); g.v = 13; } // 2022: volta aos exércitos nos estados, sem regiões nem "em disputa" (js/core/frentes.js)
   if (g.v === 13){ g.urna = urnaNew(g); g.half = 0; g.halfDone = true; g.notice = null; g.v = 14; } // 2022: contestação das urnas (g.urna) e abertura em quinzenas (partidas antigas seguem mês a mês)
+  if (g.v === 14){ delete g.quick; migrateV15(g); g.v = 15; } // fase 16: só a campanha completa; exércitos com tipo, experiência e sem fusão automática
   return g.v === SAVE_VERSION ? g : null;
+}
+// v14 → v15: a partida rápida acabou (vira campanha completa; os finais por prazo já não existem). Exércitos ganham kind ("ex") e xp
+// (veteranos de partidas antigas começam com um pouco, pela moral); o soldo atrasado (g.unpaid) começa em 0.
+function migrateV15(g){
+  g.unpaid = 0;
+  const W = g.war; if (!W || !Array.isArray(W.armies)) return;
+  for (const a of W.armies){ if (!a.kind) a.kind = "ex"; if (a.xp == null) a.xp = a.side === "player" && W.months ? Math.min(30, (W.months || 0) * 3) : 0; }
 }
 // v5 → v6: cria a Tensão no Sul em partidas já no regime. Se a Liga já controla estados, ela está em revolta.
 function migrateSouth(g){

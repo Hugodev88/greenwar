@@ -68,3 +68,27 @@
   .act small{grid-column:1 / 3;color:var(--muted);font-size:.76rem}
   .act small.fx{color:#b9ad97}.act small.why{color:#e07a66}
   .actgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+/* fase 16: aba Ações com abas por área e chips de custo/efeito */
+.acttabs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;margin:6px 0 4px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.acttab{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;background:#14120f;border:1px solid var(--line);color:var(--ink);border-radius:99px;padding:7px 12px;font-size:.85rem;cursor:pointer;white-space:nowrap}
+.acttab.on{background:var(--gold);color:#1a140c;border-color:var(--gold);font-weight:700}
+.acttab .badge{background:#2e7d4f;color:#fff;border-radius:99px;padding:0 6px;font-size:.72rem}
+.act2grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.act.act2{display:flex;flex-direction:column;gap:5px;min-height:0}
+.act2 .a2top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.act2 .a2name{font-weight:700;font-size:.95rem}
+.act2 .a2cost{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.act2 .a2cost i{font-style:normal;font-size:.74rem;background:#2a241b;border:1px solid #4a3f2c;color:var(--gold);border-radius:6px;padding:1px 6px;white-space:nowrap}
+.act2 .a2cost i.lack{border-color:#a3301f;color:#ff8a76}
+.act2 .a2fx{display:flex;flex-wrap:wrap;gap:4px}
+.act2 .fxc{font-style:normal;font-size:.74rem;border-radius:6px;padding:1px 6px;background:#1f2a22;color:#8fe0a8;border:1px solid #2e5a3b}
+.act2 .fxc.down{background:#2c1a17;color:#ff9a86;border-color:#5a2e26}
+.act2 .fxc.neu{background:#22252b;color:#c7ccd4;border-color:#3a3f48}
+.act2 .fxc.risk{background:#33290f;color:#ffd166;border-color:#6b5520}
+.act2 .a2desc{color:var(--muted);font-size:.76rem;line-height:1.3}
+.act2 .a2why{font-size:.76rem;color:#ff9a86;font-weight:600}
+.act2 .a2best{font-size:.74rem;color:#ffd166;font-weight:700}
+.act2.best:not(:disabled){border-left-color:#ffd166;box-shadow:0 0 0 1px #ffd16644 inset}
+.act2.off{opacity:.62}
+.act2.off .a2desc{display:none}
+@media (max-width:520px){ .act2grid{grid-template-columns:1fr} .act.act2{padding:8px 10px} }

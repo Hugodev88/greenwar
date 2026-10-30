@@ -134,7 +134,7 @@ function frontEnemyAdd(g, fac, add){
   if (!list.length) W.epool[fac] += now;
   if (W.epool[fac] >= T.novo && !full){
     const uf = frontSpawnUF(g, "enemy", fac);
-    if (uf){ const at = tpAt(g, "enemy", uf); if (at) tpAddTo(at, W.epool[fac], D.moral); else tpNew(g, "enemy", fac, uf, W.epool[fac], D.moral); W.epool[fac] = 0; }
+    if (uf){ const at = tpAt(g, "enemy", uf); if (at && !tpRoom(g, "enemy", uf)) tpAddTo(at, W.epool[fac], D.moral); else tpNew(g, "enemy", fac, uf, W.epool[fac], D.moral); W.epool[fac] = 0; }
   }
 }
 // Lugar para um exército novo do jogador: estado seu na linha, sem exército seu, o mais perto de Brasília
@@ -158,13 +158,14 @@ function frontAuto(g, mode){
   return { ok: true, n, msg: n ? gfmt(frontFala(g, "tropas", n === 1 ? "autoUma" : "autoVarias"), n) : frontFala(g, "tropas", "autoNada") };
 }
 /* ---------- Recrutar e ofensiva especial ---------- */
-// Recruta em qualquer estado seu ligado a Brasília (forma um exército novo ou reforça o que já está lá)
+// Recruta em qualquer estado seu ligado a Brasília. Fase 16: o jogador escolhe — "reforco" (soma a um exército que já está
+// no estado; id = qual) ou "novo" (forma uma Divisão nova ali, se houver vaga no estado e não passar de T.max)
 function frontRecruitUFs(g){
   if (!g.war) return [];
   const K = tpLinked(g, "player");
   return TP_UFS.filter(uf => tpSide(g, uf) === "player" && (!K || K.has(uf)));
 }
-function frontRecruitState(g, uf){
+function frontRecruitState(g, uf, how, id){
   const K = frontCfg(g).recruta, ph = phaseOf(g), T = tpK(g);
   if (g.ended) return { ok: false, msg: "Partida encerrada." };
   if (g.queue.length) return { ok: false, msg: "Resolva os eventos pendentes na aba História." };
@@ -174,7 +175,13 @@ function frontRecruitState(g, uf){
   if (uf && (!ph.war || !g.war.fronts.length)) uf = null;
   if (uf){
     if (!frontRecruitUFs(g).includes(uf)) return { ok: false, msg: frontFala(g, "tropas", "recrutaOnde") };
-    if (!tpAt(g, "player", uf) && tpArmies(g, "player").length >= T.max) return { ok: false, msg: gfmt(frontFala(g, "tropas", "limite"), T.max) };
+    const here = tpAllAt(g, "player", uf), novo = how === "novo" || (!how && !here.length);
+    if (novo){
+      if (tpArmies(g, "player").length >= T.max) return { ok: false, msg: gfmt(frontFala(g, "tropas", "limite"), T.max) };
+      if (!tpRoom(g, "player", uf)) return { ok: false, msg: gfmt(frontFala(g, "tropas", "lotado"), T.porEstado || 3) };
+    } else if (!here.length) return { ok: false, msg: frontFala(g, "tropas", "semReforco") };
+    const into = novo ? null : (here.find(a => a.id === id) || here.slice().sort((a, b) => a.str - b.str)[0]);
+    return { ok: true, cost: K.custo, uf, novo, into: into ? into.id : null };
   }
   return { ok: true, cost: K.custo, uf };
 }
@@ -187,16 +194,16 @@ function frontRecruitPick(g){
   const ok = mine.filter(a => !K || K.has(a.uf));
   return (ok.length ? ok : mine).slice().sort((a, b) => threat(b) - threat(a) || (L[a.uf] ?? 9) - (L[b.uf] ?? 9) || a.str - b.str)[0].uf;
 }
-function frontRecruit(g, uf){
+function frontRecruit(g, uf, how, id){
   const ph = phaseOf(g), war = ph.war && g.war.fronts.length;
   if (war && !uf) uf = frontRecruitPick(g);
-  const st = frontRecruitState(g, uf); if (!st.ok) return st;
+  const st = frontRecruitState(g, uf, how, id); if (!st.ok) return st;
   const K = frontCfg(g).recruta;
   g.money -= st.cost; g.used._recruit = (+g.used._recruit || 0) + 1;
   if (!st.uf){ frontAdd(g, K.forca, K.moral); return { ok: true, msg: `+${K.forca} de tropas recrutadas (−${st.cost}).` }; }
-  const at = tpAt(g, "player", st.uf);
+  const at = st.into ? tpById(g, st.into) : null;
   if (at){ tpAddTo(at, K.forca, K.moral); return { ok: true, msg: gfmt(frontFala(g, "tropas", "msgReforca"), tpName(g, at), K.forca, st.cost) }; }
-  const a = tpNew(g, "player", null, st.uf, K.forca, K.moral);
+  const a = tpNew(g, "player", null, st.uf, K.forca, K.moral, "div");
   return { ok: true, msg: gfmt(frontFala(g, "tropas", "msgNovo"), tpName(g, a), ufName(st.uf), st.cost), id: a.id };
 }
 // Ofensiva especial: UM exército com ordem de ataque ganha ×mult de poder neste mês (custa recursos; intervalo entre usos)
@@ -220,6 +227,18 @@ function launchOffensive(g, id){
 function cancelOffensive(g, id){
   const a = tpById(g, id); if (!a || !a.special) return { ok: false };
   a.special = false; g.money += frontCfg(g).ofensiva.custo; return { ok: true, msg: "Ofensiva cancelada (recursos devolvidos)." };
+}
+/* ---------- Soldo (fase 16) ---------- */
+// Fecha o mês de guerra com os cofres muito no vermelho: soldo atrasado (g.unpaid) e moral menor; K.soldo.meses seguidos = motim (fim)
+function frontSoldo(g, R){
+  const S = frontCfg(g).soldo, W = g.war; if (!S || !W || !phaseOf(g).war || !W.fronts.length) return false;
+  if (g.money < S.limite){
+    g.unpaid = (g.unpaid || 0) + 1;
+    if (g.unpaid >= S.meses){ W.end = { to: "fim_restauracao", why: frontFala(g, "eventos", "motim"), cause: "motim" }; R(W.end.why, "bad"); return true; }
+    for (const a of tpArmies(g, "player")) a.morale = Math.max(5, a.morale - S.moral);
+    R(gfmt(frontFala(g, "eventos", "soldoAtraso"), g.unpaid, S.meses, S.moral), "bad");
+  } else if (g.unpaid){ g.unpaid = 0; R(frontFala(g, "eventos", "soldoOk"), "good"); }
+  return false;
 }
 /* ---------- O mês de guerra ---------- */
 // Cansaço da guerra: depois de WAR_WEARY_FROM meses de combate, as batalhas ficam mais sangrentas e o apoio cai devagar.
@@ -271,11 +290,11 @@ function frontWarMonth(g, R){
     if (d > 0 && W.mom >= 2) R(frontFala(g, "impeto", "sobe"), "good"); else if (d < 0 && W.mom <= -2) R(frontFala(g, "impeto", "desce"), "bad"); }
   // fim da guerra: Brasília perdida / capital (reduto) inimiga tomada
   const cap = tpCap(g);
-  if (tpSide(g, cap) === "enemy"){ W.end = { to: "fim_restauracao", why: frontFala(g, "eventos", "derrota") }; R(W.end.why, "bad"); }
+  if (tpSide(g, cap) === "enemy"){ W.end = { to: "fim_restauracao", why: frontFala(g, "eventos", "derrota"), cause: "df" }; R(W.end.why, "bad"); }
   else if (tpArmies(g, "enemy").some(e => ADJ[cap].includes(e.uf))) R(frontFala(g, "eventos", "capitalRisco"), "bad");
   for (const fac in K.frentes){
     const D = K.frentes[fac]; if (!ev.flips.some(m => m.uf === D.reduto && m.side === "player")) continue;
-    if (D.vitoria && !W.end){ W.end = { to: D.vitoria, why: frontFala(g, "eventos", "vitoria") }; R(W.end.why, "good"); }
+    if (D.vitoria && !W.end){ W.end = { to: D.vitoria, why: frontFala(g, "eventos", "vitoria"), cause: "recife" }; R(W.end.why, "good"); }
     else if (!D.vitoria) frontCrush(g, fac, R);
   }
   // às portas de Recife: primeiro exército seu vizinho de Recife (grande evento; a Resistência faz a última resistência)

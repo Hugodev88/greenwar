@@ -41,22 +41,10 @@ const CAMPAIGN_2022 = {
   ],
   enterFx: { golpe_inicial: { reserve: 4 } },
   checks: [
-    { if: { phase: "regime", sideCount: { enemy: { min: 18 } } }, to: "fim_restauracao", why: "A resistência constitucional (somada aos separatistas do Sul) passou a controlar a maioria dos estados." },
-    { if: { phase: "regime", fac: { militares: { max: 5 } } }, to: "fim_restauracao", why: "Sem a lealdade das Forças Armadas, o regime desmoronou." },
-    { if: { phase: "regime", sideCount: { player: { min: 24 } }, min: { militar: 55 }, visited: ["racha_militar"] }, to: "fim_regime", why: "O regime passou a controlar quase todo o território." }
+    { if: { phase: "regime", sideCount: { enemy: { min: 18 } } }, to: "fim_restauracao", cause: "estados", why: "A resistência constitucional (somada aos separatistas do Sul) passou a controlar a maioria dos estados." },
+    { if: { phase: "regime", fac: { militares: { max: 5 } } }, to: "fim_restauracao", cause: "militares", why: "Sem a lealdade das Forças Armadas, o regime desmoronou." },
+    { if: { phase: "regime", sideCount: { player: { min: 24 } }, min: { militar: 55 }, visited: ["racha_militar"] }, to: "fim_regime", cause: "territorio", why: "O regime passou a controlar quase todo o território." }
   ],
-  // Partida rápida (~20–30 min): meses passam mais depressa fora da guerra, os eventos-chave do regime chegam antes
-  // e a vitória militar do regime pede um pouco menos de território. O resto da campanha é o mesmo.
-  rapida: {
-    pace: [{ from: "2022-10", months: 1 }, { from: "2023-03", months: 6 }, { from: "2024-03", months: 12 }],
-    storyDelay: { reacao_internacional: 1, racha_militar: 1, guerra: 3 },
-    eventChance: 0.6,
-    checks: [
-      { if: { phase: "regime", sideCount: { enemy: { min: 18 } } }, to: "fim_restauracao", why: "A resistência constitucional (somada aos separatistas do Sul) passou a controlar a maioria dos estados." },
-      { if: { phase: "regime", fac: { militares: { max: 5 } } }, to: "fim_restauracao", why: "Sem a lealdade das Forças Armadas, o regime desmoronou." },
-      { if: { phase: "regime", sideCount: { player: { min: 21 } }, min: { militar: 50 }, visited: ["racha_militar"] }, to: "fim_regime", why: "O regime passou a controlar quase todo o território." }
-    ]
-  },
   nationalFac: "militares",
   offerFac: { bases: { militares: -6 }, concessoes: { agro: 3, movimentos: -3 }, commodities: { agro: 5 } },
   offLabels: { commodities: "Soja, minério e petróleo", bases: "Acesso à Base de Alcântara", onu: "Votos na ONU", concessoes: "Concessões (minerais críticos, infraestrutura)", alinhamento: "Alinhamento geopolítico" },

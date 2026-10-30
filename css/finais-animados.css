@@ -1,0 +1,91 @@
+/* css/finais-animados.css — Cena animada de cada final (fase 16, js/ui/finais-animados.js).
+   Regra: o estilo "parado" de cada peça é o quadro final; as animações só levam até ele.
+   Assim, com reduzir animações (.fa-rm / body.rm / prefers-reduced-motion), basta desligar as animações. */
+.overlay.fa-ov{z-index:70;background:radial-gradient(circle at 50% 35%,#1c2230f0,#05070bf8 75%);display:flex;align-items:center;justify-content:center;padding:12px}
+.fa-box{position:relative;width:min(620px,100%);border-radius:16px;overflow:hidden;background:#0d1118;box-shadow:0 20px 60px #000b;animation:faIn .5s ease both}
+.fa-scene{position:relative;aspect-ratio:400/240;width:100%;overflow:hidden}
+.fa-scene svg{display:block;width:100%;height:100%}
+.fa-skip{position:absolute;top:8px;right:8px;z-index:3;padding:6px 12px;font-size:.85rem;background:#000a;color:#fff;border-color:#fff4}
+.fa-txt{padding:14px 18px 18px;text-align:center;color:#f2f4f7}
+.fa-txt h2{margin:6px 0 4px;font-size:clamp(1.3rem,4.6vw,1.9rem);animation:faUp .6s .5s ease both}
+.fa-txt p{margin:0 0 12px;opacity:.88;animation:faUp .6s .8s ease both}
+.fa-tag{display:inline-block;padding:3px 12px;border-radius:99px;font-weight:700;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;animation:faUp .5s .3s ease both}
+.fa-vit .fa-tag{background:#2e7d4f;color:#fff}.fa-der .fa-tag{background:#a3301f;color:#fff}.fa-par .fa-tag{background:#8a6d1f;color:#fff}
+.fa-vit .fa-box{box-shadow:0 0 0 2px #ffd16655,0 20px 60px #000b}.fa-der .fa-box{box-shadow:0 0 0 2px #c0392b55,0 20px 60px #000b}
+.fa-go{min-width:160px;animation:faUp .5s 1.2s ease both}
+.fa-stamp{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%) rotate(-12deg);border:4px solid #e04a3a;color:#e04a3a;font-weight:900;letter-spacing:.08em;font-size:clamp(1.1rem,6vw,2.2rem);padding:2px 14px;border-radius:8px;background:#0006;animation:faStamp .45s 1.3s cubic-bezier(.3,1.6,.5,1) both}
+.fa-k-restauracao .fa-stamp{border-color:#2ecc71;color:#ffd166;top:28%}
+/* peças */
+.fa-flagup{transform:translateY(0);animation:faFlag 1.6s .3s ease-out both}
+.fa-flagup path{transform-box:fill-box;transform-origin:left center;animation:faWave 1.2s 1.9s ease-in-out infinite alternate}
+.fa-burst{transform-box:fill-box;opacity:0;animation:faBurst 1.4s ease-out infinite}
+.fa-burst line{stroke-dasharray:16;stroke-dashoffset:0}
+.fa-sun{animation:faFade 1.5s ease both}
+.fa-wave{animation:faSlide 3s linear infinite}
+.fa-smoke{opacity:0;animation:faSmoke 2.6s ease-out infinite}
+.fa-glow{animation:faPulse 1.8s ease-in-out infinite alternate}
+.fa-tank{animation:faTank 2.2s .4s ease-out both}
+.fa-coin{opacity:0;animation:faCoin 1s ease-in both}
+.fa-porta{transform-box:fill-box;transform-origin:left center;transform:perspective(200px) rotateY(-70deg);animation:faDoor .7s .1s ease-out both}
+.fa-sold{opacity:.8;animation:faFadeTo 1.2s ease both}
+.fa-rifle{transform:rotate(80deg) translateY(10px);animation:faRifle .6s ease-in both}
+.fa-star{transform-box:fill-box;opacity:0;animation:faStarFall 1.2s ease-in both}
+.fa-uf{fill:#c0392b;animation:faUF .5s ease both}
+.fa-voto{opacity:0;animation:faVoto .7s ease-in both}
+.fa-check{stroke-dasharray:110;stroke-dashoffset:0;animation:faDraw .8s 1.3s ease-out both}
+.fa-conf{opacity:0;animation:faConf 2.8s linear infinite}
+.fa-sunrise{animation:faRise 2s ease-out both}
+.fa-faixa{animation:faFade .8s 1.2s ease both}
+.fa-martelo{transform-box:view-box;transform-origin:200px 160px;animation:faGavel .9s .3s cubic-bezier(.6,0,.9,.4) both}
+.fa-impact{transform-box:fill-box;transform-origin:center;opacity:0;animation:faImpact .7s 1.15s ease-out both}
+.fa-metade1{transform:translateX(-14px) rotate(-3deg);animation:faHalf1 1.6s .9s ease-in-out both}
+.fa-metade2{transform:translateX(14px) rotate(3deg);animation:faHalf2 1.6s .9s ease-in-out both}
+.fa-crack{stroke-dasharray:200;stroke-dashoffset:0;opacity:0;animation:faCrack 1.1s .1s ease both}
+.fa-povo{animation:faPop .5s ease-out both}
+.fa-faixa2{animation:faUpSvg .8s 1s ease-out both}
+.fa-luz{animation:faPulse 1.6s ease-in-out infinite alternate}
+.fa-passa{transform:translateX(108px);animation:faPass 1.8s .6s ease-in-out both}
+.fa-anda{transform:translateX(240px);opacity:.25;animation:faWalk 4.5s .2s linear both}
+.fa-nevoa{opacity:.35;animation:faFog 4s ease both}
+.fa-algema{animation:faCuff .9s .7s cubic-bezier(.3,1.5,.5,1) both}
+.fa-aviao{transform:translate(360px,-150px);animation:faFly 3.6s .3s ease-in both}
+/* quadros */
+@keyframes faIn{from{transform:scale(.92);opacity:0}}
+@keyframes faUp{from{transform:translateY(12px);opacity:0}}
+@keyframes faStamp{from{transform:translate(-50%,-50%) rotate(-12deg) scale(2.4);opacity:0}}
+@keyframes faFlag{from{transform:translateY(110px)}}
+@keyframes faWave{to{transform:skewY(4deg) scaleX(.94)}}
+@keyframes faBurst{0%{opacity:0;transform:scale(.2)}15%{opacity:1}100%{opacity:0;transform:scale(1.5)}}
+@keyframes faFade{from{opacity:0}}
+@keyframes faFadeTo{from{opacity:1}}
+@keyframes faSlide{to{transform:translateX(-40px)}}
+@keyframes faSmoke{0%{opacity:0;transform:translateY(0) scale(.6)}25%{opacity:.6}100%{opacity:0;transform:translateY(-110px) scale(1.8)}}
+@keyframes faPulse{to{opacity:.35}}
+@keyframes faTank{from{transform:translateX(-90px)}to{transform:translateX(20px)}}
+.fa-tank{transform:translateX(20px)}
+@keyframes faCoin{0%{opacity:1;transform:translateY(-10px)}100%{opacity:0;transform:translateY(46px)}}
+@keyframes faDoor{from{transform:none}}
+@keyframes faRifle{from{transform:none}}
+@keyframes faStarFall{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(40px) rotate(90deg)}}
+@keyframes faUF{from{fill:#2a5d93}}
+@keyframes faVoto{0%{opacity:1;transform:translateY(0)}85%{opacity:1}100%{opacity:0;transform:translateY(68px)}}
+@keyframes faDraw{from{stroke-dashoffset:110}}
+@keyframes faConf{0%{opacity:1;transform:translate(0,0)}100%{opacity:.9;transform:translate(var(--cx,0),260px)}}
+@keyframes faRise{from{transform:translateY(70px)}}
+@keyframes faGavel{0%{transform:rotate(-55deg)}70%{transform:rotate(-55deg)}100%{transform:rotate(0)}}
+@keyframes faImpact{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(1.8)}}
+@keyframes faHalf1{from{transform:none}}
+@keyframes faHalf2{from{transform:none}}
+@keyframes faCrack{from{stroke-dashoffset:200;opacity:1}60%{opacity:1}to{opacity:0}}
+@keyframes faPop{from{transform:translateY(60px)}}
+@keyframes faUpSvg{from{transform:translateY(80px);opacity:0}}
+@keyframes faPass{from{transform:none}}
+@keyframes faWalk{from{transform:none;opacity:1}}
+@keyframes faFog{from{opacity:0}}
+@keyframes faCuff{from{transform:translateY(-80px);opacity:0}}
+@keyframes faFly{from{transform:none}}
+/* reduzir animações: só o quadro final (as peças que somem ficam escondidas) */
+.fa-rm *, body.rm .fa-ov *{animation:none !important}
+.fa-rm .fa-crack, body.rm .fa-crack{opacity:.6}
+@media (prefers-reduced-motion: reduce){ .fa-ov *{animation:none !important} }
+@media (max-width:520px){ .fa-txt{padding:10px 12px 14px} .fa-txt p{font-size:.92rem} }

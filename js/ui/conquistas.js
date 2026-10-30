@@ -32,10 +32,10 @@ function achRecord(){
 function shareURL(){ return /^https?:/.test(location.protocol) ? location.origin + location.pathname : "https://hugodev88.github.io/greenwar/"; }
 function shareText(node, gr, nAch){
   const D = diffOf(G), months = G.month - G.startMonth, total = CONQUISTAS.length;
-  if (SET.lang === "zh") return `我在 Greenwar 中通关了“${trText(SCEN.title)}”：结局“${trText(node.endingName)}”，评级 ${gr.letter}（${trText(D.label)}${G.quick ? "，快速对局" : ""}），用时 ${months} 个月。成就 ${nAch}/${total}。来玩：${shareURL()}`;
-  if (SET.lang === "ru") return `Я прошёл «${trText(SCEN.title)}» в Greenwar: концовка «${trText(node.endingName)}», оценка ${gr.letter} (${trText(D.label)}${G.quick ? ", быстрая партия" : ""}), за ${months} мес. Достижения: ${nAch} из ${total}. Играть: ${shareURL()}`;
-  if (SET.lang === "en") return `I finished “${trText(SCEN.title)}” in Greenwar: ending “${trText(node.endingName)}”, grade ${gr.letter} (${trText(D.label)}${G.quick ? ", quick game" : ""}), in ${months} months. ${nAch} of ${total} achievements. Play: ${shareURL()}`;
-  return `Terminei “${SCEN.title}” no Greenwar: final “${node.endingName}”, nota ${gr.letter} (${D.label}${G.quick ? ", partida rápida" : ""}), em ${months} meses. ${nAch} de ${total} conquistas. Jogue: ${shareURL()}`;
+  if (SET.lang === "zh") return `我在 Greenwar 中通关了“${trText(SCEN.title)}”：结局“${trText(node.endingName)}”，评级 ${gr.letter}（${trText(D.label)}），用时 ${months} 个月。成就 ${nAch}/${total}。来玩：${shareURL()}`;
+  if (SET.lang === "ru") return `Я прошёл «${trText(SCEN.title)}» в Greenwar: концовка «${trText(node.endingName)}», оценка ${gr.letter} (${trText(D.label)}), за ${months} мес. Достижения: ${nAch} из ${total}. Играть: ${shareURL()}`;
+  if (SET.lang === "en") return `I finished “${trText(SCEN.title)}” in Greenwar: ending “${trText(node.endingName)}”, grade ${gr.letter} (${trText(D.label)}), in ${months} months. ${nAch} of ${total} achievements. Play: ${shareURL()}`;
+  return `Terminei “${SCEN.title}” no Greenwar: final “${node.endingName}”, nota ${gr.letter} (${D.label}), em ${months} meses. ${nAch} de ${total} conquistas. Jogue: ${shareURL()}`;
 }
 async function shareEnding(text){
   try { if (navigator.share){ await navigator.share({ title: "Greenwar", text }); return; } } catch(e){ if (e && e.name === "AbortError") return; }

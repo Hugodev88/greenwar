@@ -4,7 +4,7 @@ function endingGrade(g){
   const sc = scOf(g), outcome = endingOutcome(sc, g.ended && g.ended.node) || "parcial";
   const keys = Object.keys(g.stats), avg = keys.reduce((s, k) => s + g.stats[k], 0) / Math.max(1, keys.length);
   const war = (g.stat.battles || 0) > 0, terr = war ? Math.round(10 * sideCounts(g).player / 27) : NOTA_PAZ; // sem guerra: pontos fixos
-  const done = g.focus ? g.focus.done.length : 0, foc = g.focus ? Math.min(5, Math.round(done * 5 / (g.quick ? 5 : 8))) : 3;
+  const done = g.focus ? g.focus.done.length : 0, foc = g.focus ? Math.min(5, Math.round(done * 5 / 8)) : 3;
   const sul = (g.flags || []).some(f => f === "sul_aliado" || f === "sul_armisticio") ? NOTA_SUL : 0;
   const parts = [["Tipo de final", NOTA_BASE[outcome] || 30], ["Atributos no fim", Math.round(avg * 0.3)], [war ? "Território" : "Sem guerra", terr], ["Decisões nacionais", foc]];
   if (sul) parts.push(["Paz com o Sul", sul]);

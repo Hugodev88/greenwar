@@ -53,7 +53,13 @@ function advisorTips(g, ctx){
     if (best) tips.push({ id: "sul", pri: 78 + (g.south.t >= 75 ? 10 : 0), head: "Tensão no Sul", text: `A tensão está em ${Math.round(g.south.t)} de 100. Em 100 o Sul se rebela. Esta ação ajuda a acalmar:`, sub: best.a.name, act: { k: "action", id: best.a.id } });
   }
   // guerra de 2022 (exércitos nos estados): defesa, ataque, ofensiva especial, comando automático e recrutamento
-  if (ph.war && !ph.noArmies && frontMode(g)) advisorFrontTips(g, tips);
+  if (ph.war && !ph.noArmies && frontMode(g)){
+    advisorFrontTips(g, tips);
+    // soldo (fase 16): cofres perto do limite → aviso do motim
+    const S = frontCfg(g).soldo;
+    if (S && g.war && g.war.fronts.length && (g.money < S.limite + 8 || g.unpaid > 0))
+      tips.push({ id: "soldo", pri: 88 + (g.unpaid || 0) * 4, head: "Soldo das tropas", text: g.unpaid ? "O soldo já está atrasado. Mais alguns meses assim e as tropas se amotinam — e a campanha acaba. Consiga Recursos já (converta Apoio ou Base em Recursos, corte o recrutamento)." : "Os cofres estão quase no vermelho. Se o mês fechar com menos de −10 Recursos, o soldo atrasa; 3 meses seguidos e as tropas se amotinam.", act: { k: "tab", tab: "acoes" }, btn: "Ver ações" });
+  }
   // guerra: exércitos sem ordem
   else if (ph.war && !ph.noArmies){
     const mine = armiesOf(g, "player"), idle = mine.filter(a => !a.order).length;

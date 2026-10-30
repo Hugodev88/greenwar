@@ -28,7 +28,7 @@ function queueChoices(g){
   const sc = scOf(g);
   if (q.type === "story"){ const CF = (sc.campaign.choiceFx || {})[q.node] || [];
     return sc.story.nodes[q.node].choices.map((c, i) => { const u = CF[i] && CF[i].urna, fx = c.effects || u ? Object.assign(c.effects ? { s: c.effects } : {}, u ? { urna: u } : {}) : null;
-      return { text: g.quick && c.textRapida ? c.textRapida : c.text, ok: cond(g, c.req), req: c.req, fx, urna: !!c.urna }; }); }
+      return { text: c.text, ok: cond(g, c.req), req: c.req, fx, urna: !!c.urna }; }); }
   const ev = findEvent(g, q.id);
   return ev.choices.map(c => ({ text: c.text, ok: cond(g, c.req), req: c.req, fx: c.fx }));
 }
@@ -44,7 +44,7 @@ function choose(g, idx){
     if (c.flag && !g.flags.includes(c.flag)) g.flags.push(c.flag);
     if (c.map || c.split) mapChange(g, { map: c.map, split: c.split });
     syncActorStats(g);
-    g.history.push({ m: g.month, t: g.quick && c.textRapida ? c.textRapida : c.text });
+    g.history.push({ m: g.month, t: c.text });
     for (const k in S.collapse) if (g.stats[k] <= 0){ enterStory(g, collapseTo(g, k)); return true; }
     const next = resolveNextG(c.next, g), nn = S.nodes[next];
     if (nn.ending){ enterStory(g, next); return true; }
@@ -65,10 +65,13 @@ function choose(g, idx){
   if (!g.ended) for (const k in S.collapse) if (g.stats[k] <= 0){ enterStory(g, collapseTo(g, k)); break; }
   return true;
 }
-function endCampaign(g, node, why){
+// cause (fase 16): por que acabou — escolhe a cena animada do final (js/ui/finais-animados.js): "df", "recife", "motim",
+// "estados", "militares", "territorio", "urnas", "cassado"; sem cause, a cena é a do próprio final
+function endCampaign(g, node, why, cause){
   if (g.ended) return;
   g.queue = [];
   g.ended = { node, why: why || null, month: g.month };
+  if (cause) g.ended.cause = cause;
   g.story = { node, due: g.month, pending: false };
   const n = scOf(g).story.nodes[node];
   if (n && n.onEnter && why) mapChange(g, n.onEnter); // finais por estado da campanha também aplicam o mapa final

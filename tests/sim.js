@@ -3,18 +3,18 @@
 // em cada cenário e verifica falhas, invariantes, finais alcançáveis e equilíbrio.
 // "golpista" segue o roteiro do golpe sem se preocupar com o Sul; "pacificador" segue o mesmo roteiro, mas usa as
 // ações e escolhas que baixam a Tensão no Sul (mede se dá para evitar a rebelião da Liga do Sul).
-// Uso: node tests/sim.js [partidas_por_IA=300] [cenário] [--dif=facil|normal|dificil] [--rapida] [--conselheira]
+// Uso: node tests/sim.js [partidas_por_IA=300] [cenário] [--dif=facil|normal|dificil] [--conselheira]
 // --conselheira (automático no Fácil) acrescenta a IA "conselheira": história como a iniciante e, no resto, só aperta "Fazer isso" nas dicas.
 // --golpe acrescenta a IA "golpista_conselheira" (até o golpe só segue as dicas da conselheira na linha do golpe, inclusive nas
 //   escolhas da história; depois joga como a golpista) e imprime a linha "golpe:" (reunião, tentativa, golpe consumado, fracasso, recuo).
 // "eleitoral" contesta as urnas pelas vias legais (cena 'A Ação no TSE' → frente legal): usa as ações e focos da contestação,
 //   segura a escalada abaixo de 60 e a credibilidade acima de 30 (35% das partidas jogam "ousado": pressionam mais e arriscam); depois que a contestação acaba, joga como a gulosa.
 // --notas imprime a distribuição da nota final (S/A/B/C) e das conquistas por IA (automático fora do Normal).
-// Sem --dif/--rapida joga o modo Normal, campanha completa (o jogo original) e grava sim-resultados.json.
+// Sem --dif joga o modo Normal (o jogo original; só existe a campanha completa — a partida rápida saiu na fase 16) e grava sim-resultados.json.
 const fs = require("fs");
 const JOGO = require("./carregar.js");
 const code = JOGO.codigo;
-const API = new Function(code + `; return { SCENARIOS, MAP_DATA, convertMoney, apFor, moneyCap, newCampaign, queueChoices, choose, endTurn, visibleActions, actionState, doAction,
+const API = new Function(code + `; return { frontCfg, SCENARIOS, MAP_DATA, convertMoney, apFor, moneyCap, newCampaign, queueChoices, choose, endTurn, visibleActions, actionState, doAction,
   mapActions, doMapAction, factionAction, allowedReqs, allowedOffs, dealScore, dealCheck, proposeDeal, acceptCounter, diploMission,
   phaseOf, sideOf, sideCounts, playerUFs, findEvent, fxSummary, incomeFor, monthLabel, OFF_TYPES,
   focusTree, focusStatus, focusCheck, startFocus, focusDef,
@@ -23,11 +23,11 @@ const API = new Function(code + `; return { SCENARIOS, MAP_DATA, convertMoney, a
   urnaOn, urnaMeta, urnaMult,
   ...(typeof southFactors === "function" ? { southFactors, southRate, southEta, autoOrders, clearOrders, setAutoOrders, nodeView } : {}) };`)();
 const ARGS = process.argv.slice(2).filter(a => !a.startsWith("--")), FLAGS = process.argv.slice(2).filter(a => a.startsWith("--"));
-const OPTS = { diff: ((FLAGS.find(a => a.startsWith("--dif=")) || "").split("=")[1]) || "normal", quick: FLAGS.includes("--rapida") };
+const OPTS = { diff: ((FLAGS.find(a => a.startsWith("--dif=")) || "").split("=")[1]) || "normal" };
 const ADV = FLAGS.includes("--conselheira") || OPTS.diff === "facil"; // IA que só segue as dicas da conselheira
 const NOTAS = FLAGS.includes("--notas");
 const GOLPE = FLAGS.includes("--golpe"); // IA golpista com conselheira + linha "golpe:"
-const VARIANT = OPTS.diff !== "normal" || OPTS.quick || ADV; // modo diferente do original: imprime a taxa de vitória e não grava o JSON
+const VARIANT = OPTS.diff !== "normal" || ADV; // modo diferente do original: imprime a taxa de vitória e não grava o JSON
 const N = +ARGS[0] || 300;
 let fails = 0;
 const fail = (m) => { fails++; if (fails < 25) console.log("  ✗ " + m); };
@@ -72,11 +72,13 @@ function invariants(g, sc){
 }
 
 // Pontuação de uma escolha para a IA gulosa: sobe os atributos mais baixos.
+// Soldo (fase 16): com os cofres perto do limite do soldo (ou já atrasado), as IAs "espertas" priorizam Recursos e não recrutam
+function soldoRisk(g){ const S = API.frontMode(g) && API.frontCfg(g).soldo; return !!(S && API.phaseOf(g).war && (g.unpaid || g.money < S.limite + 5)); }
 function scoreFx(g, sc, fx, storyEff){
   let s = 0;
   const st = Object.assign({}, storyEff || {}, (fx && fx.s) || {});
   for (const k in st) s += st[k] * (g.stats[k] < 35 ? 2.2 : g.stats[k] > 70 ? 0.4 : 1);
-  if (fx){ s += (fx.money || 0) * (g.money < 8 ? 0.8 : 0.3); s += (fx.reserve || 0) * 3;
+  if (fx){ s += (fx.money || 0) * (soldoRisk(g) ? 1.6 : g.money < 8 ? 0.8 : 0.3); s += (fx.reserve || 0) * 3;
     for (const id in (fx.fac||{})) s += fx.fac[id] * (g.fac[id] && g.fac[id].loyalty < 25 ? 0.6 : 0.15);
     s -= (fx.unrest || 0) * 0.1 + (fx.unrestAll || 0) * 0.2; }
   return s;
@@ -195,7 +197,7 @@ function frontOrders(g, sc, r, greedy){
     if (r() < 0.1){ const a = API.tpArmies(g, "player").find(x => x.order && x.order.type === "atacar"); if (a && API.offensiveState(g, a.id).ok) API.launchOffensive(g, a.id); }
     return;
   }
-  for (let k = 0; k < 2 && g.money >= API.recruitCost(g) + 15; k++) if (!API.recruitArmy(g).ok) break;
+  for (let k = 0; k < 2 && !g.unpaid && g.money >= API.recruitCost(g) + 15; k++) if (!API.recruitArmy(g).ok) break;
   g.stat.orders += API.frontAuto(g, "auto").n || 0;
   if (g.money >= 25){ const c = API.tpArmies(g, "player").filter(a => a.order && a.order.type === "atacar").map(a => ({ a, ch: API.tpChance(g, a, a.order.to).chance })).filter(x => x.ch >= 0.4 && x.ch < 0.85).sort((x, y) => y.ch - x.ch)[0];
     if (c && API.offensiveState(g, c.a.id).ok) API.launchOffensive(g, c.a.id); }
@@ -321,7 +323,9 @@ function play(sc, seed, greedy, novice, advisor){
     if (g.mil && g.mil.war && API.frontMode(g)) for (const b of g.mil.battles){ const R = API.frontReport(g, b);
       if (!R.summary || !R.rows.length || !Number.isFinite(R.power.p + R.power.e + R.chance)) return { err: `relatório de batalha inválido (${b.uf})`, g }; }
     if (g.war){ const W = g.war; if (!(W.reserve >= 0) || (W.armies || []).some(a => !(a.str > 0) || !(a.morale >= 0 && a.morale <= 100) || !API.ADJ[a.uf] || !API.tpOwn(g, a, a.uf))) return { err: "estado dos exércitos inválido", g };
-      { const k = new Set((W.armies || []).map(a => a.side + a.uf)); if (k.size !== (W.armies || []).length) return { err: "dois exércitos do mesmo lado no mesmo estado", g }; }
+      { const cap = API.frontCfg(g).tropas.porEstado || 3, n = {}; // fase 16: exércitos separados, até "porEstado" do mesmo lado por estado
+        for (const a of W.armies || []){ const k = a.side + a.uf; if ((n[k] = (n[k] || 0) + 1) > cap) return { err: `mais de ${cap} exércitos do mesmo lado no mesmo estado`, g }; }
+        if (new Set((W.armies || []).map(a => a.id)).size !== (W.armies || []).length) return { err: "id de exército repetido", g }; }
       if (W.fronts.length > 2 || new Set(W.fronts.map(f => f.id)).size !== W.fronts.length) return { err: "frentes duplicadas", g };
       if ((g.armies || []).length) return { err: "exércitos no modo frentes", g }; }
     if (g.battleLog && g.battleLog.length > 30) return { err: "battleLog acima de 30", g };
@@ -343,7 +347,7 @@ for (const sc of API.SCENARIOS){
   if (ARGS[1] && sc.id !== ARGS[1]) continue;
   if (sc.locked && ARGS[1] !== sc.id) continue; // cenário bloqueado: só roda se pedido explicitamente (node sim.js N brasil1964)
   const endings = Object.entries(sc.story.nodes).filter(([, n]) => n.ending).map(([id]) => id);
-  console.log(`\n[${sc.year}] ${sc.title}${VARIANT ? ` — dificuldade ${OPTS.diff}${OPTS.quick ? ", partida rápida" : ""}` : ""}${sc.locked ? " (bloqueado — teste de integridade)" : ""}`);
+  console.log(`\n[${sc.year}] ${sc.title}${VARIANT ? ` — dificuldade ${OPTS.diff}` : ""}${sc.locked ? " (bloqueado — teste de integridade)" : ""}`);
   const R = report[sc.id] = {}; FC[sc.id] = {}; const EVC = {};
   for (const mode of ["aleatoria", ...(OPTS.diff === "facil" || ADV ? ["iniciante"] : []), ...(ADV ? ["conselheira"] : []), "gulosa", "radical", ...(sc.campaign.urna ? ["eleitoral"] : []), ...(COUP[sc.id] ? ["golpista", ...(GOLPE && sc.golpe ? ["golpista_conselheira"] : []), ...(sc.campaign.south ? ["pacificador"] : [])] : [])]){
     if (COUPISH(mode)) sc.campaign.coupScript = COUP[sc.id];
@@ -352,7 +356,7 @@ for (const sc of API.SCENARIOS){
     const SU = { war: 0, rebel: 0, peak: 0, ally: 0, truce: 0, crushed: 0 };
     const GR = { S: 0, A: 0, B: 0, C: 0 }, ACH = {}, GO = {}, GL = { reuniao: 0, tentou: 0, consumado: 0, fracassou: 0, recuou: 0, regime: 0, mil: 0, milN: 0, pront: 0 };
     const UR = { noWar: 0, julg: 0, adiada: 0, esc: 0, urnas: 0, cassado: 0, contest: 0 };
-    const WS = { n: 0, months: 0, bat: 0, won: 0, att: 0, attWon: 0, peak: 0, s0: 0, s1: 0, gained: 0, end: {} };
+    const WS = { n: 0, months: 0, bat: 0, won: 0, att: 0, attWon: 0, peak: 0, s0: 0, s1: 0, gained: 0, end: {}, cause: {} };
     for (let i = 1; i <= N; i++){
       let res;
       try { res = play(sc, i, mode === "aleatoria" || mode === "iniciante" || mode === "conselheira" ? false : mode === "gulosa" ? true : mode, mode === "iniciante" || mode === "conselheira", mode === "conselheira"); } catch (e) { crashes++; fail(`${sc.id}/${mode}#${i}: exceção ${e.stack.split("\n").slice(0,2).join(" ")}`); continue; }
@@ -371,7 +375,7 @@ for (const sc of API.SCENARIOS){
       via[g.ended.why ? "campanha" : "historia"]++; deals += g.stat.deals; battles += g.stat.battles; orders += g.stat.orders || 0;
       { const E = g.simEco; ES.turns += E.turns; ES.ap += E.apSum; ES.money += E.moneySum; ES.max += E.moneyMax; ES.maxAll = Math.max(ES.maxAll, E.moneyMax); ES.rich += E.rich; ES.endMoney += g.money; ES.fac += E.facPaid || 0; ES.conv += E.conv || 0; }
       if (g.simWar.months){ SU.war++; if (g.simSouth.rebel) SU.rebel++; SU.peak += g.simSouth.peak; if (g.flags.includes("sul_aliado")) SU.ally++; if (g.flags.includes("sul_armisticio")) SU.truce++; if (g.flags.includes("sul_esmagado")) SU.crushed++; }
-      if (g.simWar.months){ WS.n++; WS.months += g.simWar.months; WS.bat += g.simWar.bat; WS.won += g.simWar.won; WS.att += g.simWar.att; WS.attWon += g.simWar.attWon; WS.peak += g.simWar.peak; WS.s0 += g.simWar.statesStart; WS.s1 += g.simWar.statesEnd; if (g.simWar.statesEnd > g.simWar.statesStart) WS.gained++; WS.end[g.ended.node] = (WS.end[g.ended.node] || 0) + 1; }
+      if (g.simWar.months){ WS.n++; WS.months += g.simWar.months; WS.bat += g.simWar.bat; WS.won += g.simWar.won; WS.att += g.simWar.att; WS.attWon += g.simWar.attWon; WS.peak += g.simWar.peak; WS.s0 += g.simWar.statesStart; WS.s1 += g.simWar.statesEnd; if (g.simWar.statesEnd > g.simWar.statesStart) WS.gained++; WS.end[g.ended.node] = (WS.end[g.ended.node] || 0) + 1; const ca = g.ended.cause || "outra"; WS.cause[ca] = (WS.cause[ca] || 0) + 1; }
       { const evs = g.history.filter(h => h.ev); evN += evs.length; evMonths += g.month - g.startMonth;
         for (const id in g.eventSeen) EVC[id] = (EVC[id] || 0) + 1;
         let last = g.startMonth; for (const h of evs){ evMaxGap = Math.max(evMaxGap, h.m - last); last = h.m; } }
@@ -397,7 +401,7 @@ for (const sc of API.SCENARIOS){
       if (!VARIANT && capN / N > 0.01 && !sc.locked) fail(`${sc.id}/${mode}: ${capN} partidas bateram o teto do simulador (${SIM_CAP} turnos)`); }
     if (WS.n){
       const pc = (a, b) => b ? Math.round(100 * a / b) + "%" : "-";
-      console.log(`    guerra: ${WS.n} partidas com guerra · ${(WS.months / WS.n).toFixed(1)} meses · batalhas vencidas ${pc(WS.won, WS.bat)} (seus ataques ${pc(WS.attWon, WS.att)}) · força máx. média ${(WS.peak / WS.n).toFixed(0)} · estados ${(WS.s0 / WS.n).toFixed(1)} → ${(WS.s1 / WS.n).toFixed(1)} (ganhou território em ${pc(WS.gained, WS.n)}) · finais: ${Object.entries(WS.end).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + " " + pc(v, WS.n)).join(", ")}`);
+      console.log(`    guerra: ${WS.n} partidas com guerra · ${(WS.months / WS.n).toFixed(1)} meses · batalhas vencidas ${pc(WS.won, WS.bat)} (seus ataques ${pc(WS.attWon, WS.att)}) · força máx. média ${(WS.peak / WS.n).toFixed(0)} · estados ${(WS.s0 / WS.n).toFixed(1)} → ${(WS.s1 / WS.n).toFixed(1)} (ganhou território em ${pc(WS.gained, WS.n)}) · finais: ${Object.entries(WS.end).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + " " + pc(v, WS.n)).join(", ")} · causas: ${Object.entries(WS.cause).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + " " + pc(v, WS.n)).join(", ")}`);
     }
     if (SU.war){ const pc = (a, b) => b ? Math.round(100 * a / b) + "%" : "-";
       console.log(`    Sul: rebelião da Liga do Sul em ${pc(SU.rebel, SU.war)} das partidas com guerra · tensão máx. média ${(SU.peak / SU.war).toFixed(0)} · Sul aliado ${pc(SU.ally, SU.war)} · armistício ${pc(SU.truce, SU.war)} · revolta esmagada ${pc(SU.crushed, SU.war)} · vitória (fim_regime) ${pc((dist.fim_regime || 0), N)}`); }

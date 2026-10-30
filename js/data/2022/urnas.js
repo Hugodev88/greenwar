@@ -3,7 +3,7 @@
 /* ---------- Abertura em quinzenas ---------- */
 // Até "ate" (ou até a guerra começar) cada turno vale meia-mês: receita pela metade, eventos com metade da chance,
 // ações renovadas a cada quinzena e cada quinzena conta como um passo do foco nacional (mais decisões nacionais).
-const QUINZENAS_2022 = { ate: "2023-03", ateRapida: "2023-01", foco: 1, evento: 0.5 };
+const QUINZENAS_2022 = { ate: "2023-03", foco: 1, evento: 0.5 };
 /* ---------- Contestação das urnas ---------- */
 // Três números (0–100): Progresso da contestação (chega a 100 = vitória), Credibilidade (0 = inelegível) e Escalada (100 = as ruas
 // saem do controle e a crise vira caso de quartel). Ganhos de progresso são multiplicados pela credibilidade.
@@ -15,7 +15,6 @@ const URNAS_2022 = {
   // por quinzena (um turno de mês vale o dobro)
   passivo: { base: 0.5, apoio: 0.06, baseStat: 0.08, centrao: 0.05 }, // progresso: 1 + (Apoio−50)·0,06 + (Base−50)·0,08 + (Centrão−45)·0,05
   esfria: 4,               // a escalada cai sozinha
-  rapida: 1.5,             // partida rápida: depois das quinzenas (turnos de mês até o veredito) o progresso rende ×1,5
   // a contestação acaba (sem vitória) quando a história segue outro rumo
   fecha: { visitedAny: ["transicao", "crise_janeiro", "sondagem", "contestacao_derrotada", "oposicao", "golpe_inicial"] },
   marta: {

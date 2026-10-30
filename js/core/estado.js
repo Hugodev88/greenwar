@@ -29,7 +29,6 @@ function cond(g, c, slack){ // slack: folga da dificuldade nos mínimos (só nos
   if (c.money){ if (c.money.min !== undefined && g.money < c.money.min) return false; if (c.money.max !== undefined && g.money > c.money.max) return false; }
   if (c.fac) for (const id in c.fac){ const f = g.fac[id]; if (!f) return false; if (c.fac[id].min !== undefined && f.loyalty < c.fac[id].min) return false; if (c.fac[id].max !== undefined && f.loyalty > c.fac[id].max) return false; }
   if (c.actor) for (const id in c.actor){ const a = g.actors[id]; if (!a) return false; if (c.actor[id].min !== undefined && a.opinion < c.actor[id].min) return false; if (c.actor[id].max !== undefined && a.opinion > c.actor[id].max) return false; }
-  if (c.quick !== undefined && !!g.quick !== c.quick) return false; // partida rápida (js/core/modos.js)
   if (c.diff && !c.diff.includes(g.diff || "normal")) return false; // só nestas dificuldades
   if (c.warMonths && !((g.war && g.war.months || 0) >= c.warMonths.min)) return false; // frentes: meses de guerra (cansaço)
   if (c.recentLoss && !(g.war && g.war.lostAt != null && g.month - g.war.lostAt <= c.recentLoss)) return false; // frentes: perdeu um estado nos últimos N meses
@@ -62,18 +61,18 @@ function resolveNextG(next, g){
 }
 
 /* ---------- Criação da partida ---------- */
-// opts: { diff: "facil" | "normal" | "dificil", quick: true/false }. Sem opts = Normal, campanha completa (o jogo original).
+// opts: { diff: "facil" | "normal" | "dificil" }. Sem opts = Normal (o jogo original). Só existe a campanha completa.
 function newCampaign(sc, seed, opts){
   opts = opts || {};
-  const diff = DIFICULDADES[opts.diff] ? opts.diff : "normal", quick = !!(opts.quick && sc.campaign.rapida), D = DIFICULDADES[diff];
-  const S = sc.story, C = scVariant(sc, diff, quick).campaign;
-  const g = { v: SAVE_VERSION, scen: sc.id, diff, quick, simple: !!D.simples, seed: (seed >>> 0) || ((Date.now() ^ 0x5bd1e995) >>> 0),
+  const diff = DIFICULDADES[opts.diff] ? opts.diff : "normal", D = DIFICULDADES[diff];
+  const S = sc.story, C = scVariant(sc, diff).campaign;
+  const g = { v: SAVE_VERSION, scen: sc.id, diff, simple: !!D.simples, seed: (seed >>> 0) || ((Date.now() ^ 0x5bd1e995) >>> 0),
     month: parseYM(C.start), startMonth: parseYM(C.start), turn: 1,
     stats: {}, flags: [], visited: [], history: [], lastDelta: {}, control: {}, lastMapChanges: [],
     money: C.money.initial, ap: C.ap,
     uf: {}, actors: {}, fac: {}, debts: [], drains: [], queue: [], report: [], log: [], used: {}, dealtWith: {},
     eventSeen: {}, chains: [], ended: null, enemyMalus: 0, malusUntil: 0, ceasefire: 0, enemyBoost: 0, counter: null,
-    story: { node: null, due: 0 }, stat: { deals: 0, actions: 0, battles: 0 }, south: null, urna: null, half: 0, halfDone: true, autoOrders: D.ordensAuto || "off" };
+    story: { node: null, due: 0 }, stat: { deals: 0, actions: 0, battles: 0 }, south: null, urna: null, half: 0, halfDone: true, unpaid: 0, autoOrders: D.ordensAuto || "off" };
   for (const k in S.stats) g.stats[k] = clamp(S.stats[k].initial + ((D.status || {})[k] || 0), 0, 100);
   for (const uf in MAP_DATA.states) g.control[uf] = S.defaultFaction || "federal";
   Object.assign(g.control, S.initialMap || {});

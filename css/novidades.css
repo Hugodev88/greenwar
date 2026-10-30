@@ -1,0 +1,23 @@
+/* css/novidades.css — Painel "Novidades" da tela inicial e lista completa (fase 16, js/ui/novidades.js). */
+.novpanel{max-width:760px;margin:0 auto 16px;background:linear-gradient(135deg,#1d1a14,#14120f);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:10px;padding:12px 16px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.novhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.novhead h3,.novhead h2{margin:0;font-size:1.05rem}
+.novmodal .novhead h2{font-size:1.25rem}
+.novx{background:none;border:0;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:4px 8px;border-radius:6px}
+.novx:hover{color:var(--ink);background:#ffffff12}
+.novbadge{display:inline-block;background:#c0392b;color:#fff;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:1px 7px;border-radius:99px;vertical-align:middle;animation:novPulse 1.6s ease-in-out infinite alternate}
+.novitem.cur .novbadge{background:#2e7d4f;animation:none}
+@keyframes novPulse{to{transform:scale(1.08);opacity:.85}}
+body.rm .novbadge{animation:none}
+@media (prefers-reduced-motion: reduce){ .novbadge{animation:none} }
+.novver{color:var(--muted);font-size:.82rem;margin:4px 0 6px}.novver b{color:var(--gold)}
+.novlist{margin:0 0 10px;padding-left:20px;font-size:.9rem;line-height:1.45}
+.novlist li{margin:2px 0}
+.novmini{max-width:760px;margin:0 auto 12px;text-align:right}
+.overlay.novov{display:flex;align-items:center;justify-content:center;padding:12px;z-index:65}
+.novmodal{background:var(--card,#17140f);border:1px solid var(--line);border-radius:12px;width:min(680px,100%);max-height:88vh;display:flex;flex-direction:column;padding:14px 16px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.novscroll{overflow-y:auto;margin-top:8px;padding-right:4px}
+.novitem{border-top:1px solid var(--line);padding:10px 0 2px}
+.novitem:first-child{border-top:0}
+.novitem h4{margin:0 0 4px;font-size:1rem}
+@media (max-width:520px){ .novpanel{padding:10px 12px} .novlist{font-size:.86rem} .novmodal{max-height:92vh;padding:12px} }

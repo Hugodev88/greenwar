@@ -9,8 +9,7 @@ function urnaOn(g){
   return g.flags.includes(K.flag) && !cond(g, K.fecha);
 }
 // multiplicador dos ganhos de progresso pela credibilidade (0 → ×0,6; 50 → ×1; 100 → ×1,4)
-// partida rápida: as quinzenas acabam em janeiro, então os turnos de mês até o veredito rendem mais (K.rapida)
-function urnaMult(g){ const K = urnaCfg(g); return (0.6 + g.urna.cred / 125) * (g.quick && K.rapida && !halfOn(g) ? K.rapida : 1); }
+function urnaMult(g){ return 0.6 + g.urna.cred / 125; }
 function urnaAdd(g, d){
   if (!d || !urnaOn(g)) return;
   const U = g.urna;
@@ -28,6 +27,9 @@ function urnaTick(g, halves, R){
   const K = urnaCfg(g), U = g.urna, p0 = U.prog;
   urnaAdd(g, { prog: urnaPassive(g) * halves, esc: -K.esfria * halves });
   if (U.esc >= 60) urnaAdd(g, { cred: -2 * halves }); // ruas radicalizadas desgastam a imagem
+  // fase 16: perto da virada, a defesa do governo eleito reage no TSE: −1 por mês (Normal a partir de 85, Difícil a partir de 70; Fácil não reage)
+  const lvl = typeof iaLevel === "function" ? iaLevel(g) : 0;
+  if (lvl && U.prog >= (lvl >= 2 ? 70 : 85)){ U.reage = (U.reage || 0) + halves; if (U.reage >= 2){ const d = Math.floor(U.reage / 2); U.reage %= 2; urnaAdd(g, { prog: -d }); R(`A defesa do governo eleito reage no TSE: progresso −${d}.`, "bad"); } }
   R(`Contestação das urnas: progresso ${U.prog}/100${U.prog > p0 ? ` (+${U.prog - p0})` : ""} · credibilidade ${U.cred} · escalada ${U.esc}.`, U.prog > p0 ? "good" : "mid");
   if (U.esc >= K.warnEsc && !U.warned){ U.warned = true; R("Alerta: as ruas estão no limite. Se a escalada chegar a 100, a crise vai para os quartéis.", "bad"); }
   if (U.esc < K.warnEsc - 15) U.warned = false;
@@ -36,8 +38,8 @@ function urnaTick(g, halves, R){
 function urnaCheck(g, rep){
   if (!urnaOn(g)) return false;
   const U = g.urna;
-  if (U.prog >= 100){ endCampaign(g, "fim_urnas", "A contestação chegou a 100: o TSE anulou o resultado e convocou uma nova votação."); return true; }
-  if (U.cred <= 0){ endCampaign(g, "fim_cassado", "Sua credibilidade chegou a zero: o TSE declarou você inelegível."); return true; }
+  if (U.prog >= 100){ endCampaign(g, "fim_urnas", "A contestação chegou a 100: o TSE anulou o resultado e convocou uma nova votação.", "urnas"); return true; }
+  if (U.cred <= 0){ endCampaign(g, "fim_cassado", "Sua credibilidade chegou a zero: o TSE declarou você inelegível.", "cassado"); return true; }
   if (U.esc >= 100 && !g.visited.includes("escalada")){ enterStory(g, "escalada", rep); return true; }
   return false;
 }

@@ -1,13 +1,13 @@
-// js/core/modos.js — Núcleo: aplica a dificuldade (js/data/modos.js) e a partida rápida (campaign.rapida) à campanha.
-// Normal + campanha completa usam o cenário original sem cópia nenhuma; os outros modos usam uma "variante" do cenário
+// js/core/modos.js — Núcleo: aplica a dificuldade (js/data/modos.js) à campanha. Existe só a campanha completa
+// (a partida rápida saiu na fase 16). O Normal usa o cenário original sem cópia nenhuma; Fácil e Difícil usam uma "variante" do cenário
 // que herda tudo do original (Object.create) e troca só os números ajustados.
 function diffOf(g){ return (g && DIFICULDADES[g.diff]) || DIFICULDADES.normal; }
 function diffSlack(g){ return (g && DIFICULDADES[g.diff] && DIFICULDADES[g.diff].folga) || 0; }
-function modeLabel(g){ const D = diffOf(g); return D.label + (g && g.quick ? " · Partida rápida" : ""); }
+function modeLabel(g){ return diffOf(g).label; }
 const SC_VARIANTS = {};
-function scVariant(sc, d, quick){
-  if ((!d || d === "normal") && !quick) return sc;
-  const key = sc.id + "|" + d + "|" + (quick ? 1 : 0), hit = SC_VARIANTS[key];
+function scVariant(sc, d){
+  if (!d || d === "normal") return sc;
+  const key = sc.id + "|" + d, hit = SC_VARIANTS[key];
   if (hit && hit.base === sc) return hit.v;
   const D = DIFICULDADES[d] || DIFICULDADES.normal, C = sc.campaign, o = Object.create(C);
   if (D.inimigo !== 1){ o.enemyPower = Math.round((C.enemyPower ?? 1) * D.inimigo * 100) / 100; o.enemyBase = Math.max(1, Math.round((C.enemyBase || 2) * D.inimigo)); }
@@ -15,14 +15,6 @@ function scVariant(sc, d, quick){
   if (D.renda) o.phases = C.phases.map(p => Object.assign({}, p, { income: (p.income ?? 4) + D.renda }));
   if (C.south && D.sul !== 1) o.south = Object.assign({}, C.south, { base: Math.max(1, Math.round(C.south.base * D.sul)),
     jolt: Object.fromEntries(Object.entries(C.south.jolt || {}).map(([k, v]) => [k, Math.round(v * D.sul)])) });
-  const Q = quick && C.rapida;
-  if (Q){
-    if (Q.pace) o.pace = Q.pace;
-    if (Q.storyDelay) o.storyDelay = Object.assign({}, C.storyDelay, Q.storyDelay);
-    if (Q.storyAt) o.storyAt = Object.assign({}, C.storyAt, Q.storyAt);
-    if (Q.checks) o.checks = Q.checks;
-    if (Q.eventChance) o.eventChance = Q.eventChance;
-  }
   const v = Object.create(sc); v.campaign = o;
   SC_VARIANTS[key] = { base: sc, v };
   return v;

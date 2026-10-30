@@ -3,7 +3,9 @@
 // faixa da linha de frente, sua capital, Recife (a capital inimiga) e o caminho mais curto até ela ("Recife a N estados").
 /* Só desenha quando mapSVG recebe opts.fronts (aba Mapa e animação do fim do mês). Tudo é SVG simples (sem filtros pesados) para rodar bem no celular.
    As fichas (g.tchip) e as etiquetas de chance (g.tpct) são contra-escaladas no zoom (js/ui/mapa-zoom.js): continuam legíveis de longe e de perto.
-   Estados pequenos do Nordeste (RN, PB, PE, AL, SE) têm a ficha no mar, ao lado do rótulo, em duas colunas alternadas. */
+   Estados pequenos do Nordeste (RN, PB, PE, AL, SE) têm a ficha no mar, ao lado do rótulo, em duas colunas alternadas.
+   Fase 16: até 3 exércitos do mesmo lado num estado — aparece uma ficha só (o selecionado, ou o que está sem ordem, ou o mais forte)
+   com fichas "empilhadas" atrás e um selo ×N; tocar de novo na ficha passa para o próximo exército da pilha. */
 const FMAP_COL = () => SET.cb ? { p: "#0072B2", e: "#D55E00", pl: "#9fd3ff", el: "#ffc499" } : { p: "#2a5d93", e: "#a3301f", pl: "#9cc3ea", el: "#f0a493" };
 const TCHIP_K = () => MOBILE_MAP() ? 1.75 : 1.15;
 // onde fica a ficha de cada estado (centro): embaixo do rótulo; DF, ES e RJ ao lado do rótulo; NE pequeno no mar
@@ -69,17 +71,23 @@ function tpChipLabel(g, a){
 }
 // Ficha OTAN: retângulo azul com X (seu) ou losango vermelho (inimigo), força em número grande e barra de moral embaixo.
 // Cercado: moldura tracejada vermelha e um cadeado.
-function tpChipSVG(g, a, o, cut){
+function tpChipSVG(g, a, o, cut, n){
   if (!MAP_DATA.states[a.uf]) return "";
   const [x, y] = tpChipPos(a.uf), k = TCHIP_K(), P = a.side === "player", gen = g.war && g.war.gens && P ? tpGen(g, a) : null, lbl = tpChipLabel(g, a);
   const mor = Math.max(0.05, Math.min(1, (a.morale ?? 60) / 100));
   const sym = P ? `<rect class="sym" x="-16" y="-5.5" width="10" height="8"/><path class="sym" d="M-16,-5.5L-6,2.5M-16,2.5L-6,-5.5"/>`
     : `<path class="sym" d="M-11,-7L-5,-1.5L-11,4L-17,-1.5z"/><path class="sym" d="M-14,-4.3L-8,1.2M-14,1.2L-8,-4.3"/>`;
-  const cls = `tchip ${P ? "p" : "e"}${o.sel === a.id ? " sel" : ""}${P && a.order ? " ord" : ""}${a.special ? " sp" : ""}${cut ? " cut" : ""}${o.dim && o.sel && o.sel !== a.id && P ? " dim" : ""}`;
+  const stk = n > 1 ? Array.from({ length: Math.min(2, n - 1) }, (_, i) => `<rect class="bg stk" x="${-19 + 3 * (i + 1)}" y="${-10 - 3 * (i + 1)}" width="38" height="20" rx="3"/>`).reverse().join("") : "";
+  const cls = `tchip ${P ? "p" : "e"}${n > 1 ? " multi" : ""}${o.sel === a.id ? " sel" : ""}${P && a.order ? " ord" : ""}${a.special ? " sp" : ""}${cut ? " cut" : ""}${o.dim && o.sel && o.sel !== a.id && P ? " dim" : ""}`;
   return `<g class="${cls}" data-army="${a.id}" data-uf="${a.uf}" tabindex="0" role="button" aria-label="${esc(lbl)}" transform="translate(${x.toFixed(1)},${y.toFixed(1)}) scale(${k})"><title>${esc(lbl)}</title>
-    ${o.sel === a.id ? `<rect class="ring" x="-22" y="-14" width="44" height="28" rx="6"/>` : ""}${cut ? `<rect class="cutr" x="-21.5" y="-12.5" width="43" height="25" rx="5"/>` : ""}<rect class="bg" x="-19" y="-10" width="38" height="20" rx="3"/>${sym}
+    ${o.sel === a.id ? `<rect class="ring" x="-22" y="-14" width="44" height="28" rx="6"/>` : ""}${cut ? `<rect class="cutr" x="-21.5" y="-12.5" width="43" height="25" rx="5"/>` : ""}${stk}<rect class="bg" x="-19" y="-10" width="38" height="20" rx="3"/>${sym}
     <text class="cn" x="6.5" y="0.5">${Math.round(a.str)}</text><rect class="mb0" x="-16" y="5.2" width="32" height="2.2" rx="1"/><rect class="mb" x="-16" y="5.2" width="${(32 * mor).toFixed(1)}" height="2.2" rx="1"/>
-    ${gen ? `<g class="gs" transform="translate(17,-9)"><circle r="4.6"/><text y="0.6">★</text></g>` : ""}${P && a.order ? `<path class="ordmk" d="M-19,-10L-12,-10L-19,-3z"/>` : ""}${a.special ? `<text class="spk" x="-21" y="-9">💥</text>` : ""}${cut ? `<text class="cutk" x="-20" y="12">⛓</text>` : ""}</g>`;
+    ${gen ? `<g class="gs" transform="translate(17,-9)"><circle r="4.6"/><text y="0.6">★</text></g>` : ""}${P && a.order ? `<path class="ordmk" d="M-19,-10L-12,-10L-19,-3z"/>` : ""}${a.special ? `<text class="spk" x="-21" y="-9">💥</text>` : ""}${cut ? `<text class="cutk" x="-20" y="12">⛓</text>` : ""}${n > 1 ? `<g class="nstk" transform="translate(19,8)"><circle r="5.4"/><text y="0.6">×${n}</text></g>` : ""}${a.xp >= 30 && P ? `<text class="xps" x="-1" y="-11.5">${a.xp >= 70 ? "★★" : "★"}</text>` : ""}</g>`;
+}
+// Pilhas de exércitos (mesmo lado, mesmo estado): qual aparece por cima — o selecionado, depois o sem ordem, depois o mais forte
+function tpStacks(armies, selId){
+  const by = {}; for (const a of armies) (by[a.side + ":" + a.uf] ||= []).push(a);
+  return Object.values(by).map(L => { L = L.slice().sort((x, y) => (y.id === selId) - (x.id === selId) || (!!x.order - !!y.order) || y.str - x.str || (x.id < y.id ? -1 : 1)); return { top: L[0], list: L }; });
 }
 // Seta grossa: começa na ficha do exército e passa pelos estados do caminho (pts = UFs); a ponta para antes do centro do destino
 function tpArrowSVG(pts, cls, title){
@@ -114,18 +122,18 @@ function tpMapLayers(g, opts){
       const od = atk ? tpChance(g, sel, t.to) : null, c = atk ? Math.round(od.chance * 100) : null, fl = atk && od.flank > 1.005 ? Math.round((od.flank - 1) * 100) : 0;
       const lbl = `${ufName(t.to)}: ${F(atk ? (t.empty ? "ocupar" : "atacar") : t.type)}${atk ? ` · ${F("chance")} ${c}%` : ""}${fl ? ` · ${F("flancoChip")} +${fl}%` : ""}`;
       out.targets += `<path class="uf ttg ${t.type}${pend ? " pend" : ""}${t.final ? " final" : ""}" data-uf="${t.to}" d="${S.d}"><title>${esc(lbl)}</title></path>`;
-      const busy = armies.some(a => a.uf === t.to), [cx, cy] = tpChipPos(t.to), x = cx, y = cy - (busy ? 21 * k : 0);
+      const busy = armies.some(a => a.uf === t.to && a !== sel), [cx, cy] = tpChipPos(t.to), x = cx, y = cy - (busy ? 21 * k : 0);
       out.chips += `<g class="tpct ${atk ? tpChanceCls(c) : "mv"}${pend ? " pend" : ""}${t.final ? " final" : ""}" data-uf="${t.to}" tabindex="0" role="button" aria-label="${esc(lbl)}" transform="translate(${x.toFixed(1)},${y.toFixed(1)}) scale(${k})"><title>${esc(lbl)}</title>
-        <rect x="${atk ? -15 : -9}" y="-7.5" width="${atk ? 30 : 18}" height="15" rx="7.5"/><text y="0.6">${atk ? c + "%" : t.type === "juntar" ? "+" : "➜"}</text>${fl ? `<g class="flk" transform="translate(0,-12)"><rect x="-15" y="-5" width="30" height="10" rx="5"/><text y="0.4">⚔ +${fl}%</text></g>` : ""}</g>`;
+        <rect x="${atk ? -15 : -9}" y="-7.5" width="${atk ? 30 : 18}" height="15" rx="7.5"/><text y="0.6">${atk ? c + "%" : t.stack ? "➜" + (t.stack + 1) : "➜"}</text>${fl ? `<g class="flk" transform="translate(0,-12)"><rect x="-15" y="-5" width="30" height="10" rx="5"/><text y="0.4">⚔ +${fl}%</text></g>` : ""}</g>`;
     }
     if (opts.tpPend){ const t = tpTargets(g, sel).find(x => x.to === opts.tpPend); if (t) out.arrows += tpArrowSVG([sel.uf].concat(t.path), "pv"); }
   }
   for (const A of (opts.tpArrows || tpArrowList(g))) if (!(sel && A.id === sel.id && opts.tpPend)) out.arrows += tpArrowSVG(A.pts, A.cls, A.title);
   // fichas: inimigas embaixo, as suas por cima; a selecionada por último
-  const order = armies.slice().sort((a, b) => (a.side === "player") - (b.side === "player") || ((sel && a.id === sel.id) - (sel && b.id === sel.id)));
+  const order = tpStacks(armies, sel && sel.id).sort((a, b) => (a.top.side === "player") - (b.top.side === "player") || ((sel && a.list.includes(sel)) - (sel && b.list.includes(sel))));
   const pct = out.chips, Lk = {}; out.chips = "";
   const cutOf = a => { if (opts.static) return !!a.cut; const key = a.side + a.fac; if (!(key in Lk)) Lk[key] = tpLinked(g, a.side, a.fac); return tpCut(g, a, Lk[key]); };
-  for (const a of order) out.chips += tpChipSVG(g, a, { sel: sel && sel.id, dim: !!sel }, cutOf(a));
+  for (const S of order) out.chips += tpChipSVG(g, S.top, { sel: sel && sel.id, dim: !!sel }, cutOf(S.top), S.list.length);
   out.chips += pct;
   return out;
 }

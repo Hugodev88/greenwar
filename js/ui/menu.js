@@ -39,12 +39,13 @@ function renderMenu(){
   const soon = later.map(sc => `<div class="scen soon" aria-disabled="true" title="Indisponível por enquanto"><div class="yr">${esc(sc.year)}</div><div class="tag">${esc(sc.tag || "Próximo cenário")}</div>
       <h3>${esc(sc.title)}</h3><div class="ds">${esc(sc.description || "")}</div><span class="lockbadge">🔒 Em breve</span></div>`).join("");
   $("#app").innerHTML = `<div class="menu-head"><h2>Crônicas da Separação</h2><p>Campanha por turnos mensais: diplomacia, facções, exércitos no mapa e finais diferentes.</p></div>
-    ${feat}${soon ? `<div class="scen-later"><h4>Próximos cenários</h4><div class="scen-grid">${soon}</div></div>` : ""}`;
+    ${novPanelHTML()}${feat}${soon ? `<div class="scen-later"><h4>Próximos cenários</h4><div class="scen-grid">${soon}</div></div>` : ""}`;
   for (const sc of main){
     const el = document.querySelector(`[data-map="${sc.id}"]`); if (!el) continue;
     try{ STORY = sc.story; const g0 = newCampaign(sc, 1); renderMap(el, g0.control, [], false, { g: g0, military: true, arrows: [], static: true }); }catch(e){ el.remove(); }
     finally{ STORY = null; }
   }
+  bindNovidades($("#app"));
   document.querySelectorAll(".scen[data-id]").forEach(el => {
     const go = () => { if (setScenario(el.dataset.id)) renderTitle(); };
     el.onclick = go; el.onkeydown = e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); go(); } };
@@ -76,7 +77,7 @@ function renderTitle(){
   $("#btnNew").onclick = openNewCampaign;
   $("#btnBack").onclick = renderMenu;
 }
-// opts: { diff, quick } escolhidos na janela Nova campanha (js/ui/modos.js)
+// opts: { diff } escolhido na janela Nova campanha (js/ui/modos.js)
 function startNew(opts){
   UI.selFocus = null; UI.fscroll = null; UI.manual = false; UI.moreTabs = false;
   G = newCampaign(SCEN, 0, opts || lastNewChoice());

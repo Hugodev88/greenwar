@@ -19,7 +19,7 @@ function openHelp(){
       <dt>Facções</dt><dd>Lealdade (do seu lado?) e influência (quanto pesam). Lealdade abaixo de 15 com influência 25 ou mais gera crises.</dd>
       <dt>Focos (Decisões)</dt><dd>Projetos de 1 ou 2 meses, um por vez. Ao concluir, aplicam efeitos e liberam opções. Alguns só aparecem em certos momentos (guerra longa, Tensão no Sul alta, apoio alto, depois de um revés) — o jogo avisa com ✨.</dd>
       <dt>Oportunidades (⚡)</dt><dd>Focos curtos que abrem quando a situação permite e somem em poucos meses se você não aproveitar. Muitos voltam mais tarde.</dd>
-      <dt>Sem prazo</dt><dd>A campanha completa não acaba por data: ela continua até você vencer ou perder (ou escolher um final). Só a partida rápida tem prazo curto.</dd>
+      <dt>Sem prazo</dt><dd>A campanha completa não acaba por data: ela continua até você vencer ou perder (ou escolher um final).</dd>
       <dt>Cansaço da guerra</dt><dd>Depois de 12 meses de combate, o Apoio Popular cai aos poucos e as frentes ficam mais voláteis, para que o impasse se resolva.</dd>
       ${SCEN && SCEN.id === "brasil2022" ? `<dt>Recife e Brasília</dt><dd>Na guerra, a resistência instala o governo constitucional no Recife. Tomar Pernambuco (Recife) vence a guerra; perder Brasília (DF) é a derrota. A Liga do Sul tem capital em Porto Alegre. O painel mostra quantos estados faltam até Recife, e o mapa mostra o caminho mais curto. No ataque final, você escolhe a tática da Batalha de Recife.</dd>
       <dt>Flanco e cerco</dt><dd>Dois ou três exércitos atacando o mesmo estado vindos de estados diferentes ganham bônus de flanco (+20% por lado extra). Um exército sem ligação por terra com a sua capital fica cercado: perde força e moral todo mês e acaba se rendendo.</dd>

@@ -2,6 +2,8 @@
 // escolha do destino com a chance de vitória (e o bônus de flanco) antes de confirmar, ímpeto, avisos de cerco, recrutar num estado,
 // comando automático, ofensiva especial, a escolha da tática na Batalha de Recife, relatório de cada batalha ("por que ganhou / perdeu"),
 // a animação das batalhas no fim do mês e a tela de vitória "Recife caiu!".
+// Fase 16: painel de exércitos (busca, filtro "sem ordem", renomear, dividir, juntar, experiência ★), HUD de movimento no mapa
+// (passos 1-2-3, "próximo sem ordem" ⏭, ordens dadas com ✕ para cancelar) e recrutar escolhendo "nova divisão" ou "reforçar".
 /* Só aparece quando frontMode(G) (js/core/frentes.js + js/core/tropas.js). No 1964 a aba Mapa continua com js/ui/exercitos.js.
    Seleção: UI.tpSel = id do exército; UI.tpPend = estado escolhido (a chance aparece; 2º toque ou ✔ confirma); UI.tpTat = tática escolhida para Recife. */
 function fCfg(){ return frontCfg(G); }
@@ -56,10 +58,48 @@ function tpOrderHTML(a){
   const c = o.type === "atacar" ? Math.round(tpChance(G, a, o.to).chance * 100) : null;
   return `<span class="${o.type === "atacar" ? "tpo-a" : "tpo-m"}">${o.type === "atacar" ? "⚔" : "➜"} <span>${esc(tF(o.type === "atacar" ? "ordemAtaca" : "ordemVai"))}</span> ${nm(ufName(o.to))}${c != null ? ` <em class="tpc ${tpChanceCls(c)}">${c}%</em>` : ""}${o.tatica ? ` · <span>${esc(fFala("taticas", o.tatica))}</span>` : ""}${a.special ? " 💥" : ""}</span>`;
 }
+// Experiência: estrelas (★ veteranos, ★★ elite) e o nome do nível
+function tpXpHTML(a, long){
+  const lv = tpXpLevel(a), st = lv ? `<span class="xpst" aria-hidden="true">${"★".repeat(lv)}</span>` : "";
+  return long ? `<span class="tpxp lv${lv}">${st}<span>${esc(tF("xp" + lv))}</span> <small>${Math.round(a.xp || 0)}/100</small></span>` : st;
+}
+// Painel dos exércitos: busca (nome ou estado), filtro "sem ordem", cada linha com força, moral, experiência, general e ordem
 function tpListHTML(){
   const mine = tpArmies(G, "player");
   if (!mine.length) return `<p class="muted">—</p>`;
-  return `<div class="tplist">${mine.map(a => `<button class="tprow${a.order ? " ord" : ""}" data-tpsel="${a.id}">${tpMiniChip(a)}<span class="tpn">${`<b>${esc(tpName(G, a))}</b>`}<small>📍 ${nm(ufName(a.uf))}${a.cut ? ` · ⛓ <span>${esc(fFala("cerco", "chip"))}</span>` : ""} · <span>${esc(tF("moral"))}</span> ${Math.round(a.morale)}${tpGen(G, a) ? " · ★" : ""}</small></span><span class="tpord">${tpOrderHTML(a)}</span></button>`).join("")}</div>`;
+  const idle = mine.filter(a => !a.order).length, f = UI.tpFilt === "idle" && idle ? "idle" : "all", T = tpK(G);
+  const rows = mine.slice().sort((a, b) => (!!a.order - !!b.order) || (a.uf < b.uf ? -1 : a.uf > b.uf ? 1 : 0) || b.str - a.str).filter(a => f === "all" || !a.order);
+  const q = a => esc((tpName(G, a) + " " + a.uf + " " + ufName(a.uf)).toLowerCase());
+  return `<div class="tpapanel"><div class="tpatools">
+      <input type="search" id="tpFind" class="tpfind" placeholder="${esc(tF("buscar"))}" aria-label="${esc(tF("buscar"))}" value="${esc(UI.tpFind || "")}" autocomplete="off">
+      <div class="seg" role="group"><button class="${f === "all" ? "on" : ""}" data-tpfilt="all" aria-pressed="${f === "all"}"><span>${esc(tF("filtroTodos"))}</span> <b>${mine.length}/${T.max}</b></button><button class="${f === "idle" ? "on" : ""}" data-tpfilt="idle" aria-pressed="${f === "idle"}" ${idle ? "" : "disabled"}><span>${esc(tF("filtroLivres"))}</span> <b>${idle}</b></button></div></div>
+    <div class="tplist">${rows.map(a => { const gen = tpGen(G, a);
+      return `<button class="tprow${a.order ? " ord" : " idle"}" data-tpsel="${a.id}" data-q="${q(a)}">${tpMiniChip(a)}<span class="tpn"><b>${esc(tpName(G, a))}</b> ${tpXpHTML(a)}<small>📍 ${nm(ufName(a.uf))}${a.cut ? ` · ⛓ <span>${esc(fFala("cerco", "chip"))}</span>` : ""} · <span>${esc(tF("moral"))}</span> ${Math.round(a.morale)}${gen ? ` · ★ ${nm(frontGenName(G, gen))}` : ""}</small></span><span class="tpord">${tpOrderHTML(a)}</span></button>`; }).join("")}</div></div>`;
+}
+// Próximo exército seu sem ordem (depois do selecionado; volta ao começo)
+function tpNextIdle(){
+  const L = tpArmies(G, "player").filter(a => !a.order); if (!L.length) return null;
+  const i = L.findIndex(a => a.id === UI.tpSel); return L[(i + 1) % L.length];
+}
+// Passos do movimento: 1 exército → 2 destino → 3 confirmar (o atual aceso)
+function tpStepsHTML(){
+  const s = !tpSelArmy() ? 1 : UI.tpPend ? 3 : 2;
+  return `<ol class="tpsteps hud">${[1, 2, 3].map(i => `<li class="${i === s ? "now" : i < s ? "done" : ""}"><b>${i < s ? "✔" : i}</b> <span>${esc(tF("hudPasso" + i))}</span></li>`).join("")}</ol>`;
+}
+// Ordens já dadas neste mês (cada uma com ✕ para cancelar)
+function tpPendingHTML(compact){
+  const L = tpArmies(G, "player").filter(a => a.order);
+  if (!L.length) return compact ? "" : `<p class="muted tpnone">${esc(tF("semOrdens"))}</p>`;
+  return `<div class="tppend${compact ? " compact" : ""}" role="list" aria-label="${esc(tF("ordensDadas"))}">${L.map(a => { const o = a.order, c = o.type === "atacar" ? Math.round(tpChance(G, a, o.to).chance * 100) : null;
+    return `<span class="tpp ${o.type === "atacar" ? "a" : "m"}" role="listitem"><button class="tpp-go" data-tpsel="${a.id}" title="${esc(tpName(G, a))}">${o.type === "atacar" ? "⚔" : "➜"} <b>${esc(tpName(G, a))}</b> ${nm(o.to)}${c != null ? ` <em class="tpc ${tpChanceCls(c)}">${c}%</em>` : ""}</button><button class="tpp-x" data-tpundo="${a.id}" aria-label="${esc(tF("cancelarOrdem"))}: ${esc(tpName(G, a))}" title="${esc(tF("cancelarOrdem"))}">✕</button></span>`; }).join("")}</div>`;
+}
+// HUD de movimento sobre o mapa: passos, "próximo sem ordem" e as ordens dadas (✕ cancela)
+function tpHudHTML(){
+  const ph = phaseOf(G); if (!ph.war || !G.war.fronts.length || (G.simple && !UI.manual) || G.ended) return "";
+  if (UI.tpPend && window.innerWidth < 900) return ""; // a confirmação flutuante ocupa a parte de baixo
+  const idle = tpArmies(G, "player").filter(a => !a.order).length;
+  return `<div class="tphud" role="toolbar" aria-label="${esc(tF("titulo"))}">${tpStepsHTML()}
+    <div class="tphrow"><button class="tpnext" data-tpnext ${idle ? "" : "disabled"} title="${esc(tF("proximo"))}">⏭ <span>${esc(idle ? tF("proximo") : tF("todosComOrdem"))}</span>${idle ? ` <b>${idle}</b>` : ""}</button>${tpPendingHTML(true)}</div></div>`;
 }
 // Ataques que o inimigo prepara (o plano dele é conhecido)
 function tpThreatsHTML(){
@@ -75,10 +115,15 @@ function frontRecruitHTML(){
     return `<div class="recruit"><div class="ordhead"><b>${esc(tF("recrutar"))}</b></div><button class="primary sm" id="btnRecruit" ${st.ok ? "" : "disabled"}>＋ <span>${esc(tF("recrutar"))}</span> <span>+${K.forca}</span> <span>(${K.custo} ${esc(SCEN.campaign.money.short)})</span></button>${st.ok ? "" : `<small class="muted">${esc(st.msg)}</small>`}</div>`; }
   const L = tpLineDist(G, "player"), regs = frontRecruitUFs(G).sort((a, b) => (L[a] ?? 50) - (L[b] ?? 50) || (a < b ? -1 : 1));
   const pick = UI.tpRec && regs.includes(UI.tpRec) ? UI.tpRec : frontRecruitPick(G), st = recruitState(G, pick);
-  const opt = id => { const at = tpAt(G, "player", id); return `<option value="${id}" ${id === pick ? "selected" : ""}>${esc(ufName(id))}${at ? ` — ＋ ${esc(tpName(G, at))}` : ""}</option>`; };
+  const opt = id => { const n = tpAllAt(G, "player", id).length; return `<option value="${id}" ${id === pick ? "selected" : ""}>${esc(ufName(id))}${n ? ` (${n})` : ""}</option>`; };
+  const here = tpAllAt(G, "player", pick), T = tpK(G);
+  const hows = here.map(a => ({ v: "r:" + a.id, l: gfmt(tF("recrutaReforco"), tpName(G, a)) })).concat([{ v: "novo", l: tF("recrutaNova") }]);
+  const cur = UI.tpRecHow && hows.some(h => h.v === UI.tpRecHow) ? UI.tpRecHow : hows[0].v, how = cur === "novo" ? "novo" : "reforco", hid = cur.startsWith("r:") ? cur.slice(2) : null;
+  const st2 = recruitState(G, pick, how, hid);
   return `<div class="recruit"><div class="ordhead"><b>${esc(tF("recrutar"))}</b><span>+${K.forca} · ${K.custo} ${esc(SCEN.campaign.money.short)}</span></div>
     <label class="fsel tprec"><span>${esc(tF("recrutarEm"))}</span> <select id="tpRecUF" aria-label="${esc(tF("recrutarEm"))}">${regs.map(opt).join("")}</select></label>
-    <button class="primary sm" id="btnRecruit" ${st.ok ? "" : "disabled"}>＋ <span>${esc(tF("recrutar"))}</span></button>${st.ok ? "" : `<small class="muted">${esc(st.msg)}</small>`}<small class="muted">${esc(tF("recrutaAjuda"))}</small></div>`;
+    <label class="fsel tprec"><span>${esc(tF("recrutaComo"))}</span> <select id="tpRecHow" aria-label="${esc(tF("recrutaComo"))}">${hows.map(h => `<option value="${h.v}" ${h.v === cur ? "selected" : ""}>${esc(h.l)}</option>`).join("")}</select></label>
+    <button class="primary sm" id="btnRecruit" ${st.ok && st2.ok ? "" : "disabled"}>＋ <span>${esc(tF("recrutar"))}</span></button>${st.ok && st2.ok ? "" : `<small class="why"><span aria-hidden="true">🔒</span> <span>${esc((st.ok ? st2 : st).msg)}</span></small>`}<small class="muted">${esc(gfmt(tF("recrutaAjuda2"), T.porEstado || 3, T.max))}</small></div>`;
 }
 function frontAutoHTML(){
   const m = G.autoOrders || "off";
@@ -105,7 +150,7 @@ function tpTacticsHTML(a, to, cur, attr){
 function tpConfirmHTML(a, to){
   const t = tpTargets(G, a).find(x => x.to === to); if (!t) return "";
   const btns = `<div class="row2"><button class="primary" data-tpok="${to}">✔ ${esc(tF("confirmar"))}</button><button class="secondary" data-tpcancel>✕ ${esc(tF("cancelar"))}</button></div>`;
-  if (t.type !== "atacar") return `<div class="tpconf mv" role="status"><p>${t.type === "juntar" ? "＋" : "➜"} ${esc(gfmt(tF(t.type === "juntar" ? "msgJuntar" : "msgMover"), tpName(G, a), ufName(to)))}</p>${btns}</div>`;
+  if (t.type !== "atacar") return `<div class="tpconf mv" role="status"><p>➜ ${esc(gfmt(tF("msgMover"), tpName(G, a), ufName(to)))}${t.stack ? ` <small class="muted">(<span>${esc(gfmt(tF("jaHa"), t.stack))}</span>)</small>` : ""}</p>${btns}</div>`;
   const tat = t.final ? (UI.tpTat && tpTactics(G)[UI.tpTat] ? UI.tpTat : tpBestTactic(G, a, to)) : undefined;
   const o = tpChance(G, a, to, tat), c = Math.round(o.chance * 100), F = fCfg().falas.fatores, foe = o.defs;
   const fl = o.flank > 1.005 ? Math.round((o.flank - 1) * 100) : 0, near = tpArmies(G, "player").filter(x => x !== a && !o.with.includes(x.id) && ADJ[x.uf].includes(to) && x.uf !== a.uf);
@@ -126,15 +171,26 @@ function tpGenHTML(a){
   return `<div class="fgen">${P ? portraitImg(P, 40) : ""}<div><b>${gen ? esc(frontGenName(G, gen)) : esc(tF("semGeneral"))}</b>${gen ? `<small><span>${esc(fFala("traco", gen.traco))}</span>: <span>${esc(fFala("tracoDesc", gen.traco))}</span></small>` : ""}
     <label class="fsel"><span>${esc(tF("general"))}</span> <select data-tpgen="${a.id}" aria-label="${esc(tF("general"))}"><option value="">${esc(tF("semGeneral"))}</option>${opts}</select></label></div></div>`;
 }
+// Outros exércitos seus no mesmo estado: trocar a seleção, juntar (escolha sua) e dividir este
+function tpSameStateHTML(a){
+  const here = tpAllAt(G, "player", a.uf), T = tpK(G), sp = tpSplitState(G, a), others = here.filter(x => x !== a);
+  return `<div class="tpsame"><small class="muted">${esc(gfmt(tF("noEstado"), here.length, T.porEstado || 3))}</small>
+    <div class="tpsbtns">${others.map(x => { const j = tpJoinState(G, a, x); return `<button class="chipbtn" data-tpsel="${x.id}">⇄ ${esc(tpName(G, x))} (${Math.round(x.str)})</button><button class="chipbtn" data-tpjoin="${x.id}" ${j.ok ? "" : `disabled title="${esc(j.msg)}"`}>⊕ <span>${esc(gfmt(tF("juntarCom"), tpName(G, x)))}</span></button>`; }).join("")}
+    <button class="chipbtn" data-tpsplit="${a.id}" ${sp.ok ? "" : "disabled"}>✂ <span>${esc(tF("dividir"))}</span></button></div>
+    <small class="${sp.ok ? "muted" : "why"}">${sp.ok ? esc(tF("dividirAjuda")) : `<span aria-hidden="true">🔒</span> <span>${esc(sp.msg)}</span>`}</small></div>`;
+}
 // Cartão do exército selecionado
 function tpCardHTML(a, wide){
   const off = offensiveState(G, a.id), K = fCfg(), ts = tpTargets(G, a);
   const atk = ts.filter(t => t.type === "atacar").map(t => Object.assign({ c: Math.round(tpChance(G, a, t.to).chance * 100) }, t)).sort((x, y) => y.c - x.c);
   const mv = ts.filter(t => t.type !== "atacar");
-  const tb = t => `<button class="tptg ${t.type}${UI.tpPend === t.to ? " on" : ""}" data-tpto="${t.to}">${t.type === "atacar" ? (t.final ? "🏛" : "⚔") : t.type === "juntar" ? "＋" : "➜"} ${nm(ufName(t.to))}<span>${esc(tF(t.type === "atacar" ? (t.empty ? "ocupar" : "atacar") : t.type))}</span>${t.c != null ? `<em class="tpc ${tpChanceCls(t.c)}">${t.c}%</em>` : ""}</button>`;
+  const tb = t => `<button class="tptg ${t.type}${UI.tpPend === t.to ? " on" : ""}" data-tpto="${t.to}">${t.type === "atacar" ? (t.final ? "🏛" : "⚔") : "➜"} ${nm(ufName(t.to))}<span>${esc(tF(t.type === "atacar" ? (t.empty ? "ocupar" : "atacar") : t.type))}${t.stack ? ` · ${esc(gfmt(tF("jaHa"), t.stack))}` : ""}</span>${t.c != null ? `<em class="tpc ${tpChanceCls(t.c)}">${t.c}%</em>` : ""}</button>`;
   return `<div class="tpcard" data-tpcard="${a.id}">
-    <div class="tphead">${tpMiniChip(a)}<div><h4>${`<b>${esc(tpName(G, a))}</b>`}</h4><small>📍 ${nm(ufName(a.uf))}${a.cut ? ` · ⛓ <span>${esc(fFala("cerco", "chip"))}</span>` : ""}</small></div><button class="xbtn" data-tpdesel aria-label="${esc(tF("cancelar"))}">✕</button></div>
+    ${tpStepsHTML()}
+    <div class="tphead">${tpMiniChip(a)}<div><h4><b>${esc(tpName(G, a))}</b> <button class="linkbtn tpren" data-tpren="${a.id}" title="${esc(tF("renomear"))}" aria-label="${esc(tF("renomear"))}">✎</button></h4><small>📍 ${nm(ufName(a.uf))}${a.cut ? ` · ⛓ <span>${esc(fFala("cerco", "chip"))}</span>` : ""} · ${tpXpHTML(a, true)}</small></div><button class="xbtn" data-tpdesel aria-label="${esc(tF("cancelar"))}">✕</button></div>
+    ${UI.tpRen === a.id ? `<form class="tprenf" data-tprenf="${a.id}"><input id="tpRenIn" maxlength="28" value="${esc(a.nome || "")}" placeholder="${esc(tpName(G, Object.assign({}, a, { nome: null })))}" aria-label="${esc(tF("renomear"))}"><button class="primary sm" type="submit">${esc(tF("salvar"))}</button><button class="secondary sm" type="button" data-tprenx>✕</button></form>` : ""}
     <div class="fstats">${frontStatHTML(esc(tF("forca")), a.str, Math.max(100, a.str), "#5b8fc7")}${frontStatHTML(esc(tF("moral")), a.morale, 100, "#8fc488")}</div>
+    ${tpSameStateHTML(a)}
     <p class="tpcur">${a.order ? tpOrderHTML(a) : `<span>${esc(tF("semOrdem"))}</span>`}${a.order ? ` <button class="linkbtn" data-tpundo="${a.id}">↩ ${esc(tF("desfazer"))}</button>` : ""}</p>
     ${a.order && a.order.tatica && !(wide && UI.tpPend) ? `<p class="tprec2">🏛 ${esc(fFala("recife", "escolha"))}</p>${tpTacticsHTML(a, a.order.to, a.order.tatica, "data-tpset")}` : ""}
     ${wide && UI.tpPend ? tpConfirmHTML(a, UI.tpPend) : ""}
@@ -154,10 +210,12 @@ function frontsPanel(){
   const last = (G.mil && G.mil.battles) || [];
   let html = G.simple && !UI.manual ? simpleFrontsHTML() + frontRecruitHTML()
     : `${G.simple ? `<button class="linkbtn" data-manual="0">← Voltar ao resumo simples</button>` : ""}<h3>⚔ <span>${esc(tF("titulo"))}</span></h3>
-      <ol class="tpsteps"><li><b>1</b> <span>${esc(tF("passo1"))}</span></li><li><b>2</b> <span>${esc(tF("passo2"))}</span></li><li><b>3</b> <span>${esc(tF("passo3"))}</span></li><li><b>4</b> <span>${esc(tF("passo4"))}</span></li></ol>
+      ${tpStepsHTML()}
       ${frontWeary(G) > 0 ? `<p class="fwarn">😩 <span>Cansaço da guerra:</span> ${G.war.months} <span>meses de combate — Apoio Popular cai aos poucos e as batalhas ficam mais sangrentas.</span></p>` : ""}
       ${G.ceasefire > 0 ? `<p class="fwarn">🕊 <span>Trégua em vigor: sem combates por</span> ${G.ceasefire} <span>mês(es).</span></p>` : ""}
-      ${tpTallyHTML()}${tpTotalsHTML()}${tpListHTML()}${tpThreatsHTML()}${frontRecruitHTML()}${frontAutoHTML()}`;
+      ${tpTallyHTML()}${tpTotalsHTML()}
+      <div class="ordhead"><b>${esc(tF("ordensDadas"))}</b>${tpNextIdle() ? `<button class="secondary sm" data-tpnext>⏭ <span>${esc(tF("proximo"))}</span></button>` : `<span class="good">✔ <span>${esc(tF("todosComOrdem"))}</span></span>`}</div>${tpPendingHTML(false)}
+      <div class="ordhead"><b>${esc(tF("painel"))}</b></div>${tpListHTML()}${tpThreatsHTML()}${frontRecruitHTML()}${frontAutoHTML()}`;
   html += `<div class="ordhead"><b>${esc(tF("batalhas"))}</b>${last.length ? `<span>${esc(tF("verRelatorio"))}</span>` : ""}</div>${last.length ? frontRowsHTML(last) : `<p class="muted">${esc(tF("semBatalhas"))}</p>`}`;
   return html + frontSituationHTML();
 }
@@ -195,7 +253,7 @@ function tpMapGoalHTML(){
   return `<div class="tpmaptally" role="status">${t ? `<b>🎯 <span>${esc(t)}</span></b>` : ""}${m ? `<small class="${m > 0 ? "good" : "bad"}">⚡ <span>${esc(fFala("impeto", m > 0 ? "m" + m : "n" + (-m)))}</span></small>` : ""}</div>`;
 }
 /* ---------- Relatório de batalha ---------- */
-function tpRecName(x){ return gfmt(frontFala(G, "tropas", x.side === "player" ? "nomeSeu" : "nome_" + x.fac), x.n); }
+function tpRecName(x){ return tpName(G, x); }
 // Rótulo curto do resultado, do seu ponto de vista
 function tpResultKey(r){ return r.side === "player" ? (r.win ? "anVitoria" : "anDerrota") : (r.win ? "relCaiu" : "relSegurou"); }
 function tpMineWon(r){ return r.side === "player" ? r.win : !r.win; }
@@ -296,22 +354,19 @@ function playFrontResolution(ev, done){
   o.querySelector("[data-skip]").onclick = () => { timers.forEach(clearTimeout); list.innerHTML = ""; (ev.battles || []).forEach(r => list.appendChild(btn(r))); end(); };
   o.querySelector("[data-done]").onclick = finish;
 }
-// Tela de vitória da Batalha de Recife (antes do final da história)
-function showRecifeVictory(done){
-  closeOverlay("rvic");
-  const o = document.createElement("div"); o.id = "rvic"; o.className = "overlay rvic";
-  o.innerHTML = `<div class="rvbox" role="dialog" aria-label="${esc(fFala("recife", "vitoriaTit"))}"><div class="rvburst" aria-hidden="true">🏛</div><h2>${esc(fFala("recife", "vitoriaTit"))}</h2><p>${esc(fFala("recife", "vitoriaSub"))}</p><button class="primary" data-close>${esc(fFala("recife", "vitoriaBtn"))} ▸</button></div>`;
-  document.body.appendChild(o); document.body.classList.add("noscroll"); AUDIO.sfx("win");
-  const go = () => { closeOverlay("rvic"); if (done) done(); };
-  o.querySelector("[data-close]").onclick = go; o.querySelector("[data-close]").focus();
-}
+// Vitória da Batalha de Recife: agora é a cena animada do final "Recife caiu" (js/ui/finais-animados.js)
+function showRecifeVictory(done){ if (G.ended) playEndingScene(G, done); else if (done) done(); }
 /* ---------- Seleção e ordens (mapa e painel) ---------- */
 // toque numa ficha: seleciona (ou tira a seleção); ficha inimiga = toque no estado dela
 function tpPickArmy(id){
   const a = tpById(G, id); if (!a) return;
   if (a.side !== "player") return tpPickUF(a.uf);
   if (G.simple && !UI.manual) UI.manual = true;
-  UI.tpPend = null; UI.tpTat = null; UI.selUF = null; UI.tpSel = UI.tpSel === id ? null : id;
+  UI.tpPend = null; UI.tpTat = null; UI.selUF = null; UI.tpRen = null;
+  // ficha de uma pilha: tocar de novo passa para o próximo exército do estado (depois do último, desmarca)
+  const here = tpAllAt(G, "player", a.uf), cur = here.findIndex(x => x.id === UI.tpSel);
+  if (cur >= 0 && here.length > 1){ UI.tpSel = cur + 1 < here.length ? here[cur + 1].id : null; if (UI.tpSel){ renderGame(); return; } }
+  else UI.tpSel = UI.tpSel === id ? null : id;
   if (UI.tpSel) tpZoomToArmy(a);
   renderGame(); tpToPanel();
 }
@@ -329,9 +384,9 @@ function tpPickUF(uf){
   if (a){
     if (uf === a.uf){ UI.tpSel = null; UI.tpPend = null; renderGame(); return; }
     if (tpTargets(G, a).some(t => t.to === uf)){ if (UI.tpPend === uf) return tpConfirm(a, uf); UI.tpPend = uf; UI.tpTat = null; AUDIO.sfx("click"); renderGame(); return; }
-    const mine = tpAt(G, "player", uf); if (mine){ UI.tpSel = mine.id; UI.tpPend = null; renderGame(); return; }
+    const mine = tpAllAt(G, "player", uf).find(x => !x.order) || tpAt(G, "player", uf); if (mine){ UI.tpSel = mine.id; UI.tpPend = null; renderGame(); return; }
     UI.tpSel = null; UI.tpPend = null;
-  } else { const mine = tpAt(G, "player", uf); if (mine && !(G.simple && !UI.manual)){ UI.tpSel = mine.id; UI.tpPend = null; UI.selUF = null; renderGame(); tpToPanel(); return; } }
+  } else { const mine = tpAllAt(G, "player", uf).find(x => !x.order) || tpAt(G, "player", uf); if (mine && !(G.simple && !UI.manual)){ UI.tpSel = mine.id; UI.tpPend = null; UI.selUF = null; renderGame(); tpToPanel(); return; } }
   UI.selUF = uf; renderGame(); tpToPanel();
 }
 function tpConfirm(a, to){
@@ -357,7 +412,19 @@ function bindFronts(el){
   el.querySelectorAll("[data-foff]").forEach(b => b.onclick = () => { const r = launchOffensive(G, b.dataset.foff); if (r.ok) AUDIO.sfx("order"); afterAct(r); });
   el.querySelectorAll("[data-foff-cancel]").forEach(b => b.onclick = () => afterAct(cancelOffensive(G, b.dataset.foffCancel)));
   { const last = (G.mil && G.mil.battles) || []; el.querySelectorAll(".sidepanel [data-frow]").forEach(b => b.onclick = () => { const r = last[+b.dataset.frow]; if (r) openFrontReport(r); }); }
-  if ($("#tpRecUF")) $("#tpRecUF").onchange = e => { UI.tpRec = e.target.value; renderGame(); };
-  if ($("#btnRecruit")) $("#btnRecruit").onclick = () => { const r = recruitArmy(G, $("#tpRecUF") ? $("#tpRecUF").value : null); if (r.ok) AUDIO.sfx("order"); afterAct(r); };
+  if ($("#tpRecUF")) $("#tpRecUF").onchange = e => { UI.tpRec = e.target.value; UI.tpRecHow = null; renderGame(); };
+  if ($("#tpRecHow")) $("#tpRecHow").onchange = e => { UI.tpRecHow = e.target.value; renderGame(); };
+  if ($("#btnRecruit")) $("#btnRecruit").onclick = () => { const hv = $("#tpRecHow") ? $("#tpRecHow").value : "";
+    const r = recruitArmy(G, $("#tpRecUF") ? $("#tpRecUF").value : null, hv === "novo" ? "novo" : hv ? "reforco" : undefined, hv.startsWith("r:") ? hv.slice(2) : undefined); if (r.ok) AUDIO.sfx("order"); afterAct(r); };
+  // fase 16: próximo sem ordem, filtro/busca do painel, renomear, dividir, juntar
+  el.querySelectorAll("[data-tpnext]").forEach(b => b.onclick = e => { e.stopPropagation(); const a = tpNextIdle(); if (!a) return; if (G.simple && !UI.manual) UI.manual = true;
+    UI.tpSel = a.id; UI.tpPend = null; UI.selUF = null; UI.tpRen = null; tpZoomToArmy(a); AUDIO.sfx("click"); renderGame(); });
+  el.querySelectorAll("[data-tpfilt]").forEach(b => b.onclick = () => { UI.tpFilt = b.dataset.tpfilt; renderGame(); });
+  const fi = el.querySelector("#tpFind"); if (fi){ const run = () => { const q = fi.value.trim().toLowerCase(); UI.tpFind = fi.value; el.querySelectorAll(".tplist .tprow[data-q]").forEach(r => { r.hidden = !!q && !r.dataset.q.includes(q); }); }; fi.oninput = run; if (fi.value) run(); }
+  el.querySelectorAll("[data-tpren]").forEach(b => b.onclick = () => { UI.tpRen = UI.tpRen === b.dataset.tpren ? null : b.dataset.tpren; renderGame(); setTimeout(() => { const i = $("#tpRenIn"); if (i) i.focus(); }, 30); });
+  el.querySelectorAll("[data-tprenx]").forEach(b => b.onclick = () => { UI.tpRen = null; renderGame(); });
+  el.querySelectorAll("[data-tprenf]").forEach(f => f.onsubmit = e => { e.preventDefault(); const r = tpRename(G, f.dataset.tprenf, $("#tpRenIn").value); UI.tpRen = null; afterAct(r); });
+  el.querySelectorAll("[data-tpsplit]").forEach(b => b.onclick = () => { const r = tpSplit(G, b.dataset.tpsplit); if (r.ok) AUDIO.sfx("order"); afterAct(r); });
+  el.querySelectorAll("[data-tpjoin]").forEach(b => b.onclick = () => { const a = tpSelArmy(); if (!a) return; const r = tpJoin(G, a.id, b.dataset.tpjoin); if (r.ok) AUDIO.sfx("order"); afterAct(r); });
   if ($("#autoSel")) $("#autoSel").onchange = e => { const r = setAutoOrders(G, e.target.value); if (e.target.value !== "off") frontAuto(G, e.target.value); afterAct(r); };
 }

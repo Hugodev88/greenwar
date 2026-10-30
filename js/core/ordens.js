@@ -42,8 +42,8 @@ function setOrder(g, id, type, to){
 }
 const RECRUIT_STR = 20, RECRUIT_PER_MONTH = 2;
 function recruitsLeft(g){ return Math.max(0, RECRUIT_PER_MONTH - (+g.used._recruit || 0)); }
-function recruitState(g, uf){
-  if (frontMode(g)) return frontRecruitState(g, uf); // 2022: uf = estado (js/core/frentes.js)
+function recruitState(g, uf, how, id){
+  if (frontMode(g)) return frontRecruitState(g, uf, how, id); // 2022: uf = estado (js/core/frentes.js)
   const ph = phaseOf(g), cost = recruitCost(g);
   if (g.ended) return { ok: false, msg: "Partida encerrada." };
   if (g.queue.length) return { ok: false, msg: "Resolva os eventos pendentes na aba História." };
@@ -55,8 +55,8 @@ function recruitState(g, uf){
   if (g.money < cost) return { ok: false, msg: `Faltam recursos: precisa de ${cost} (tem ${Math.floor(g.money)}).` };
   return { ok: true, uf, cost };
 }
-function recruitArmy(g, uf){
-  if (frontMode(g)) return frontRecruit(g, uf);
+function recruitArmy(g, uf, how, id){
+  if (frontMode(g)) return frontRecruit(g, uf, how, id);
   const st = recruitState(g, uf);
   if (!st.ok) return st;
   g.money -= st.cost; g.used._recruit = (+g.used._recruit || 0) + 1;

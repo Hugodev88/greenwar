@@ -45,8 +45,19 @@ Se preferir um servidor local:
 npx serve .        # ou: python3 -m http.server 8000
 ```
 
+### Novidades da fase 16 (2022)
+- **🆕 Novidades na tela inicial:** um quadro mostra o que mudou na última versão (com o selo "novo" até você ver) e **Ver todas** abre a lista completa, versão por versão. Os textos ficam em `js/data/novidades.js`.
+- **Finais animados:** cada final abre com uma cena curta em SVG/CSS — Recife caiu, Brasília caiu, motim por falta de soldo, A Virada nas Urnas, Inelegível, De Volta pelas Urnas, O Brasil Partido e os demais. Toque, **Pular** ou Esc/Enter fecha; some sozinha em alguns segundos; com "reduzir animações" mostra só o quadro final. Na tela do final, **🎬 Rever cena**.
+- **Aba Ações por categorias:** abas (Urnas, Sul, Política, Economia, Militar, Diplomacia, Todas), custo (⚡ ações / 💰 Recursos) e efeitos em etiquetas verdes/vermelhas, a sugestão da Marta marcada com ⭐ e o motivo de cada ação bloqueada (🔒).
+- **Exércitos distintos:** os exércitos não se fundem mais sozinhos. Cada um tem nome, força, general, moral e experiência; até **3 exércitos seus por estado** (o inimigo também). Juntar (mesmo estado) e dividir (força ≥ 20) só quando você escolhe; dá para **renomear**. Recrutar pergunta: exército novo ou reforçar um existente. O painel **Exércitos** lista todos para escolher, achar no mapa e renomear.
+- **Mover tropas:** selecione um exército → os destinos acendem com a chance em % e o caminho → confirme. Ordens pendentes aparecem no mapa e na lista "Ordens do mês" (✕ cancela). **Próximo exército parado** pula para quem ainda não tem ordem. Funciona com toque e zoom.
+- **Soldo:** na guerra, fechar o mês com Recursos abaixo de −35 atrasa o soldo (moral −4 em todos os seus exércitos). 5 meses seguidos assim e as tropas se **amotinam** (derrota). A Marta avisa antes.
+- **IA do inimigo mais esperta (Normal e Difícil):** escolhe um estado-alvo seu e junta forças ao lado por alguns meses antes de atacar, contra-ataca exércitos fracos, cercados ou expostos dos dois lados, recua exércitos muito feridos e defende Recife. No Difícil também procura cercar seus exércitos. No Fácil continua a IA simples.
+- **Só a campanha completa:** a escolha "partida rápida / campanha completa" saiu; ficam as três dificuldades. Saves de partida rápida viram campanha completa.
+- **Saves:** v15. Saves antigos continuam abrindo (exércitos ganham tipo e experiência, e estados com exércitos demais são reagrupados uma única vez).
+
 ### Quinzenas e vitória pelas urnas (2022, fase 15)
-- **Quinzenas:** no começo da campanha cada turno vale 15 dias (até março de 2023, ou janeiro na partida rápida): mais decisões nacionais antes da posse. Receita e eventos são pela metade em cada quinzena. Quando a guerra começa (ou a abertura termina), aparece o aviso "Fim das quinzenas" e cada turno vira um mês.
+- **Quinzenas:** no começo da campanha cada turno vale 15 dias (até março de 2023): mais decisões nacionais antes da posse. Receita e eventos são pela metade em cada quinzena. Quando a guerra começa (ou a abertura termina), aparece o aviso "Fim das quinzenas" e cada turno vira um mês.
 - **Vencer sem guerra:** na cena "A Ação no TSE", escolha montar a frente legal. Leve o **progresso** a 100 com auditorias, ações no TSE, o Congresso, as ruas e os focos do ramo "Contestação institucional". Cuidado com a **credibilidade** (em 0 o TSE declara você inelegível — derrota) e com a **escalada** (em 100 a crise vai para os quartéis e vira guerra). Precisa de 43 no julgamento do TSE (janeiro) e de 100 no veredito (março). A barra no topo e o link "como vencer?" mostram tudo.
 - **Saves:** v14. Saves antigos continuam funcionando, mês a mês.
 
@@ -91,16 +102,16 @@ npx serve .        # ou: python3 -m http.server 8000
 - **Aviso de foco novo:** quando um foco fica disponível, ele ganha a etiqueta **NOVO** e a aba Decisões mostra **✨N**; o relatório do mês também avisa. Clicar no aviso centraliza a árvore no foco. A Marta sugere a oportunidade aberta mais útil.
 - **Sem limite de tempo na campanha completa:** o jogo continua até uma vitória ou derrota real. Perdeu a eleição? Há **Derrota nas Urnas** (recomeçar, passar o bastão ou aceitar ser líder da oposição) e **Mais Uma Eleição** quatro anos depois. Inelegível? O herdeiro disputa **O Herdeiro nas Urnas** em 2026. Na guerra, "seguir lutando" leva a **A guerra se arrasta**, que se repete até alguém ceder (ofensiva final, cessar-fogo, mediação com trégua, renúncia).
 - **Cansaço da guerra:** depois de 12 meses de combate, o Apoio Popular cai 1 ponto a cada 3 meses e as frentes ficam mais voláteis (até +150%), então impasses se resolvem sozinhos. Tréguas pausam o desgaste.
-- **Partida rápida** continua curta (os finais com prazo de antes). **Difícil** tem só uma revanche nas urnas e Apoio/Base acima de 65 caem 1 ponto por mês.
+- **Difícil** tem só uma revanche nas urnas e Apoio/Base acima de 65 caem 1 ponto por mês.
 - Saves v8 são migrados para v9.
 
-### Dificuldade e duração (novo, fase 5)
-- Ao clicar em **Nova campanha** abre uma janela com a **dificuldade** e a **duração**. A escolha aparece no topo (selo ao lado da data) e em **⚙ Configurações → Campanha atual**, e não muda no meio da campanha.
+### Dificuldade (fase 5; duração removida na fase 16)
+- Ao clicar em **Nova campanha** abre uma janela com a **dificuldade**. A escolha aparece no topo (selo ao lado da data) e em **⚙ Configurações → Campanha atual**, e não muda no meio da campanha.
 - **🌱 Fácil** (para quem não joga estratégia): inimigo 40% mais fraco, Tensão no Sul subindo bem mais devagar, +15 Recursos no início e +2 por mês, atributos iniciais um pouco maiores e uma pequena folga nos testes da história. Inclui o **modo simples**: os exércitos lutam sozinhos (ordens automáticas ligadas; o comando manual fica em "Comandar manualmente"), a conversão de Recursos fica escondida, Diplomacia e Facções vão para o botão **Mais ▾**, e as escolhas da história que encerram a campanha avisam antes se dão vitória, derrota ou um final intermediário. O modo simples pode ser desligado em Configurações.
 - **⚖️ Normal:** o jogo original, sem nenhuma mudança.
 - **🔥 Difícil:** inimigo 30% mais forte, −5 Recursos no início e −1 por mês, Sul 25% mais inquieto e testes da história um pouco mais exigentes.
-- **Duração:** **Campanha completa** ou **Partida rápida** (≈ 8 a 11 turnos, 20–30 minutos). Na rápida, depois de março de 2023 cada turno vale 6 meses (12 a partir de março de 2024), o racha militar e a guerra chegam antes, e a vitória militar do regime pede 21 estados e Apoio Militar 50 (em vez de 24 e 55).
-- Saves antigos continuam abrindo: viram Normal, campanha completa.
+- **Duração:** desde a fase 16 só existe a campanha completa (a partida rápida saiu; saves antigos de partida rápida continuam como campanha completa).
+- Saves antigos continuam abrindo: sem dificuldade viram Normal.
 
 ### Conselheira (novo, fase 5)
 - **Marta Siqueira, chefe de gabinete** (personagem fictícia), aparece num cartão acima das abas com **1 ou 2 dicas por mês** em linguagem simples, cada uma com o botão **Fazer isso**: responder um evento pendente, agradar uma facção quase em crise, subir um atributo perigosamente baixo, acalmar o Sul, ligar as ordens automáticas, recrutar quando o inimigo é bem mais forte, gastar Recursos perto do teto, começar uma decisão nacional ou usar as ações que sobraram. Sem nada urgente, ela sugere encerrar o mês.
@@ -111,7 +122,7 @@ npx serve .        # ou: python3 -m http.server 8000
 ### Tela de final e conquistas (novo, fase 5)
 - Ao chegar num final, a tela mostra a **nota (S, A, B ou C)**, um resumo em texto da sua campanha (duração, território, ações, ponto forte e fraco), os **momentos marcantes** (suas escolhas na história), as **conquistas** e o **mapa final**. "Como a nota foi calculada" abre a conta.
 - **Nota:** tipo de final (vitória 52, intermediário 34, derrota 14) + 30% da média dos atributos + território (sem guerra, 6 pontos fixos) + decisões nacionais (até 5) + paz com o Sul (4) + dificuldade (Fácil −4, Difícil +4). S a partir de 85, A de 70, B de 50. Derrota fica no máximo em B, intermediário no máximo em A, vitória no mínimo em B. Os números ficam em `js/data/conquistas.js`.
-- **13 conquistas** (primeira campanha, vitória, nota S, vencer no Difícil, partida rápida, pelas urnas, sem batalhas, pacto com o Sul, veterano, planejador, boa equipe com a conselheira, 5 finais, todos os finais). Ficam no aparelho (`gw_conquistas_v1`) e, com login, na nuvem.
+- **13 conquistas** (primeira campanha, vitória, nota S, vencer no Difícil, pelas urnas, a virada no tribunal, sem batalhas, pacto com o Sul, veterano, planejador, boa equipe com a conselheira, 5 finais, todos os finais). Ficam no aparelho (`gw_conquistas_v1`) e, com login, na nuvem.
 - Botões: **Jogar de novo** (mesma dificuldade e duração), **Tentar outro final** (lista os finais que faltam, com uma dica de como chegar em cada um; campo `dica` dos finais em `historia.js`) e **Compartilhar** (menu de compartilhar do celular; no computador copia o texto, com o link do jogo).
 
 ### Rostos dos personagens (novo, fase 5)
@@ -160,12 +171,11 @@ node tests/sim.js 300        # só a simulação de campanhas, com distribuiçã
 node tests/sim.js 300 brasil2022   # só um cenário
 node tests/sim.js 40 brasil1964    # cenário bloqueado: só roda se pedido pelo id
 node tests/sim.js 300 brasil2022 --dif=facil      # dificuldade Fácil (também: --dif=dificil)
-node tests/sim.js 300 brasil2022 --rapida         # partida rápida (combina com --dif)
 node tests/sim.js 300 brasil2022 --conselheira    # acrescenta as IAs "iniciante" e "conselheira" (que só segue as dicas)
 node tests/sim.js 300 brasil2022 --golpe [--dif=dificil]  # acrescenta a IA "golpista_conselheira" e a linha "golpe:" (sucesso do golpe)
-node tests/sim.js 300 --notas                     # mostra a distribuição da nota final e das conquistas por IA (automático com --dif/--rapida)
+node tests/sim.js 300 --notas                     # mostra a distribuição da nota final e das conquistas por IA (automático com --dif)
 ```
-Com `--dif` ou `--rapida` o sim imprime também a linha **resultado** (vitória / intermediário / derrota, pelo campo `outcome` dos finais) e, no Fácil, roda a IA **iniciante** (aleatória que lê os avisos de derrota do modo simples). O `tests/check.js` roda esses modos com 80 partidas e falha se o Fácil não vencer bem mais que o Difícil.
+Com `--dif` o sim imprime também a linha **resultado** (vitória / intermediário / derrota, pelo campo `outcome` dos finais) e, no Fácil, roda a IA **iniciante** (aleatória que lê os avisos de derrota do modo simples). O `tests/check.js` roda esses modos com 80 partidas e falha se o Fácil não vencer bem mais que o Difícil.
 A simulação imprime uma linha **economia** por IA (AP médio, Recursos médio, pico, turnos com 60+, saldo final, ações de facção, conversões) e falha se os Recursos passarem do teto.
 O `tests/check.js` também valida os dados do 1964 (bloqueado) e roda um teste curto de integridade dele (40 partidas por IA), para o cenário não quebrar enquanto o motor muda. Esse teste não entra no balanceamento.
 `tests/check.js` termina com código 1 se houver qualquer problema. **Rode depois de qualquer mudança na história, nos eventos ou na árvore.**
@@ -234,6 +244,14 @@ act("e_feira_agro", "eco", "Visitar a feira do agro", "Fotos com produtores; mer
 ```
 `x`/`y` são a posição na árvore, `req` são os pré-requisitos e `excl` os focos exclusivos. Ao concluir, o foco liga a flag `fo_<id>`, que pode liberar ações ou eventos (`show: { flags: ["fo_s_feira"] }`).
 
+**Nova versão no quadro 🆕 Novidades** (tela inicial): a cada atualização publicada, acrescente um item **no começo** da lista `NOVIDADES` em `js/data/novidades.js` (o mais novo primeiro), com textos curtos para quem joga:
+```js
+{ v: "1.17", data: "2026-11-15", titulo: "Nome curto da versão", itens: [
+  "O que mudou, em uma frase.",
+  "Outra mudança." ] },
+```
+Traduza o título e os itens em `js/i18n/en.js`, `zh.js` e `ru.js` (seção `"exact"`). O selo "novo" volta a aparecer sozinho para todos porque a versão mudou. O check confere o formato e a ordem.
+
 **Nova facção** em `js/data/2022/campanha.js`, em `factions`:
 ```js
 { id: "policias", name: "Polícias estaduais", short: "Polícias", desc: "Pesam na ordem pública.", loyalty: 50, influence: 40, links: { militar: 0.5 } },
@@ -252,7 +270,7 @@ Depois disso ela já pode aparecer nos efeitos (`fac: { policias: 5 }`). O check
 
 **Guerra por frentes (2022)** em `js/data/2022/frentes.js`: os números dos exércitos (`tropas`: passos, guarnição, flanco, cerco, ímpeto, táticas de Recife), o recrutamento (`recruta`), os traços e os generais (só fictícios, com retrato já existente em `retratos.js`), as frentes (`tropas`, `porEstado`, `reforco`, `ataca`, `reduto`) e a ofensiva especial (do jogador e `inimiga`). Todos os textos ficam em `falas`; ao mudar um texto, ponha a tradução em `js/i18n/en.js` (o check falha se faltar). Depois rode `node tests/sim.js 300 brasil2022` e `--dif=facil` para ver as vitórias. O 1964 continua com exércitos (`js/core/ordens.js`).
 
-**Ajustar a dificuldade** em `js/data/modos.js` (`DIFICULDADES`): `inimigo` e `sul` são multiplicadores, `dinheiro`/`renda` somam Recursos, `status` soma pontos nos atributos iniciais, `folga` afrouxa (ou aperta) os testes da história, `simples` liga o modo simples. A **partida rápida** fica em `js/data/2022/campanha.js`, no bloco `rapida` (ritmo dos turnos, atrasos dos eventos-chave e condições de vitória). O Normal nunca é afetado. Depois, rode `node tests/sim.js 300 brasil2022 --dif=facil` para ver as taxas de vitória.
+**Ajustar a dificuldade** em `js/data/modos.js` (`DIFICULDADES`): `inimigo` e `sul` são multiplicadores, `dinheiro`/`renda` somam Recursos, `status` soma pontos nos atributos iniciais, `folga` afrouxa (ou aperta) os testes da história, `simples` liga o modo simples. `ia` escolhe a IA do inimigo na guerra (0, 1 ou 2; `js/core/ia-inimiga.js`). Depois, rode `node tests/sim.js 300 brasil2022 --dif=facil` para ver as taxas de vitória.
 
 **Arquivo novo** (por exemplo `js/ui/aba-nova.js` ou `css/nova.css`): crie o arquivo com um comentário de topo e acrescente a tag no `index.html`, no grupo certo. Dados entram antes do núcleo, e o núcleo antes da tela.
 

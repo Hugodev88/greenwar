@@ -13,7 +13,6 @@ const CONQUISTAS = [
   { id: "vitoria",      icone: "🏆", nome: "Missão cumprida",       desc: "Termine com um final de vitória.",                         teste: (g, x) => x.outcome === "vitoria" },
   { id: "nota_s",       icone: "⭐", nome: "Nota máxima",           desc: "Tire nota S.",                                             teste: (g, x) => x.nota === "S" },
   { id: "dificil",      icone: "🔥", nome: "Sem rede de proteção",  desc: "Vença no Difícil.",                                        teste: (g, x) => x.outcome === "vitoria" && g.diff === "dificil" },
-  { id: "rapida",       icone: "⏱️", nome: "Contra o relógio",      desc: "Termine uma partida rápida.",                              teste: g => !!g.quick },
   { id: "urnas",        icone: "🗳️", nome: "Pelas urnas",           desc: "Volte ao poder pela eleição.",                             teste: g => g.ended.node === "fim_retorno" },
   { id: "virada",       icone: "⚖️", nome: "A virada no tribunal",  desc: "Vença contestando as urnas, sem guerra.",                 teste: g => g.ended.node === "fim_urnas" },
   { id: "paz",          icone: "🕊️", nome: "Sem disparar um tiro",  desc: "Vença sem nenhuma batalha.",                               teste: (g, x) => x.outcome === "vitoria" && !g.stat.battles },

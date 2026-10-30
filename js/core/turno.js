@@ -79,7 +79,8 @@ function endTurn(g){
   // 2b. Operações militares: ordens dos exércitos (jogador) + plano da IA inimiga
   if (frontMode(g)){ // 2022: guerra por frentes (js/core/frentes.js)
     frontWarMonth(g, R);
-    if (g.war.end){ applyMoneyCap(g); g.report = rep; finishLog(g, rep); endCampaign(g, g.war.end.to, g.war.end.why); return true; }
+    if (!g.war.end) frontSoldo(g, R); // fase 16: soldo atrasado e motim
+    if (g.war.end){ applyMoneyCap(g); g.report = rep; finishLog(g, rep); endCampaign(g, g.war.end.to, g.war.end.why, g.war.end.cause); return true; }
   } else {
   if (ph.war && g.autoOrders && g.autoOrders !== "off" && g.armies){ const r = autoOrders(g, g.autoOrders, true); if (r.n) R(`Ordens automáticas (${g.autoOrders === "auto" ? "automático" : "defender fronteiras"}): ${r.n} ${r.n === 1 ? "exército recebeu" : "exércitos receberam"} ordem.`); }
   if (ph.war){
@@ -126,7 +127,7 @@ function endTurn(g){
   syncActorStats(g);
   // 5. Fim por colapso / estado da campanha
   for (const k in S.collapse) if (g.stats[k] <= 0){ g.report = rep; finishLog(g, rep); enterStory(g, collapseTo(g, k)); g.ended.why = `${S.stats[k].label} chegou a zero.`; return true; }
-  for (const chk of (C.checks || [])) if (cond(g, chk.if)){ g.report = rep; finishLog(g, rep); endCampaign(g, chk.to, chk.why); return true; }
+  for (const chk of (C.checks || [])) if (cond(g, chk.if)){ g.report = rep; finishLog(g, rep); endCampaign(g, chk.to, chk.why, chk.cause); return true; }
   if (urnaCheck(g, rep) && g.ended){ g.report = rep; finishLog(g, rep); return true; }
   // 6. Eventos: história > crise de facção > dependência > aleatório
   if (g.story.pending && g.month >= g.story.due) enterStory(g, g.story.node, rep);

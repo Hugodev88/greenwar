@@ -221,7 +221,7 @@ const STORY_2022 = {
       ],
       choices: [
         { text: "Escolher e apoiar um herdeiro político para 2026.", flag: "herdeiro",
-          next: [ { if: { quick: true, min: { apoio: 50, base: 50 } }, to: "fim_herdeiro" }, { if: { quick: true }, to: "fim_ostracismo" }, { to: "eleicao_herdeiro" } ] },
+          next: "eleicao_herdeiro" },
         { text: "Insistir na própria candidatura, desafiando a Justiça.", effects: { apoio: 5, base: -15 }, next: "fim_ostracismo" },
         { text: "Recolher-se e comandar a direita como conselheiro.", effects: { base: 5 }, next: "fim_oposicao" }
       ]
@@ -236,9 +236,9 @@ const STORY_2022 = {
       ],
       choices: [
         { text: "Campanha centrada na economia e em alianças com o centro.",
-          next: [ { if: { min: { apoio: 50, base: 60 } }, to: "fim_retorno" }, { if: { quick: true }, to: "fim_oposicao" }, { to: "derrota_urnas" } ] },
+          next: [ { if: { min: { apoio: 50, base: 60 } }, to: "fim_retorno" }, { to: "derrota_urnas" } ] },
         { text: "Campanha de mobilização máxima da base.", effects: { apoio: 5 },
-          next: [ { if: { min: { apoio: 65 } }, to: "fim_retorno" }, { if: { quick: true }, to: "fim_oposicao" }, { to: "derrota_urnas" } ] }
+          next: [ { if: { min: { apoio: 65 } }, to: "fim_retorno" }, { to: "derrota_urnas" } ] }
       ]
     },
 
@@ -394,8 +394,7 @@ const STORY_2022 = {
         { if: { flags: ["sul_revolta"], anyControl: ["separatista"] }, text: ["A frente de batalha corta Minas Gerais e o oeste da Bahia. A economia está em colapso; milhares de famílias fogem para o Paraguai, a Bolívia e o Uruguai. No Sul, a Liga do Sul consolida o que tomou e já fala em fronteira própria.", "O Brasil, que entrou em 2022 como um país polarizado, agora corre o risco de não ser mais um país."] }
       ],
       choices: [
-        { text: "Seguir lutando: a guerra continua até um lado ceder.", textRapida: "Lançar tudo numa ofensiva final.",
-          next: [ { if: { quick: true, min: { militar: 65, apoio: 30 } }, to: "fim_regime" }, { if: { quick: true, flags: ["sul_aliado"], min: { militar: 58, apoio: 25 } }, to: "fim_regime" }, { if: { quick: true, min: { militar: 45 } }, to: "fim_divisao" }, { if: { quick: true }, to: "fim_restauracao" }, { to: "impasse" } ] },
+        { text: "Seguir lutando: a guerra continua até um lado ceder.", next: "impasse" },
         { text: "Aceitar um cessar-fogo com as linhas atuais congeladas.", effects: { base: 5 }, next: "fim_divisao" },
         { text: "Renunciar e negociar uma saída do país.", next: "fim_restauracao" }
       ]

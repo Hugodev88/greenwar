@@ -1,13 +1,13 @@
 // js/core/quinzenas.js — Núcleo: abertura da campanha em quinzenas (turnos de 15 dias) e o rótulo de data do turno.
 /* Enquanto halfOn(g): o turno da 1ª para a 2ª quinzena é um "meio-turno" leve (halfTurn: metade da receita, foco nacional,
    contestação das urnas, evento com metade da chance, ações renovadas) e o da 2ª quinzena para o mês seguinte é o turno
-   mensal normal (endTurn) com receita pela metade. Termina em C.quinzenas.ate (ou ateRapida) ou quando a guerra começa:
+   mensal normal (endTurn) com receita pela metade. Termina em C.quinzenas.ate ou quando a guerra começa:
    daí em diante cada turno é um mês. Dados: js/data/2022/urnas.js (QUINZENAS_2022). */
 function halfCfg(g){ const sc = g && scOf(g); return (sc && sc.campaign && sc.campaign.quinzenas) || null; }
 function halfOn(g){
   const Q = halfCfg(g); if (!Q || !g || g.halfDone) return false;
   if (phaseOf(g).war) return false;
-  return g.month < parseYM(g.quick ? (Q.ateRapida || Q.ate) : Q.ate);
+  return g.month < parseYM(Q.ate);
 }
 const MONTH_SHORT = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 function halfLabel(m, h){ return `${h ? "2ª" : "1ª"} quinzena de ${MONTH_SHORT[((m % 12) + 12) % 12]}/${Math.floor(m / 12)}`; }

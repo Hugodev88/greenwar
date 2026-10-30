@@ -239,7 +239,6 @@ for (const sc of SCENARIOS) {
     for (const f of c.flags||[]) if (!s.flags.includes(f)) return false;
     for (const f of c.noFlags||[]) if (s.flags.includes(f)) return false;
     for (const n of c.visited||[]) if (!s.visited.includes(n)) return false;
-    if (c.quick !== undefined && !!s.quick !== c.quick) return false;
     if (c.diff && !c.diff.includes(s.diff)) return false;
     if (c.urna){ const u = c.urna; if (u.min !== undefined && s.urna.prog < u.min) return false; if (u.credMax !== undefined && s.urna.cred > u.credMax) return false; } // contestação das urnas: números sorteados por partida
     return true; };
@@ -248,7 +247,7 @@ for (const sc of SCENARIOS) {
     if (spec.map) Object.assign(s.control, spec.map); };
   const visited = new Set(), endings = {}, used = new Set(), endMaps = {};
   for (let run = 0; run < 40000; run++) {
-    const s = { stats: {}, flags: [], control: {}, quick: run % 2 === 1, diff: ["facil", "normal", "dificil"][Math.floor(run / 2) % 3], visited: [], urna: { prog: Math.random() * 110, cred: Math.random() * 60 } }; // metade das partidas no modo rápido (finais com prazo)
+    const s = { stats: {}, flags: [], control: {}, diff: ["facil", "normal", "dificil"][run % 3], visited: [], urna: { prog: Math.random() * 110, cred: Math.random() * 60 } };
     for (const k of STATS) s.stats[k] = STORY.stats[k].initial;
     for (const u of UFS) s.control[u] = STORY.defaultFaction || "federal";
     Object.assign(s.control, STORY.initialMap);
@@ -392,13 +391,13 @@ for (const sc of SCENARIOS) {
       const g = API.newCampaign(sc22, seed); if (g.ended) continue;
       const v6 = JSON.parse(JSON.stringify(g)); v6.v = 6; delete v6.diff; delete v6.quick; delete v6.simple;
       const m = API.migrateSave(v6);
-      if (!m || m.v !== API.SAVE_VERSION || m.diff !== "normal" || m.quick !== false || m.simple !== false) { err(`brasil2022#${seed}: migração v6→v7 falhou`); continue; }
+      if (!m || m.v !== API.SAVE_VERSION || m.diff !== "normal" || "quick" in m || m.simple !== false) { err(`brasil2022#${seed}: migração v6→v7 falhou`); continue; }
       if (!API.endTurn(m) && !m.queue.length) err(`brasil2022#${seed}: save v6 migrado não avança`);
       n6++;
     }
-    for (const [diff, quick] of [["facil", false], ["dificil", false], ["normal", true], ["facil", true]]){
-      const g = API.newCampaign(sc22, 3, { diff, quick });
-      if (g.diff !== diff || g.quick !== quick || g.simple !== (diff === "facil")) err(`modo ${diff}${quick ? "+rápida" : ""}: campos do save errados`);
+    for (const diff of ["facil", "dificil"]){
+      const g = API.newCampaign(sc22, 3, { diff, quick: true }); // "quick" antigo é ignorado: só existe a campanha completa
+      if (g.diff !== diff || "quick" in g || g.simple !== (diff === "facil")) err(`modo ${diff}: campos do save errados`);
       if (API.scOf(g) === sc22 || API.scOf(g).story !== sc22.story) err(`modo ${diff}: variante do cenário inválida`);
     }
     if (API.scOf(API.newCampaign(sc22, 3)) !== sc22) err("Normal precisa usar o cenário original");
@@ -408,11 +407,12 @@ for (const sc of SCENARIOS) {
     // guerra no formato antigo (v8–v11: força por frente) a partir de uma partida atual, para testar a migração
     const oldWar = (g, troops, enemy) => ({ reserve: 5, fronts: g.war.fronts.map((f, i) => ({ id: f.id, troops: i ? 10 : troops, enemy, posture: "segurar", morale: 55, supply: 80, emorale: 60, eposture: "segurar", progress: 0, n: f.n, opened: f.opened, axis: {} })),
       gens: { valadares: g.war.fronts[0].id }, offAt: g.month, log: [{ month: g.month, front: g.war.fronts[0].id, rows: [] }], hist: g.war.hist || [], months: 2, siege: { "resistencia+": 100 } });
-    const armiesOk = (g, tag) => { const W = g.war, ph = API.phaseOf(g), seen = new Set();
+    const armiesOk = (g, tag) => { const W = g.war, ph = API.phaseOf(g), seen = {}, cap = (API.frontCfg(g).tropas.porEstado || 3);
       for (const a of W.armies){ const own = a.side === "player" ? API.sideOf(g, g.control[a.uf], ph) === "player" : g.control[a.uf] === a.fac;
         if (!API.ADJ[a.uf]){ err(`${tag}: exército ${a.id} num estado inválido (${a.uf})`); return false; }
         if (!own){ err(`${tag}: exército ${a.id} (${a.side}) fora do próprio território`); return false; }
-        if (seen.has(a.side + a.uf)){ err(`${tag}: dois exércitos do mesmo lado em ${a.uf}`); return false; } seen.add(a.side + a.uf);
+        seen[a.side + a.uf] = (seen[a.side + a.uf] || 0) + 1;
+        if (seen[a.side + a.uf] > cap){ err(`${tag}: mais de ${cap} exércitos do mesmo lado em ${a.uf}`); return false; }
         if (!(a.str > 0) || !(a.morale >= 0)){ err(`${tag}: exército ${a.id} com força/moral inválida`); return false; } }
       if (g.reg || "reg" in g) { err(`${tag}: o save ainda tem regiões (g.reg)`); return false; }
       return true; };
@@ -543,7 +543,7 @@ for (const sc of SCENARIOS) {
       // migração v9 → v13: estados "disputa" viram um lado
       const v9 = JSON.parse(JSON.stringify(gt)); v9.v = 9; v9.control.MG = "disputa"; v9.control.BA = "disputa";
       const m = RX.migrateSave(v9);
-      if (!m || m.v !== RX.SAVE_VERSION || m.v !== 14 || m.halfDone !== true || !m.urna) err("2022: migração v9→v14 falhou");
+      if (!m || m.v !== RX.SAVE_VERSION || m.v !== 15 || m.halfDone !== true || !m.urna) err("2022: migração v9→v14 falhou");
       else {
         if (Object.values(m.control).includes("disputa")) err("2022: migração v9→v13 deixou estado em disputa");
         if ("reg" in m) err("2022: migração v9→v13 criou regiões");
@@ -661,6 +661,81 @@ for (const sc of SCENARIOS) {
       if (!/showRecifeVictory/.test(rd("js/ui/frentes.js")) || !/data-tptat/.test(rd("js/ui/frentes.js"))) err("fase 14: falta a Batalha de Recife na interface (tática / vitória)");
       console.log(`Fase 14: ${moves} movimentos e ${bats} batalhas (${caps} capturas, ${flanks} com flanco, ${sieges} rendições por cerco) em ${wars} guerras, todos contíguos; ${tests} testes de teletransporte/alvos/flanco/cerco/Recife; Recife anunciada em ${flagOk}/${wars}; migrações v7/v9/v10/v11/v12→v13 OK`);
     }
+    // fase 16: exércitos distintos (sem fusão automática, até porEstado por estado), dividir/juntar/renomear, recrutar novo/reforço,
+    // migração v14 → v15, plano do inimigo (eplan), soldo/motim, cenas dos finais, Novidades e efeitos das ações
+    {
+      const RY = new Function(JOGO.codigo + "; return { SAVE_VERSION, migrateSave, tpArmies, tpById, tpAllAt, tpJoin, tpSplit, tpRename, tpName, tpNew, frontRecruit, frontRecruitUFs, frontCfg, frontSoldo, endTurn, iaLevel, iaEnemyMonth, tpEnemyPlan, fxParts };")();
+      let t16 = 0;
+      if (gwReg){
+        const base = () => { const g = JSON.parse(JSON.stringify(gwReg)); while (g.queue.length) g.queue.pop(); g.autoOrders = "off"; g.ended = null; g.used = g.used || {}; g.used._recruit = 0; return g; };
+        const T = RY.frontCfg(gwReg).tropas, cap = T.porEstado || 3;
+        // limite por estado e ids únicos na partida de teste
+        { const g = base(), L = RY.tpArmies(g), per = {};
+          for (const a of L){ const k = a.side + (a.fac || "") + a.uf; per[k] = (per[k] || 0) + 1; }
+          if (Object.values(per).some(n => n > cap)) err(`fase 16: mais de ${cap} exércitos do mesmo lado num estado`);
+          if (new Set(L.map(a => a.id)).size !== L.length) err("fase 16: ids de exército repetidos"); t16++; }
+        // recrutar "novo" cria um exército a mais (não funde); "reforço" soma força num existente
+        { const g = base(); g.money = 200; const uf = RY.frontRecruitUFs(g).find(u => RY.tpAllAt(g, "player", u).length === 1 && RY.tpAllAt(g, "player", u).length < cap);
+          if (uf && RY.tpArmies(g, "player").length < T.max){
+            const n0 = RY.tpArmies(g, "player").length, r = RY.frontRecruit(g, uf, "novo");
+            if (!r.ok || RY.tpArmies(g, "player").length !== n0 + 1 || RY.tpAllAt(g, "player", uf).length !== 2) err("fase 16: recrutar exército novo deveria criar um exército a mais no estado");
+            const a = RY.tpAllAt(g, "player", uf)[0], s0 = a.str, r2 = RY.frontRecruit(g, uf, "reforco", a.id);
+            if (!r2.ok || a.str <= s0 || RY.tpAllAt(g, "player", uf).length !== 2) err("fase 16: reforçar deveria somar força sem criar exército");
+            // juntar é só por escolha: os dois continuam separados até tpJoin
+            RY.endTurn(g);
+            t16 += 2; } }
+        // dividir, juntar e renomear
+        { const g = base(), a = RY.tpArmies(g, "player").find(x => x.str >= (T.dividirMin || 20) && RY.tpAllAt(g, "player", x.uf).length < cap && !x.special);
+          if (a && RY.tpArmies(g, "player").length < T.max){
+            const s0 = a.str, r = RY.tpSplit(g, a.id), b = r.ok && RY.tpById(g, r.id);
+            if (!b || a.str + b.str !== s0 || b.uf !== a.uf) err("fase 16: dividir deveria repartir a força no mesmo estado");
+            else { const j = RY.tpJoin(g, a.id, b.id);
+              if (!j.ok || RY.tpById(g, b.id) || a.str !== s0) err("fase 16: juntar deveria somar as forças e remover o outro"); }
+            if (!RY.tpRename(g, a.id, "Leões <do> Norte").ok || RY.tpName(g, a) !== "Leões do Norte") err("fase 16: renomear falhou");
+            RY.tpRename(g, a.id, ""); if (a.nome) err("fase 16: nome vazio deveria voltar ao padrão");
+            t16 += 3; } }
+        // 4 exércitos do jogador no mesmo estado: o limite barra o quarto (sem fusão automática)
+        { const g = base(), a = RY.tpArmies(g, "player")[0]; g.money = 200;
+          while (RY.tpAllAt(g, "player", a.uf).length < cap) RY.tpNew(g, "player", null, a.uf, 10, 60, "div");
+          if (RY.frontRecruit(g, a.uf, "novo").ok) err("fase 16: recrutou além do limite por estado");
+          RY.endTurn(g);
+          const per = {}; for (const x of RY.tpArmies(g)){ const k = x.side + (x.fac || "") + x.uf; per[k] = (per[k] || 0) + 1; }
+          if (Object.values(per).some(n => n > cap)) err("fase 16: o mês passou do limite por estado"); t16++; }
+        // plano do inimigo: com IA nova, eplan aponta para um estado do jogador e uma base dele
+        { const g = base(); g.diff = "normal"; RY.tpEnemyPlan(g);
+          const P = Object.values(g.war.eplan || {});
+          if (RY.iaLevel(g) >= 1 && !P.length) err("fase 16: a IA do inimigo não montou plano (eplan)");
+          if (P.some(p => !p.alvo || !p.base || g.control[p.base] === undefined)) err("fase 16: plano do inimigo inválido"); t16++; }
+        // soldo: cofres no vermelho por K.soldo.meses meses = motim (fim_restauracao, cause motim)
+        { const g = base(), S = RY.frontCfg(g).soldo, R = () => {};
+          if (S){ let end = false; for (let i = 0; i < S.meses && !end; i++){ g.money = S.limite - 5; end = RY.frontSoldo(g, R); }
+            if (!end || !g.war.end || g.war.end.cause !== "motim") err("fase 16: soldo atrasado não levou ao motim");
+            const h = base(); h.money = S.limite - 5; RY.frontSoldo(h, R); h.money = 50; RY.frontSoldo(h, R);
+            if (h.unpaid) err("fase 16: pagar o soldo deveria zerar o atraso"); t16 += 2; } }
+        // migração v14 → v15: g.quick some, exércitos ganham tipo/xp, sem passar do limite por estado
+        { const v14 = JSON.parse(JSON.stringify(gwReg)); v14.v = 14; v14.quick = true; delete v14.unpaid; if (v14.war){ delete v14.war.eplan; for (const a of v14.war.armies){ delete a.kind; delete a.xp; delete a.zona; } }
+          const m = RY.migrateSave(v14);
+          if (!m || m.v !== RY.SAVE_VERSION || "quick" in m) err("fase 16: migração v14→v15 falhou");
+          else if (RY.tpArmies(m).some(a => !a.kind || a.xp == null)) err("fase 16: migração v14→v15 sem tipo/experiência nos exércitos");
+          t16++; }
+      }
+      // efeitos das ações em pedaços (bom/ruim)
+      { const p = RY.fxParts(gwReg || {}, { money: 5 }); if (!Array.isArray(p) || !p.length || p.some(x => !x.t || typeof x.good !== "boolean")) err("fase 16: fxParts inválido"); t16++; }
+      // cenas: todo final do 2022 tem cena (pelo arquivo da interface)
+      { const fs = require("fs"), path = require("path"), rd = f => fs.readFileSync(path.join(JOGO.RAIZ, f), "utf8");
+        const src = rd("js/ui/finais-animados.js");
+        const FA = new Function("STORY", "frontCfg", "fFala", src + "; return { FA_CENAS, FA_POR_FINAL, FA_POR_CAUSA, endingSceneKey };")({ nodes: sc22.story.nodes }, () => null, () => "");
+        const fins = Object.keys(sc22.story.nodes).filter(k => /^fim_/.test(k));
+        for (const f of fins){ const k = FA.endingSceneKey({ ended: { node: f } }); if (!FA.FA_CENAS[k]) err(`fase 16: final ${f} sem cena animada`); }
+        for (const c of ["recife", "df", "motim", "urnas", "cassado"]) if (!FA.FA_CENAS[FA.endingSceneKey({ ended: { node: "fim_regime", cause: c } })]) err(`fase 16: causa ${c} sem cena`);
+        if (/quick|Partida rápida/.test(rd("js/ui/menu.js"))) err("fase 16: o menu ainda oferece partida rápida");
+        // Novidades: lista do mais novo para o mais antigo, cada uma com versão, data, título e itens
+        const NOV = new Function(rd("js/data/novidades.js") + "; return NOVIDADES;")();
+        if (!Array.isArray(NOV) || !NOV.length || NOV.some(n => !n.v || !/^\d{4}-\d{2}-\d{2}$/.test(n.data) || !n.titulo || !Array.isArray(n.itens) || !n.itens.length)) err("fase 16: NOVIDADES com formato inválido");
+        else if (NOV.some((n, i) => i && n.data > NOV[i - 1].data)) err("fase 16: NOVIDADES fora de ordem (mais nova primeiro)");
+        t16 += fins.length + 2; }
+      console.log(`Fase 16: ${t16} testes de exércitos distintos, soldo, plano do inimigo, migração v14→v15, cenas dos finais e Novidades`);
+    }
     // conselheira: no máximo 2 dicas, com título, texto e ação; "Fazer isso" funciona e não quebra a partida
     for (let seed = 1; seed <= 12; seed++){
       const g = API.newCampaign(sc22, seed, { diff: seed % 2 ? "facil" : "normal" });
@@ -741,7 +816,7 @@ for (const sc of SCENARIOS) {
     for (const [id, n] of Object.entries(sc22.story.nodes)) if (n.ending && !n.dica) err(`final ${id} sem dica (botão "Tentar outro final")`);
     let ended = 0;
     for (let seed = 1; seed <= 30; seed++){
-      const g = API.newCampaign(sc22, seed, { diff: ["facil", "normal", "dificil"][seed % 3], quick: seed % 2 === 0 });
+      const g = API.newCampaign(sc22, seed, { diff: ["facil", "normal", "dificil"][seed % 3] });
       for (let t = 0; t < 60 && !g.ended; t++){
         while (g.queue.length && !g.ended){ const ch = API.queueChoices(g); const ok = ch.findIndex(c => c.ok); API.choose(g, ok < 0 ? 0 : ok); }
         if (!g.ended) API.endTurn(g);
@@ -877,9 +952,9 @@ for (const sc of SCENARIOS.filter(s => s.locked && s.campaign)){
   console.log(`\n[${sc.year}] ${sc.title} (bloqueado): 40 partidas por IA — ${q.status === 0 ? "sem falhas" : "FALHOU"} · ${fin}`);
   if (q.status !== 0){ console.log(out.split("\n").filter(l => /falha|exceção|✗|!/.test(l)).slice(0, 10).join("\n")); lockedFail++; }
 }
-// Dificuldades e partida rápida: sem falhas, todos os finais alcançáveis no conjunto, e Fácil > Difícil em vitórias da IA aleatória
+// Dificuldades: sem falhas, todos os finais alcançáveis no conjunto, e Fácil > Difícil em vitórias da IA aleatória
 let modeFail = 0; const winOf = {};
-for (const args of [["--dif=facil"], ["--dif=dificil"], ["--rapida"], ["--dif=facil", "--rapida"]]){
+for (const args of [["--dif=facil"], ["--dif=dificil"]]){
   const q = require("child_process").spawnSync(process.execPath, [__dirname + "/sim.js", "80", "brasil2022", ...args], { encoding: "utf8" });
   const out = (q.stdout || "") + (q.stderr || ""), fin = (out.match(/Finais alcançados: [^\n]*/) || ["?"])[0];
   const rnd = out.split("IA aleatoria")[1] || "", w = +((rnd.match(/resultado: vitória (\d+)%/) || [])[1] || 0); winOf[args.join(" ")] = w;
