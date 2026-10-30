@@ -1,0 +1,37 @@
+/* css/idiomas.css — Fontes e ajustes de layout por idioma (o <html lang> muda em Configurações → Idioma).
+   Chinês (zh-CN): Georgia não tem ideogramas; cada pilha acrescenta fontes CJK antes do genérico,
+   para que títulos em serifa e textos em system-ui caiam numa fonte chinesa simplificada adequada.
+   Russo (ru): Georgia e system-ui já têm cirílico; aqui só evitamos que palavras longas estourem botões no celular. */
+:root{
+  --cjk-sans:"Noto Sans SC","PingFang SC","Microsoft YaHei","Source Han Sans SC","Noto Sans CJK SC";
+  --cjk-serif:"Noto Serif SC","Songti SC","Source Han Serif SC","Noto Serif CJK SC";
+}
+html:lang(zh-CN) body{font-family:Georgia,"Times New Roman","Noto Sans SC","PingFang SC","Microsoft YaHei","Source Han Sans SC","Noto Sans CJK SC",sans-serif;line-height:1.75}
+/* títulos e destaques em serifa: Latim em Georgia, chinês em serifa CJK (ou sans, se não houver) */
+html:lang(zh-CN) h1,html:lang(zh-CN) h2,html:lang(zh-CN) h3,html:lang(zh-CN) h4,
+html:lang(zh-CN) .advisor .advwho b,html:lang(zh-CN) .advisor .couphead b,html:lang(zh-CN) .major h2,html:lang(zh-CN) .major .msub,
+html:lang(zh-CN) .coach .cbub h4,html:lang(zh-CN) .btop h2,html:lang(zh-CN) .bmid .vs,html:lang(zh-CN) .hud-date strong,html:lang(zh-CN) .fdetail h3{
+  font-family:Georgia,"Noto Serif SC","Songti SC","Source Han Serif SC","Noto Serif CJK SC","Noto Sans SC","PingFang SC","Microsoft YaHei",serif}
+/* blocos de interface em system-ui */
+html:lang(zh-CN) .hud,html:lang(zh-CN) .tabs,html:lang(zh-CN) .ufinfo,html:lang(zh-CN) .deal,html:lang(zh-CN) .predict,html:lang(zh-CN) .fac,
+html:lang(zh-CN) .act,html:lang(zh-CN) .actor,html:lang(zh-CN) .report,html:lang(zh-CN) .hint,html:lang(zh-CN) .muted,html:lang(zh-CN) .pendbar,
+html:lang(zh-CN) .notice,html:lang(zh-CN) .why,html:lang(zh-CN) .dealmsg,html:lang(zh-CN) .conseq,html:lang(zh-CN) .hist,html:lang(zh-CN) .major .mbox,
+html:lang(zh-CN) .scen .tag,html:lang(zh-CN) .scen .dt,html:lang(zh-CN) .scen .who,html:lang(zh-CN) .scen .meta,html:lang(zh-CN) .setcard .opt,
+html:lang(zh-CN) .setcard .tgl,html:lang(zh-CN) .setcard .frow,html:lang(zh-CN) .layerinfo,html:lang(zh-CN) .milleg,html:lang(zh-CN) .maphint,
+html:lang(zh-CN) .seg button,html:lang(zh-CN) .fnavhint,html:lang(zh-CN) .gradlegend{
+  font-family:system-ui,-apple-system,"Segoe UI","Noto Sans SC","PingFang SC","Microsoft YaHei","Source Han Sans SC","Noto Sans CJK SC",sans-serif}
+html:lang(zh-CN) .milleg svg text{font-family:system-ui,"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif}
+/* chinês não usa itálico nem caixa-alta espaçada */
+html:lang(zh-CN) em,html:lang(zh-CN) i{font-style:normal;font-weight:600}
+html:lang(zh-CN) *{letter-spacing:normal !important;text-transform:none !important;font-style:normal !important}
+
+/* russo: palavras longas ("Конституционное", "Перегруппироваться") não podem estourar botões/abas */
+html:lang(ru) button,html:lang(ru) .choice,html:lang(ru) .act,html:lang(ru) .fcard,html:lang(ru) .advisor,html:lang(ru) .scen{overflow-wrap:break-word;hyphens:auto}
+html:lang(ru) .tab{font-size:.84rem;padding-left:12px;padding-right:12px}
+@media (max-width:640px){
+  html:lang(ru) .tab{font-size:.78rem;padding:8px 9px}
+  html:lang(ru) .btn-sm{padding:6px 8px;font-size:.76rem}
+  html:lang(ru) .primary,html:lang(ru) .secondary{padding-left:14px;padding-right:14px;white-space:normal}
+  html:lang(ru) .major h2{font-size:clamp(1.7rem,8vw,3.2rem);overflow-wrap:break-word;hyphens:auto}
+  html:lang(zh-CN) .tab{padding:8px 10px}
+}

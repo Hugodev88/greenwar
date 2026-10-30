@@ -645,6 +645,29 @@ for (const sc of SCENARIOS) {
     console.log(`Tradução [${sc.year}]: ${falta.length ? `${falta.length} nomes de ações/focos sem inglês (aparecem em português): ${falta.slice(0, 5).join(" · ")}${falta.length > 5 ? " …" : ""}` : "todas as ações e focos têm inglês"}`);
   }
 }
+// ---- tradução completa do cenário 2022 em inglês, chinês e russo (falha se faltar texto) ----
+// percorre todos os textos do cenário (história, finais, ações, focos, eventos, facções, frentes, golpe) e do cartão de 1964;
+// cada idioma é testado sozinho (sem cair no inglês), com os {n} preenchidos por números ou nomes como na tela
+{
+  const rd = f => fs.readFileSync(require("path").join(JOGO.RAIZ, f), "utf8");
+  const trSrc = rd("js/i18n/traducao.js").split("\ndocument.__ptTitle")[0];
+  const DIC = { en: new Function(rd("js/i18n/en.js") + "; return I18N_EN;")(), zh: new Function(rd("js/i18n/zh.js") + "; return I18N_ZH;")(), ru: new Function(rd("js/i18n/ru.js") + "; return I18N_RU;")() };
+  const VAZIO = { exact: {}, tpl: {} };
+  const textos = (o, out, seen, d) => { if (o == null || d > 14) return out; if (typeof o === "string"){ const s = o.trim(); if ((/[a-zà-ú]{3}/i.test(s) && /\s/.test(s)) || /[ãçõéáíóúâêô]/.test(s)) out.add(s); return out; }
+    if (typeof o !== "object" || seen.has(o)) return out; seen.add(o); for (const k in o) textos(o[k], out, seen, d + 1); return out; };
+  const s22 = SCENARIOS.find(s => s.id === "brasil2022"), s64 = SCENARIOS.find(s => s.locked);
+  const lista = [...textos(s22, new Set(), new Set(), 0)];
+  const card64 = s64 ? ["title", "date", "tag", "character", "description"].map(k => s64[k]).filter(x => typeof x === "string") : [];
+  const fills = [["7", "3", "5", "2", "4"], ["Frente Nordeste", "Resistência constitucional"], ["Bahia", "Resistência constitucional"]];
+  for (const L of ["en", "zh", "ru"]){
+    const tr = new Function("I18N_EN", "I18N_ZH", "I18N_RU", "SET", "document", trSrc + "; return trCore;")(L === "en" ? DIC.en : VAZIO, DIC.zh, DIC.ru, { lang: L }, {});
+    const ok = v => fills.some(x => tr(v.replace(/\{(\d)\}/g, (_, i) => x[+i] || x[0]), 0, L) != null);
+    const falta = lista.filter(v => !ok(v)), falta64 = card64.filter(v => !ok(v));
+    console.log(`Tradução ${L.toUpperCase()} [2022]: ${lista.length - falta.length}/${lista.length} textos${falta.length ? ` — faltam ${falta.length}` : " (100%)"}; cartão 1964: ${card64.length - falta64.length}/${card64.length}`);
+    if (falta.length) err(`tradução ${L}: ${falta.length} textos do cenário 2022 sem tradução, ex.: "${falta[0].slice(0, 70)}"`);
+    if (falta64.length) err(`tradução ${L}: cartão do cenário 1964 sem tradução: "${falta64[0].slice(0, 60)}"`);
+  }
+}
 console.log(errors ? `\nFALHOU (${errors} problemas)` : "\nOK: todos os cenários íntegros, todos os nós e finais alcançáveis.");
 if (errors) process.exit(1);
 console.log("\n=== Simulação de campanhas (sim.js) ===");

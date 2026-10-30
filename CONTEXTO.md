@@ -260,13 +260,20 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 58 
 - **Visual estilo Victoria:** linha mais grossa, faixas listradas dos dois lados (clipPath por frente: azul do seu lado, vermelho do inimigo), estados em disputa listrados na cor do inimigo da frente, setas animadas (chevrons) na direção do último mês, ★ na capital (DF) e alvo nos redutos (PE/RS), fundo de papel e bordas mais suaves. Modo daltônico usa azul #0072B2 × laranja #D55E00 e símbolos (▭/◆, ◀/▶); `prefers-reduced-motion` e `body.rm` param as animações.
 - **Texto/idioma:** legenda nova (`frontLegendHTML`), dica da aba e descrição do mapa (`mapDescriptionHTML`) com força × inimigo, movimento do último mês, capital e redutos; inglês em `js/i18n/en.js`.
 
+## 7l. Fase 10 (out/2026): chinês e russo (só UI/i18n, sem mudar CORE nem saves)
+- **Idiomas:** `I18N_LANGS` em `js/i18n/traducao.js` lista pt/en/zh/ru (nome nativo, `html lang`, título da aba). Configurações monta os botões a partir dessa lista; `applySet`/`i18nSwitch` põem `<html lang>` (pt-BR, en, zh-CN, ru). Textos com `translate="no"` (nomes dos idiomas) não são traduzidos.
+- **Dicionários:** `js/i18n/zh.js` (`I18N_ZH`) e `js/i18n/ru.js` (`I18N_RU`), mesmo formato do `en.js` (`exact` + `tpl` com `{n}`), carregados depois do `en.js`. Ordem de busca: idioma escolhido → inglês → português. Terminologia em `GLOSSARIO.md`.
+- **Regras:** cada regra de `I18N_PRE`/`I18N_RULES` tem `[padrão, en, zh?, ru?]`; sem função própria usa a do inglês. Uma regra só vale se alguma parte variável foi de fato traduzida (evita "traduzir" só a pontuação). Meses: `i18nMonth` (zh `2023年1月`, ru `Январь 2023`); separadores do chinês em largura total (`i18nSep`).
+- **Fontes/layout:** `css/idiomas.css` — chinês: pilha 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei' depois de Georgia/system-ui, títulos em serifa com 'Noto Serif SC'/'Songti SC' antes do genérico, sem itálico/caixa-alta espaçada; russo: quebra de palavras longas em botões e abas menores no celular.
+- **Check:** `tests/check.js` percorre todos os textos do cenário 2022 e do cartão do 1964 e falha se faltar tradução em EN, ZH ou RU (cada idioma testado sem cair no inglês).
+- **Compartilhar final:** texto em chinês e russo em `shareText` (`js/ui/conquistas.js`).
+
 ## 8. Limitações conhecidas
-- Modo English: cobre interface, tutorial, os grandes eventos e o evento de abertura; os demais textos de eventos, os epílogos e o cenário 1964 seguem em português.
+- Idiomas: inglês, chinês e russo cobrem todo o cenário 2022; o cenário 1964 (bloqueado) só tem o cartão do menu traduzido. Frases montadas por partes (registro do turno, dicas com nomes) podem ter ordem de palavras menos natural em chinês/russo; a tradução zh/ru não passou por revisão de falante nativo.
 - Mapa de guerra (fase 9): no celular o placar pode cobrir parte dos rótulos de estados vizinhos (MT, RS); a posição do placar é uma heurística (ponto da linha mais perto do centro da frente); as listras são discretas sobre a cor marrom do regime; o mapa animado da resolução do mês não mostra os placares.
 - A trilha sonora é sintetizada (Web Audio), não há música gravada.
 - Quem conclui `c_ruptura` e depois recua para a transição fica só com os ramos temáticos, porque democ e jurid ficam excluídos.
 - Depois de 2023-03 os turnos valem 3 meses, então os focos (1–2 meses) terminam dentro de um turno; as oportunidades ficam abertas pelo menos um turno inteiro (`max(dura, ritmo)`).
-- Os epílogos novos e os textos da fase 8 têm inglês; vários textos antigos de eventos continuam em português.
 - O ramo do regime é curto (cerca de 9 meses até o nó `guerra`). Não dá para fazer todos os focos numa partida.
 - As IAs da simulação são heurísticas.
 - **Militar:**

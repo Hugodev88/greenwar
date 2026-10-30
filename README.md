@@ -31,7 +31,7 @@ O foco atual é o cenário de **2022**. (O antigo cenário fictício de 1924, "A
 - **Ações escalam com o apoio (2022):** 3 ações por turno; **4 com Apoio Popular ≥ 60** e **5 com ≥ 75** (calculado no início do turno). O topo mostra de onde vem cada ação (base · apoio · comprada) e o "i" abre a explicação completa.
 - **Recursos políticos rebalanceados (2022):** teto de **80** (o que passar disso se perde no Encerrar turno, com aviso antes); **Facções** passam a custar só Recursos (Agradar 8, Enfraquecer 6, sem gastar ações); **Converter 12 Recursos → +1 ação** uma vez por turno (aba Ações). A tela "Como funcionam ações e Recursos?" mostra renda por fonte, teto e onde gastar.
 - **Mapa de guerra refeito:** mapa maior (e botão **⊕ Ampliar mapa**), fichas de exército maiores com a **força em número e barra**, símbolo OTAN (retângulo = seu, losango = inimigo) e marca dourada quando já tem ordem; frentes de batalha com contorno escuro (visíveis sobre qualquer cor) e legenda militar embaixo do mapa. Fluxo em 3 passos: **1. selecionar** o exército → **2. destino** (seta de prévia tracejada) → **3. previsão** (chance, barra de poder, principais modificadores, o que acontece se vencer/perder, manobras restantes) com **Confirmar**, **Comparação completa** e **Cancelar** (Esc). Tocar de novo no mesmo estado confirma.
-- **⚙ Configurações** (botão no topo; ficam salvas no navegador): **idioma** Português (Brasil) / English; **modo daltônico** (cada facção ganha uma textura além da cor, no mapa e na legenda); **alto contraste**; **tamanho da letra** (100%, 115% ou 130%); **reduzir animações**; **música** e **efeitos** com volume separado, além do botão 🔊 (tecla **M**) para silenciar.
+- **⚙ Configurações** (botão no topo; ficam salvas no navegador): **idioma** Português (Brasil) / English / 简体中文 (chinês) / Русский (russo) — o cenário 2022 está todo traduzido nos três idiomas; **modo daltônico** (cada facção ganha uma textura além da cor, no mapa e na legenda); **alto contraste**; **tamanho da letra** (100%, 115% ou 130%); **reduzir animações**; **música** e **efeitos** com volume separado, além do botão 🔊 (tecla **M**) para silenciar.
 - **Acessibilidade:** link "Pular para o conteúdo", navegação por teclado (Tab; **Enter/Espaço** num estado ou num exército do mapa equivale ao clique; **←/→** troca de aba; **Esc** fecha a prévia), avisos para leitores de tela (região `aria-live`) e o botão **📝 Descrição do mapa**, que descreve em texto quem controla cada estado, a agitação, os exércitos e, no 2022, cada frente (sua força × a do inimigo, para onde a linha andou no último mês, sua capital e os redutos inimigos). No mapa de guerra, o placar de cada frente também é focável com Tab e abre com Enter/Espaço.
 - **Trilha sonora e efeitos:** música gerada no navegador com Web Audio (sem arquivos), com três climas: calmo, tenso e guerra, conforme a fase. Há efeitos para clique, ordem, fim de turno, batalha, vitória e derrota, e um alerta nos grandes eventos. O som começa no primeiro clique, como os navegadores exigem.
 
@@ -189,7 +189,7 @@ js/
   ui/                   TELA: menu, jogo, abas (aba-*.js), mapa, exércitos, batalha, resolução, tutorial,
                         grandes-eventos, ajuda, economia, janelas, configurações, acessibilidade, modos, conselheiro, mapa-frentes (placar e visual das frentes, fase 9),
                         conquistas, final (tela de final), retratos (rostos/ícones/silhuetas), iniciar.js (último)
-  i18n/                 traducao.js (camada PT→EN) e en.js (dicionário)
+  i18n/                 traducao.js (camada PT→EN/ZH/RU), en.js, zh.js, ru.js (dicionários; termos em GLOSSARIO.md)
   audio/                audio.js (trilha e efeitos gerados no navegador)
   nuvem/                cloud.js e config.js (contas e saves na nuvem, opcional)
 tests/                  check.js (validação), sim.js (simulação), carregar.js (carrega o jogo no Node)
@@ -199,7 +199,7 @@ supabase/  tools/       SQL do banco · gerador do mapa
 Cada arquivo começa com um comentário curto dizendo o que faz. Os testes leem a lista de `<script>` do `index.html`, então um arquivo novo entra no jogo e nos testes no mesmo lugar.
 
 ## Como atualizar o jogo (guia rápido)
-Depois de qualquer mudança: `node tests/check.js` (tem que terminar com "OK" e "Simulação OK"). O check acusa ids repetidos, referências quebradas, arquivos fora do `index.html`, nomes globais repetidos e textos de ações/focos sem inglês (este último só como aviso).
+Depois de qualquer mudança: `node tests/check.js` (tem que terminar com "OK" e "Simulação OK"). O check acusa ids repetidos, referências quebradas, arquivos fora do `index.html`, nomes globais repetidos e qualquer texto do cenário 2022 (e do cartão do 1964) sem inglês, chinês ou russo.
 
 **Novo evento** em `js/data/2022/eventos.js`, dentro da lista `EVENTOS_2022`:
 ```js
@@ -234,7 +234,7 @@ ev("cr_policias", "Motim nas polícias", "Batalhões cruzam os braços.", [
 ```
 Depois disso ela já pode aparecer nos efeitos (`fac: { policias: 5 }`). O check avisa se faltar o evento de crise ou se algum efeito citar uma facção que não existe.
 
-**Texto traduzido** em `js/i18n/en.js`: acrescente `"Texto em português": "English text",` dentro de `"exact"`. Para frases com números, use `"tpl"` com `{0}`, `{1}`: `"Faltam {0} meses": "{0} months left"`. O que não tiver tradução aparece em português.
+**Texto traduzido** em `js/i18n/en.js`: acrescente `"Texto em português": "English text",` dentro de `"exact"`. Para frases com números, use `"tpl"` com `{0}`, `{1}`: `"Faltam {0} meses": "{0} months left"`. Faça o mesmo em `js/i18n/zh.js` (chinês simplificado) e `js/i18n/ru.js` (russo), seguindo `GLOSSARIO.md` — o check falha se um texto do 2022 ficar sem tradução em algum idioma. No jogo, o que faltar no idioma escolhido cai no inglês e depois no português.
 
 **Mudou o formato do save?** Suba `SAVE_VERSION` em `js/core/base.js` e escreva a migração em `js/core/saves.js`, para os saves antigos (locais e da nuvem) continuarem abrindo.
 

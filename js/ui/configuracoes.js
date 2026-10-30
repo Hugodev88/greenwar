@@ -12,7 +12,7 @@ function applySet(){
   const b = document.body, r = document.documentElement;
   b.classList.toggle("cb", !!SET.cb); b.classList.toggle("hc", !!SET.hc); b.classList.toggle("rm", !!SET.motion);
   r.style.fontSize = SET.fs + "%";
-  r.lang = SET.lang === "en" ? "en" : "pt-BR";
+  r.lang = (I18N_LANGS.find(x => x.id === SET.lang) || I18N_LANGS[0]).html;
   AUDIO.setVol(); sndBtn();
 }
 // Modo daltônico: cada facção ganha uma textura além da cor (mapa e legenda)
@@ -39,8 +39,8 @@ function openSettings(){
   m.className = "modal"; m.id = "setModal"; m.setAttribute("role", "dialog"); m.setAttribute("aria-modal", "true"); m.setAttribute("aria-labelledby", "setT");
   const rad = (name, val, cur, label) => `<label class="opt"><input type="radio" name="${name}" value="${val}" ${String(cur) === String(val) ? "checked" : ""}> ${label}</label>`;
   m.innerHTML = `<div class="modal-card setcard"><h2 id="setT">Configurações</h2>
-    <fieldset><legend>Idioma / Language</legend><div class="opts">${rad("lang", "pt", SET.lang, "Português (Brasil)")}${rad("lang", "en", SET.lang, "English")}</div>
-      <p class="muted sm">Em inglês: interface, tutorial e grandes eventos estão traduzidos; os demais eventos da história ainda aparecem em português.</p></fieldset>
+    <fieldset><legend>Idioma / Language</legend><div class="opts">${I18N_LANGS.map(x => rad("lang", x.id, SET.lang, `<span translate="no">${x.name}</span>`)).join("")}</div>
+      <p class="muted sm">Inglês, chinês e russo cobrem todo o cenário 2022. O cenário 1964 ainda está só em português.</p></fieldset>
     ${settingsCampaignHTML()}
     ${settingsAdvisorHTML()}
     <fieldset><legend>Acessibilidade</legend>
