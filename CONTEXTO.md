@@ -268,7 +268,15 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 58 
 - **Check:** `tests/check.js` percorre todos os textos do cenário 2022 e do cartão do 1964 e falha se faltar tradução em EN, ZH ou RU (cada idioma testado sem cair no inglês).
 - **Compartilhar final:** texto em chinês e russo em `shareText` (`js/ui/conquistas.js`).
 
+## 7m. Fase 11 (out/2026): guerra por regiões (save v10)
+- **Geometria:** `js/data/mapa-regioes.js` (`REG_DATA`: 133 regiões intermediárias do IBGE com UF, caminho SVG, centro, vizinhança e região da capital de cada UF; `sb` = fronteiras finas). Gerado por `tools/build-regioes.js` (os JSON brutos do IBGE ficam fora do git).
+- **Regras:** `js/core/regioes.js` guarda `g.reg` (região → lado) e decide o dono de cada estado pela maioria (empate: região da capital). `frontClash` em `js/core/frentes.js`: `progress += d × regioes.escala`; cada 100 vira uma região (até `maxMes`, + `extraOfensiva` com ofensiva especial), escolhida por suprimento/foco/coesão/sorte. Os alvos finais (região do DF; Recife ou Porto Alegre) só caem com o cerco (`g.war.siege`, 400 pontos = 4 meses tomando terreno ao lado); o cerco cai 100 quando o defensor vence o mês. Config em `js/data/2022/frentes.js` → `regioes`.
+- **Sem "em disputa" no 2022:** a revolta do Sul passa metade das regiões do estado; a migração v9→v10 converte disputa em um lado; `tests/check.js` falha se "disputa" aparecer nos dados de controle do 2022. O 1964 continua igual.
+- **Tela:** `js/ui/mapa-regioes.js` + `css/mapa-regioes.css` (camada de regiões, linha de frente por região, regiões que mudaram no mês piscando, setas, placar, gráfico); `frontGeom` usa regiões; o relatório e a descrição acessível listam as regiões que mudaram.
+- **Check:** novos testes de regiões (vizinhança, maioria, migração, regiões mudando de lado) e de sintaxe de todos os scripts do `index.html`.
+
 ## 8. Limitações conhecidas
+- Guerra por regiões: as regiões são simplificadas (litorais e fronteiras finas aproximados); o inimigo escolhe a região pela mesma regra que você (sem plano de vários meses); no celular as fronteiras finas ficam bem discretas. No modo Difícil, o pacificador vence ~29% e as guerras longas podem passar de 100 meses em casos raros.
 - Idiomas: inglês, chinês e russo cobrem todo o cenário 2022; o cenário 1964 (bloqueado) só tem o cartão do menu traduzido. Frases montadas por partes (registro do turno, dicas com nomes) podem ter ordem de palavras menos natural em chinês/russo; a tradução zh/ru não passou por revisão de falante nativo.
 - Mapa de guerra (fase 9): no celular o placar pode cobrir parte dos rótulos de estados vizinhos (MT, RS); a posição do placar é uma heurística (ponto da linha mais perto do centro da frente); as listras são discretas sobre a cor marrom do regime; o mapa animado da resolução do mês não mostra os placares.
 - A trilha sonora é sintetizada (Web Audio), não há música gravada.

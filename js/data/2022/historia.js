@@ -27,7 +27,6 @@ const STORY_2022 = {
     oposicao:    { label: "Reduto bolsonarista",            color: "#6c95c9" },
     regime:      { label: "Regime de exceção",              color: "#7a5230" },
     resistencia: { label: "Resistência constitucional",     color: "#2f8f7a" },
-    disputa:     { label: "Em disputa",                     color: "#d0782a" },
     separatista: { label: "Liga do Sul (separatistas)",     color: "#d9a43c" }
   },
   // Mapa inicial: vencedor real de cada UF no 2º turno de 2022 (fonte: TSE). Apenas ambientação.
@@ -127,7 +126,7 @@ const STORY_2022 = {
       ],
       choices: [
         { text: "Liderar a oposição no Congresso com disciplina.", effects: { base: 15, apoio: 5 }, next: "justica" },
-        { text: "Rodar o país em atos e motociatas, mirando 2026.", effects: { apoio: 15, base: -5, internacional: -5 }, map: { MG: "disputa" }, next: "justica" },
+        { text: "Rodar o país em atos e motociatas, mirando 2026.", effects: { apoio: 15, base: -5, internacional: -5 }, map: { MG: "oposicao" }, next: "justica" },
         { text: "Moderar o discurso e se aproximar do centro.", effects: { base: 10, internacional: 10, apoio: -10 }, next: "justica" }
       ]
     },
@@ -163,7 +162,7 @@ const STORY_2022 = {
     campanha2026: {
       chapter: "Outubro de 2026",
       title: "A Revanche",
-      onEnter: { map: { MG: "disputa", AM: "disputa", TO: "disputa" } },
+      onEnter: { map: { MG: "oposicao" } },
       text: [
         "Contra todas as apostas de 2022, você chega elegível à eleição de 2026. As pesquisas mostram empate técnico. Minas Gerais, Amazonas e Tocantins — estados que você perdeu por pouco — voltam a ser o centro do mapa.",
         "Faltam três semanas. A estratégia final é sua."
@@ -248,7 +247,6 @@ const STORY_2022 = {
     decreto: {
       chapter: "Dezembro de 2022",
       title: "O Decreto",
-      onEnter: { map: { DF: "disputa" } },
       text: [
         "O decreto é publicado numa edição extra do Diário Oficial. Em poucas horas, o STF suspende seus efeitos, a presidência do Congresso o declara nulo e governadores de quase todos os estados divulgam notas de repúdio.",
         "Agora tudo depende de uma única pergunta: as tropas vão sair dos quartéis?"
@@ -263,7 +261,7 @@ const STORY_2022 = {
     golpe_fracassa: {
       chapter: "Dezembro de 2022",
       title: "Os Quartéis Não Se Movem",
-      onEnter: { resolve: { voto_lula: "legal", voto_bolso: "legal", disputa: "legal" } },
+      onEnter: { resolve: { voto_lula: "legal", voto_bolso: "legal" } },
       text: [
         "A ordem chega aos quartéis — e fica lá. O Alto-Comando divulga nota curta: as Forças Armadas cumprirão a Constituição. O Congresso instala uma comissão, o STF determina a preservação de documentos e a Polícia Federal pede autorização para medidas contra você.",
         "Os aliados param de atender o telefone. No Alvorada, só restam alguns assessores e o barulho distante dos helicópteros da imprensa."
@@ -277,7 +275,8 @@ const STORY_2022 = {
       chapter: "1º de janeiro de 2023",
       title: "Blindados na Esplanada",
       onEnter: { resolve: { voto_bolso: "regime", voto_lula: "resistencia" },
-                 map: { DF: "regime", MG: "disputa", RJ: "disputa", ES: "disputa", TO: "disputa", AP: "disputa" } },
+                 map: { DF: "regime", MG: "regime", RJ: "regime", ES: "regime", AP: "regime" },
+                 split: { MG: "resistencia", RJ: "resistencia", ES: "resistencia", AP: "resistencia", TO: "regime" } },
       text: [
         "Não há posse. Blindados cercam a Praça dos Três Poderes; o Congresso é fechado \"temporariamente\". Mas o país não obedece em bloco: governadores do Nordeste e do Norte recusam o decreto, e o presidente eleito, ao lado de parlamentares, instala um governo constitucional provisório no Recife.",
         "Nos estados do Sudeste, polícias e prefeituras se dividem. O Brasil acorda com dois governos — e nenhum deles controla tudo."
@@ -311,7 +310,7 @@ const STORY_2022 = {
       ],
       choices: [
         { text: "Oferecer anistia e promoções aos oficiais que voltarem.", effects: { militar: 5, base: 5 }, map: { MG: "regime" }, next: "guerra" },
-        { text: "Ordenar uma ofensiva para retomar o Nordeste.", effects: { militar: -10, apoio: -10, internacional: -10 }, map: { BA: "disputa", TO: "regime" }, next: "guerra" },
+        { text: "Ordenar uma ofensiva para retomar o Nordeste.", effects: { militar: -10, apoio: -10, internacional: -10 }, map: { TO: "regime" }, split: { BA: "regime" }, next: "guerra" },
         { text: "Abrir negociação secreta com o governo constitucional.", effects: { base: 10, internacional: 10, militar: -10 },
           next: [ { if: { min: { internacional: 15 } }, to: "fim_restauracao" }, { to: "guerra" } ] }
       ]
@@ -364,7 +363,6 @@ const STORY_2022 = {
     },
     fim_oposicao: {
       ending: true, outcome: "parcial", endingName: "Líder da Oposição", dica: "Aceite o resultado e, no fim, escolha comandar a direita sem disputar o cargo (ou aceite esse papel depois de perder uma eleição).",
-      onEnter: { resolve: { disputa: "legal" } },
       chapter: "Epílogo", title: "A Voz da Oposição",
       text: [
         "Você não volta ao Planalto, mas também não desaparece. Seu partido continua entre os maiores do Congresso, e nenhum candidato de direita se elege sem pedir a sua bênção.",
@@ -373,7 +371,7 @@ const STORY_2022 = {
     },
     fim_herdeiro: {
       ending: true, outcome: "vitoria", endingName: "O Herdeiro", dica: "Se ficar inelegível, apoie um herdeiro político e chegue à eleição com Apoio Popular e Base Política em 50 ou mais.",
-      onEnter: { map: { MG: "oposicao" }, resolve: { disputa: "oposicao" } },
+      onEnter: { map: { MG: "oposicao" } },
       chapter: "Epílogo", title: "O Fazedor de Reis",
       text: [
         "Inelegível, você percorre o país ao lado do candidato que escolheu. Os votos que eram seus migram para ele — e, numa eleição apertada, o seu herdeiro vence.",
@@ -382,7 +380,7 @@ const STORY_2022 = {
     },
     fim_ostracismo: {
       ending: true, outcome: "derrota", endingName: "Ostracismo", dica: "Fora do regime, deixe o Apoio Popular chegar a zero, ou insista na própria candidatura depois de ficar inelegível.",
-      onEnter: { resolve: { oposicao: "legal", disputa: "legal" }, map: { SC: "oposicao", RR: "oposicao", RO: "oposicao", AC: "oposicao" } },
+      onEnter: { resolve: { oposicao: "legal" }, map: { SC: "oposicao", RR: "oposicao", RO: "oposicao", AC: "oposicao" } },
       chapter: "Epílogo", title: "O Lento Apagar das Luzes",
       text: [
         "Os processos se acumulam, os aliados se dispersam e novos nomes disputam o espólio da direita. A base, antes unida, se fragmenta em correntes que já não esperam por você.",
@@ -407,7 +405,7 @@ const STORY_2022 = {
     },
     fim_regime: {
       ending: true, outcome: "vitoria", endingName: "Regime de Exceção", dica: "Siga a ruptura com Apoio Militar alto e vença a guerra até dominar quase todo o território.",
-      onEnter: { resolve: { resistencia: "regime", disputa: "regime", separatista: "regime" } },
+      onEnter: { resolve: { resistencia: "regime", separatista: "regime" } },
       chapter: "Epílogo", title: "Vitória Amarga",
       text: [
         "A resistência se rende. O país volta a ter um só governo — o seu. Mas o preço é visível em cada esquina: imprensa sob censura, Congresso de fachada, tribunais esvaziados, sanções que estrangulam a economia e uma geração inteira de profissionais emigrando.",
@@ -416,7 +414,6 @@ const STORY_2022 = {
     },
     fim_divisao: {
       ending: true, outcome: "parcial", endingName: "O Brasil Partido", dica: "Durante a guerra (ou no impasse), aceite um cessar-fogo com as linhas congeladas.",
-      onEnter: { resolve: { disputa: "resistencia" }, map: { MG: "disputa" } },
       chapter: "Epílogo", title: "Três Bandeiras",
       text: [
         "O cessar-fogo vira fronteira. Brasília controla o Centro-Sul; o governo constitucional, o Norte e o Nordeste; a Liga do Sul hasteia sua própria bandeira entre o Paraná e o Uruguai. Minas Gerais continua cortada por trincheiras.",
@@ -428,7 +425,7 @@ const STORY_2022 = {
     },
     fim_restauracao: {
       ending: true, outcome: "derrota", endingName: "Restauração Democrática", dica: "No regime, perca a maioria dos estados, deixe o Apoio Popular chegar a zero ou negocie uma saída.",
-      onEnter: { resolve: { regime: "legal", resistencia: "legal", disputa: "legal", separatista: "legal", voto_lula: "legal", voto_bolso: "legal" } },
+      onEnter: { resolve: { regime: "legal", resistencia: "legal", separatista: "legal", voto_lula: "legal", voto_bolso: "legal" } },
       chapter: "Epílogo", title: "O Fim da Aventura",
       text: [
         "Sem dinheiro, sem reconhecimento e com as tropas desertando, o regime desmorona. O governo constitucional retorna a Brasília, o Congresso é reaberto e uma comissão nacional começa a apurar responsabilidades.",

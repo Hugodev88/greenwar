@@ -47,9 +47,13 @@ npx serve .        # ou: python3 -m http.server 8000
 
 ### Frentes (2022)
 - **Postura:** no cartão de cada frente, escolha Avançar (ganha terreno, cansa), Segurar a linha (defesa +30%, recupera) ou Recuar e reorganizar (cede terreno, recupera muita moral e suprimento). O selo **sugerido** é o que a Marta faria; você vê também o que o inimigo vai fazer no próximo mês.
-- **Força** = tropas × moral × suprimento × general × postura × apoio (e a dificuldade). A barra vai de −100 a +100: em +100 você toma um estado, em −100 perde um.
+- **Força** = tropas × moral × suprimento × general × postura × apoio (e a dificuldade).
+- **Guerra por regiões (fase 11):** durante a guerra o Brasil é dividido nas **133 regiões geográficas intermediárias do IBGE**. A cada mês cada frente toma ou perde de 0 a 4 regiões (até 6 com ofensiva especial), conforme a vantagem; a barra vai de −100 a +100 e cada 100 vira uma região. O estado é de quem tem a maioria das regiões dele (empate: quem tem a região da capital). Não existe mais "em disputa" no 2022.
+- **Cerco:** a região da sua capital (DF) e a do reduto inimigo (Recife; no Sul, Porto Alegre) só caem com o cerco completo; enquanto isso a linha toma as regiões em volta. O cartão mostra o "Cerco à sua capital: N%".
+- **Quem está ganhando:** o mapa pisca as regiões tomadas/perdidas no mês (com setas), cada frente mostra "Você X regiões × Inimigo Y" e +ganhas/−perdidas, e o cartão e o relatório têm um gráfico dos últimos meses.
+- **Fonte das regiões:** IBGE, Divisão Regional do Brasil em Regiões Geográficas Imediatas e Intermediárias (2017), malha da API de malhas v3 do IBGE (`servicodados.ibge.gov.br/api/v3/malhas`, qualidade mínima) e nomes da API de localidades v1; gerada e simplificada por `tools/build-regioes.js` em `js/data/mapa-regioes.js`.
 - **Recrutar:** +20 de tropas por 10 Recursos, até 2 vezes por mês, sem AP. **Comando automático** e o **modo simples** (Fácil) deixam os generais escolherem as posturas.
-- Saves antigos (v7) são migrados: os exércitos viram o total de tropas das frentes.
+- Saves antigos (v7) são migrados: os exércitos viram o total de tropas das frentes. Saves v9 viram v10: as regiões são criadas a partir do dono de cada estado e o antigo "em disputa" vira de um dos lados.
 
 ### Exércitos e ordens (1964)
 - **Selecionar:** toque numa ficha azul (seu exército; o número é a força total no estado e o selo "×n" indica vários exércitos — toque de novo para alternar). Os estados alcançáveis ficam destacados: borda vermelha = atacar, azul = mover/recuar. Ao escolher um, aparece a **previsão** e o botão **Confirmar ordem**.
@@ -182,6 +186,7 @@ js/
     cenarios.js           lista do menu (SCENARIOS)
     estados.js            fronteiras (ADJ) e terreno das UFs
     mapa-brasil.js        geometria dos 27 estados (gerada por tools/build-map.js)
+    mapa-regioes.js       133 regiões intermediárias do IBGE (gerada por tools/build-regioes.js, fase 11)
     modos.js · conquistas.js  dificuldades e conquistas/nota final (fase 5)
   core/                 REGRAS do jogo, sem tela: estado, efeitos, história, eventos, ações, economia,
                         facções, diplomacia, focos, turno, sul, exércitos, combate, inimigo, ordens, saves,

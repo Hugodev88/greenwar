@@ -9,3 +9,5 @@ sim-resultados.json
 tools/brazil-states.geojson.json
 screenshots-versao-anterior/
 .vscode/
+tools/ibge-ri.json
+tools/ibge-ri-nomes.json

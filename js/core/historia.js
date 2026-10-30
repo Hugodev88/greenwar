@@ -40,7 +40,7 @@ function choose(g, idx){
     applyStats(g, c.effects || {}, true);
     if (C.choiceFx && C.choiceFx[q.node] && C.choiceFx[q.node][idx]) applyFx(g, C.choiceFx[q.node][idx]);
     if (c.flag && !g.flags.includes(c.flag)) g.flags.push(c.flag);
-    if (c.map) mapChange(g, { map: c.map });
+    if (c.map || c.split) mapChange(g, { map: c.map, split: c.split });
     syncActorStats(g);
     g.history.push({ m: g.month, t: g.quick && c.textRapida ? c.textRapida : c.text });
     for (const k in S.collapse) if (g.stats[k] <= 0){ enterStory(g, collapseTo(g, k)); return true; }

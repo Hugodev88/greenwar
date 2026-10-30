@@ -400,6 +400,7 @@ for (const sc of SCENARIOS) {
     if (API.scOf(API.newCampaign(sc22, 3)) !== sc22) err("Normal precisa usar o cenário original");
     if (JSON.stringify(sc22.campaign.money) + sc22.campaign.enemyPower + JSON.stringify(sc22.campaign.pace) !== C0) err("os modos alteraram o cenário original");
     // guerra por frentes (save v8): achar uma partida em guerra, migrar v7 com exércitos, relatório sem NaN, Frente Sul na revolta, dicas da conselheira
+    let gwReg = null; // partida em guerra reaproveitada no teste das regiões
     {
       let gw = null;
       for (let seed = 1; seed <= 20 && !gw; seed++){ // segue a conselheira (inclusive no golpe) até a guerra começar
@@ -413,6 +414,7 @@ for (const sc of SCENARIOS) {
           API.endTurn(g);
         }
       }
+      gwReg = gw;
       if (!gw) err("frentes: nenhuma partida de teste chegou à guerra");
       else {
         if ((gw.armies || []).length) err("frentes: modo frentes não deveria ter exércitos");
@@ -433,7 +435,7 @@ for (const sc of SCENARIOS) {
           while (g.queue.length && !g.ended){ const ch = API.queueChoices(g); API.choose(g, Math.max(0, ch.findIndex(c => c.ok))); }
           if (g.ended) break;
           API.endTurn(g);
-          for (const f of (g.war && g.war.fronts) || []) if (f.last && f.last.month === g.month - 1){
+          for (const f of (g.war && g.war.fronts) || []) if (f.last && f.last.month >= g.month - 1){
             const r = API.frontReport(g, f.last); reps++;
             if (!r || !r.summary || !Array.isArray(r.rows) || !r.rows.length || /NaN|undefined/.test(JSON.stringify(r))) { err(`frentes: relatório inválido (${f.id})`); break; }
           }
@@ -465,6 +467,46 @@ for (const sc of SCENARIOS) {
       for (const grp of Object.values(F)) for (const v of Object.values(grp)) if (typeof v === "string" && !fills.some(x => trCore(v.replace(/\{(\d)\}/g, (_, i) => x[+i] || x[0])) != null)) miss.push(v);
       void key;
       if (miss.length) err(`frentes.js: ${miss.length} falas sem tradução EN, ex.: "${miss[0].slice(0, 60)}"`);
+    }
+    // guerra por regiões (fase 11): malha do IBGE, nada de "disputa" no 2022, divisões válidas e migração v9→v10
+    {
+      const RX = new Function(JOGO.codigo + "; return { REG_DATA, REG_IDS, MAP_DATA, migrateSave, newCampaign, endTurn, queueChoices, choose, regOwnerUF, SAVE_VERSION };")();
+      const RD = RX.REG_DATA, ids = Object.keys(RD.regs), ufs = Object.keys(RX.MAP_DATA.states);
+      if (ids.length !== 133) err(`regiões: esperava 133 regiões intermediárias, há ${ids.length}`);
+      for (const id of ids){ const r = RD.regs[id];
+        if (!ufs.includes(r.uf) || !r.d || !(r.lx > 0) || !(r.ly > 0) || !r.n) err(`regiões: ${id} incompleta`);
+        for (const b of r.adj) if (!RD.regs[b] || !RD.regs[b].adj.includes(id)) err(`regiões: vizinhança ${id}–${b} não é simétrica`); }
+      for (const uf of ufs){ if (!RD.cap[uf] || RD.regs[RD.cap[uf]].uf !== uf) err(`regiões: ${uf} sem região da capital`); if (!ids.some(id => RD.regs[id].uf === uf)) err(`regiões: ${uf} sem regiões`); }
+      // "disputa" não pode aparecer como lado em nenhum dado de controle do 2022 (mapa inicial, história, fases, eventos)
+      const achou = [], ver = (o, cam, d) => { if (o == null || d > 12) return; if (typeof o === "string"){ if (o === "disputa") achou.push(cam); return; }
+        if (typeof o !== "object") return; for (const k in o){ if (k === "disputa") achou.push(cam + "." + k); ver(o[k], cam + "." + k, d + 1); } };
+      ver(sc22.story, "story", 0); ver(sc22.campaign, "campaign", 0); ver(sc22.golpe, "golpe", 0); ver(sc22.frentes, "frentes", 0);
+      if (achou.length) err(`2022: "disputa" ainda aparece nos dados de controle: ${achou.slice(0, 4).join(", ")}`);
+      // divisões por região (split) só com UF e facção válidas
+      const facs = Object.keys(sc22.story.factions);
+      for (const n of Object.values(sc22.story.nodes)) for (const c of (n.choices || [])) for (const uf in (c.split || {}))
+        if (!ufs.includes(uf) || !facs.includes(c.split[uf])) err(`2022: divisão inválida ${uf}→${c.split[uf]}`);
+      // estado = maioria das regiões (empate: quem tem a capital)
+      const gt = RX.newCampaign(sc22, 3);
+      if (!gt.reg || Object.keys(gt.reg).length !== 133) err("regiões: campanha nova sem as 133 regiões");
+      else for (const uf of ufs) if (RX.regOwnerUF(gt, uf) !== gt.control[uf]) { err(`regiões: ${uf} não segue a maioria das regiões`); break; }
+      // migração v9 → v10: estados "disputa" viram um lado e as regiões são criadas
+      const v9 = JSON.parse(JSON.stringify(gt)); v9.v = 9; delete v9.reg; v9.control.MG = "disputa"; v9.control.BA = "disputa";
+      const m = RX.migrateSave(v9);
+      if (!m || m.v !== RX.SAVE_VERSION || m.v < 10) err("regiões: migração v9→v10 falhou");
+      else {
+        if (Object.values(m.control).includes("disputa")) err("regiões: migração v9→v10 deixou estado em disputa");
+        if (!m.reg || Object.keys(m.reg).length !== 133 || Object.values(m.reg).some(x => !facs.includes(x))) err("regiões: migração v9→v10 não criou as regiões");
+        if (!RX.endTurn(m) && !m.queue.length && !m.ended) err("regiões: save v9 migrado não avança");
+      }
+      // em guerra: regiões mudam de lado e o placar acompanha
+      if (!gwReg) err("regiões: nenhuma partida de teste chegou à guerra");
+      else { const g2 = JSON.parse(JSON.stringify(gwReg)); let moved = 0;
+        for (let t = 0; t < 10 && !g2.ended; t++){ while (g2.queue.length && !g2.ended){ const ch = RX.queueChoices(g2); RX.choose(g2, Math.max(0, ch.findIndex(c => c.ok))); } if (g2.ended) break; RX.endTurn(g2); moved += ((g2.mil && g2.mil.regs) || []).length;
+          for (const uf of ufs) if (RX.regOwnerUF(g2, uf) !== g2.control[uf]) { err(`regiões: na guerra, ${uf} não segue a maioria das regiões`); t = 99; break; } }
+        if (!moved) err("regiões: nenhuma região mudou de lado em 10 meses de guerra");
+        console.log(`Regiões: 133 regiões IBGE, vizinhança simétrica, capitais OK; sem "disputa" no 2022; migração v9→v10 OK; ${moved} regiões mudaram de lado em 10 meses de guerra de teste`);
+      }
     }
     // conselheira: no máximo 2 dicas, com título, texto e ação; "Fazer isso" funciona e não quebra a partida
     for (let seed = 1; seed <= 12; seed++){
@@ -630,6 +672,8 @@ for (const sc of SCENARIOS) {
     const top = fs.readFileSync(path.join(JOGO.RAIZ, f), "utf8").slice(0, 3);
     if (!/^(\/\/|\/\*)/.test(top)) err(`${f}: falta o comentário de topo explicando o arquivo`);
   }
+  // todo script do index.html precisa compilar (erro de sintaxe derruba o arquivo inteiro no navegador)
+  for (const f of JOGO.scripts){ try { new (require("vm").Script)(fs.readFileSync(path.join(JOGO.RAIZ, f), "utf8"), { filename: f }); } catch (e){ err(`${f}: erro de sintaxe: ${e.message}`); } }
   // nomes globais declarados duas vezes quebrariam o jogo (scripts clássicos dividem o mesmo escopo)
   const decl = {};
   for (const f of JOGO.scripts) for (const m of fs.readFileSync(path.join(JOGO.RAIZ, f), "utf8").matchAll(/^(?:function\s+([\w$]+)|(?:const|let|var)\s+([\w$]+)\s*=)/gm)){

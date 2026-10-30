@@ -62,7 +62,8 @@ function endTurn(g){
   for (const uf of playerUFs(g)){
     const u = g.uf[uf];
     if (u.unrest >= 88 && sideStr(g, "player", uf) < 20){
-      if (ph.war && ph.revoltTo !== null){ setControl(g, uf, C.contested); g.uf[uf].enemy = Math.max(g.uf[uf].enemy, 2); R(`Revolta em ${MAP_DATA.states[uf].name}: o estado entrou em disputa.`, "bad"); }
+      if (ph.war && frontMode(g) && !C.contested){ const r = regRevolt(g, uf); R(gfmt(frontFala(g, "regioes", "revolta"), MAP_DATA.states[uf].name, r.length), "bad"); }
+      else if (ph.war && ph.revoltTo !== null){ setControl(g, uf, C.contested); g.uf[uf].enemy = Math.max(g.uf[uf].enemy, 2); R(`Revolta em ${MAP_DATA.states[uf].name}: o estado entrou em disputa.`, "bad"); }
       else if (ph.loseTo && ph.loseTo[g.control[uf]]){ setControl(g, uf, ph.loseTo[g.control[uf]]); R(`${MAP_DATA.states[uf].name} escapou da sua influência após protestos.`, "bad"); }
       else { applyStats(g, { [K.pop]: -2 }); u.unrest = 70; R(`Grandes protestos em ${MAP_DATA.states[uf].name}.`, "bad"); }
     }

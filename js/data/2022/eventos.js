@@ -178,9 +178,9 @@ const EVENTOS_2022 = [
     ev("n_contraespionagem", "Os planos falsos funcionaram", "A resistência acreditou na informação plantada e deslocou tropas para o lugar errado.", [
       { text: "Atacar onde estão fracos.", fx: { front: 18, enemyLoss: 8 } },
       { text: "Guardar a vantagem para negociar.", fx: { malus: { v: 1, months: 3 }, s: { internacional: 2 } } } ], { chained: true, if: { phase: "regime" } }),
-    ev("n_governador_lado", "Governador oferece mudar de lado", "O governador de um estado em disputa manda emissários: aceita apoiar o regime em troca de verbas e cargos.", [
+    ev("n_governador_lado", "Governador oferece mudar de lado", "O governador de um estado na linha de frente manda emissários: aceita apoiar o regime em troca de verbas e cargos.", [
       { text: "Aceitar e pagar.", fx: { money: -6, front: 20, fac: { centrao: 4 } } },
-      { text: "Exigir rendição incondicional.", fx: { s: { militar: 2 }, front: -5 } } ], { if: { phase: "regime", sideCount: { contested: { min: 1 } } }, cooldown: 6 }),
+      { text: "Exigir rendição incondicional.", fx: { s: { militar: 2 }, front: -5 } } ], { if: { phase: "regime" }, cooldown: 6 }),
     ev("n_mercenarios", "Oferta de empresa militar privada", "Uma empresa estrangeira de segurança oferece veteranos, drones e instrutores — pagamento adiantado.", [
       { text: "Contratar.", fx: { money: -8, reserve: 2, s: { internacional: -6 }, act: { onu: -8 } } },
       { text: "Recusar.", fx: { s: { internacional: 1 } } } ], { if: { phase: "regime" }, once: true }),
