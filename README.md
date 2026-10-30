@@ -75,7 +75,8 @@ npx serve .        # ou: python3 -m http.server 8000
 
 ### Conselheira (novo, fase 5)
 - **Marta Siqueira, chefe de gabinete** (personagem fictícia), aparece num cartão acima das abas com **1 ou 2 dicas por mês** em linguagem simples, cada uma com o botão **Fazer isso**: responder um evento pendente, agradar uma facção quase em crise, subir um atributo perigosamente baixo, acalmar o Sul, ligar as ordens automáticas, recrutar quando o inimigo é bem mais forte, gastar Recursos perto do teto, começar uma decisão nacional ou usar as ações que sobraram. Sem nada urgente, ela sugere encerrar o mês.
-- Ela nunca empurra para a ruptura: fora do regime, os focos do ramo "Ruptura" não são sugeridos.
+- Ela não empurra para a ruptura: se você aceita o resultado da eleição, ela só dá as dicas normais.
+- **Linha do golpe (fase 6, ficção do cenário 2022):** se você escolhe o caminho do golpe (convocar os comandantes, ou antes da posse enquanto ainda dá), ela vira sua estrategista. Na apuração ela mostra as "duas portas"; durante a conspiração sugere as decisões do plano (avaliar a derrota → abrir caminho → quartéis → minuta), quais facções precisam de mais lealdade (militares, agro, evangélicos, Centrão), como subir o Apoio Militar e acalmar o Sul, e nas cenas da história (reunião secreta, troca de comando, decreto, dia seguinte) diz qual escolha fazer — o botão **Fazer isso** escolhe por você. O quadro **Prontidão do golpe** mostra a %, se as tropas vão marchar no dia do decreto, o que falta, a melhor hora e os riscos (Sul, reação internacional). No Fácil ela mostra tudo com números; no Normal, o principal; no Difícil, só o essencial e conselhos vagos nas escolhas.
 - O **×** esconde as dicas até o próximo mês. Em **⚙ Configurações → Conselheira**: Automática (ligada no Fácil e no Normal, desligada no Difícil), Sempre ligada ou Desligada.
 
 ### Tela de final e conquistas (novo, fase 5)
@@ -132,6 +133,7 @@ node tests/sim.js 40 brasil1964    # cenário bloqueado: só roda se pedido pelo
 node tests/sim.js 300 brasil2022 --dif=facil      # dificuldade Fácil (também: --dif=dificil)
 node tests/sim.js 300 brasil2022 --rapida         # partida rápida (combina com --dif)
 node tests/sim.js 300 brasil2022 --conselheira    # acrescenta as IAs "iniciante" e "conselheira" (que só segue as dicas)
+node tests/sim.js 300 brasil2022 --golpe [--dif=dificil]  # acrescenta a IA "golpista_conselheira" e a linha "golpe:" (sucesso do golpe)
 node tests/sim.js 300 --notas                     # mostra a distribuição da nota final e das conquistas por IA (automático com --dif/--rapida)
 ```
 Com `--dif` ou `--rapida` o sim imprime também a linha **resultado** (vitória / intermediário / derrota, pelo campo `outcome` dos finais) e, no Fácil, roda a IA **iniciante** (aleatória que lê os avisos de derrota do modo simples). O `tests/check.js` roda esses modos com 80 partidas e falha se o Fácil não vencer bem mais que o Difícil.
@@ -157,7 +159,7 @@ css/                    estilos por área: base, menu, mapa, campanha, mapa-guer
 js/
   data/                 DADOS PUROS (o que mais se edita)
     ajudantes.js          act() e ev(), atalhos para escrever ações e eventos
-    2022/                 historia.js · acoes.js · eventos.js · campanha.js (facções, atores, fases, Sul) · focos.js · retratos.js (rostos, fase 5)
+    2022/                 historia.js · acoes.js · eventos.js · campanha.js (facções, atores, fases, Sul) · focos.js · retratos.js (rostos, fase 5) · golpe.js (linha do golpe da conselheira, fase 6)
     1964/                 historia.js · campanha.js (cenário BLOQUEADO, não editar)
     cenarios.js           lista do menu (SCENARIOS)
     estados.js            fronteiras (ADJ) e terreno das UFs
@@ -165,7 +167,7 @@ js/
     modos.js · conquistas.js  dificuldades e conquistas/nota final (fase 5)
   core/                 REGRAS do jogo, sem tela: estado, efeitos, história, eventos, ações, economia,
                         facções, diplomacia, focos, turno, sul, exércitos, combate, inimigo, ordens, saves,
-                        modos, conselheiro, conquistas (nota e conquistas do final)
+                        modos, golpe (prontidão e dicas da linha do golpe), conselheiro, conquistas (nota e conquistas do final)
   ui/                   TELA: menu, jogo, abas (aba-*.js), mapa, exércitos, batalha, resolução, tutorial,
                         grandes-eventos, ajuda, economia, janelas, configurações, acessibilidade, modos, conselheiro,
                         conquistas, final (tela de final), retratos (rostos/ícones/silhuetas), iniciar.js (último)

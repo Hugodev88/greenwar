@@ -1,6 +1,7 @@
 // js/core/conselheiro.js — Núcleo: a conselheira (Marta Siqueira, chefe de gabinete) — escolhe 1 ou 2 dicas por mês e executa o "Fazer isso".
 /* Cada dica: { id, pri, head, text, sub?, act }. head/text/sub são frases fixas (traduzíveis) ou nomes do jogo.
-   act.k: "tab" (só a tela muda), "action", "fac", "focus", "auto", "recruit" ou "end" (encerrar o mês, feito pela tela). */
+   act.k: "tab" (só a tela muda), "action", "fac", "focus", "auto", "recruit", "choose" (escolha da história) ou "end" (encerrar o mês, feito pela tela).
+   No caminho do golpe (coupState em js/core/golpe.js) entram as dicas do plano, com golpe: true. */
 const ADVISOR = { name: "Marta Siqueira", role: "Chefe de gabinete", portrait: "conselheira", max: 2 };
 // Valor de um efeito para o governo: sobe os atributos mais baixos (mesma ideia da IA "gulosa" do sim)
 function advisorFxValue(g, fx){
@@ -18,16 +19,19 @@ function advisorBestAction(g, filter){
 }
 function advisorBestFocus(g){
   const T = focusTree(g); if (!T || !g.focus || g.focus.active) return null;
-  const regime = phaseOf(g).id === "regime";
-  return T.nodes.filter(F => !focusCheck(g, F.id))
-    .map(F => ({ F, v: advisorFxValue(g, F.fx) - (F.cost || 0) * 0.3 - F.months * 0.4 + (F.branch === "ruptura" && !regime ? -40 : 0) }))
+  const regime = phaseOf(g).id === "regime", plano = coupState(g) === "plano";
+  return T.nodes.filter(F => !focusCheck(g, F.id) && !(plano && (F.excl || []).includes("c_ruptura")))
+    .map(F => ({ F, v: advisorFxValue(g, F.fx) - (F.cost || 0) * 0.3 - F.months * 0.4 + (F.branch === "ruptura" && !regime && !plano ? -40 : 0) }))
     .sort((a, b) => b.v - a.v)[0] || null;
 }
 function advisorTips(g, ctx){
   ctx = ctx || {};
   if (!g || g.ended) return [];
   const C = scOf(g).campaign, ph = phaseOf(g), tips = [];
+  const cs = coupState(g);
   if (g.queue.length){
+    const st = cs && coupStoryTip(g, cs);
+    if (st && ctx.tab === "historia") return [st];
     if (ctx.tab !== "historia") tips.push({ id: "fila", pri: 100, head: "Decisão esperando", text: "Tem um acontecimento esperando sua resposta na aba História. O mês só avança depois que você escolher.", act: { k: "tab", tab: "historia" }, btn: "Ver agora" });
     return tips;
   }
@@ -63,9 +67,11 @@ function advisorTips(g, ctx){
     const act = bf && (bf.F.cost || 0) > 0 ? { k: "focus", id: bf.F.id, sub: bf.F.name } : ba ? { k: "action", id: ba.a.id, sub: ba.a.name } : null;
     if (act) tips.push({ id: "cap", pri: 70, head: "Recursos quase no limite", text: `Você tem ${Math.round(g.money)} de ${cap}. O que passar do limite se perde no fim do mês, então vale gastar agora:`, sub: act.sub, act });
   }
+  // caminho do golpe: dicas do plano (no "plano" substituem a sugestão genérica de decisão nacional)
+  if (cs) tips.push(...coupTips(g, cs));
   // nenhuma decisão nacional em andamento
   const bf = advisorBestFocus(g);
-  if (bf) tips.push({ id: "focus", pri: 62, head: "Decisões nacionais", text: bf.F.months === 1 ? "Nenhuma decisão nacional está em andamento. Sugiro esta, que leva 1 mês:" : `Nenhuma decisão nacional está em andamento. Sugiro esta, que leva ${bf.F.months} meses:`, sub: bf.F.name, act: { k: "focus", id: bf.F.id } });
+  if (bf && cs !== "plano") tips.push({ id: "focus", pri: 62, head: "Decisões nacionais", text: bf.F.months === 1 ? "Nenhuma decisão nacional está em andamento. Sugiro esta, que leva 1 mês:" : `Nenhuma decisão nacional está em andamento. Sugiro esta, que leva ${bf.F.months} meses:`, sub: bf.F.name, act: { k: "focus", id: bf.F.id } });
   // ações sobrando
   if (g.ap > 0){
     const best = advisorBestAction(g);
@@ -88,6 +94,7 @@ function advisorRun(g, tip){
   if (a.k === "fac") return factionAction(g, a.id, "agradar");
   if (a.k === "focus") return startFocus(g, a.id);
   if (a.k === "recruit") return recruitArmy(g);
+  if (a.k === "choose") return choose(g, a.i) ? { ok: true } : { ok: false, msg: "Escolha indisponível" };
   if (a.k === "auto"){ setAutoOrders(g, "auto"); autoOrders(g, "auto"); return { ok: true, msg: "Ordens automáticas ligadas: as tropas agem sozinhas todo mês." }; }
   return { ok: true };
 }

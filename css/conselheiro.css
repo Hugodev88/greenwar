@@ -1,4 +1,4 @@
-/* css/conselheiro.css — Cartão da conselheira (Marta Siqueira): retrato, dicas do mês e botão "Fazer isso". */
+/* css/conselheiro.css — Cartão da conselheira (Marta Siqueira): retrato, dicas do mês, botão "Fazer isso" e o quadro "Prontidão do golpe". */
   .advisor{position:relative;display:flex;gap:12px;align-items:flex-start;margin:10px 0 4px;padding:10px 38px 10px 10px;background:linear-gradient(90deg,#2a2418,#1d1a14);border:1px solid #6b5a33;border-left:4px solid var(--gold);border-radius:8px}
   .advisor .advpic{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);flex:none;background:#111}
   .advisor .advbody{flex:1;min-width:0}
@@ -13,3 +13,22 @@
   .advisor .advx{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer;line-height:1;padding:2px 6px}
   .advisor .advx:hover{color:var(--gold)}
   @media (max-width:700px){ .advisor{gap:9px;padding:8px 32px 8px 8px} .advisor .advpic{width:44px;height:44px} .advisor .advtip{flex-direction:column;align-items:flex-start;gap:6px} .advisor .advtxt{font-size:.86rem} }
+  /* caminho do golpe: cartão em tom de thriller + quadro de prontidão */
+  .advisor.golpe{background:linear-gradient(90deg,#2b1715,#1a1413);border-color:#7a3a30;border-left-color:#c0503c}
+  .advisor.golpe .advpic{border-color:#c0503c;filter:saturate(.85) contrast(1.05)}
+  .advisor.golpe .advwho b,.advisor.golpe .advsub{color:#e9a48f}
+  .advisor.golpe .advtip{border-top-color:#5a302a}
+  .advisor .coupbox{margin-top:8px;padding:8px 10px;background:#140f0e;border:1px solid #5a302a;border-radius:6px;font-size:.84rem}
+  .advisor .couphead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .advisor .couphead b{font-family:Georgia,serif;letter-spacing:.06em;text-transform:uppercase;font-size:.78rem;color:#e9a48f}
+  .advisor .couphead em{font-style:normal;font-weight:700;font-size:1.05rem}
+  .advisor .coupbar{height:7px;background:#2c2220;border-radius:4px;overflow:hidden;margin:4px 0 6px}
+  .advisor .coupbar i{display:block;height:100%;border-radius:4px}
+  .advisor .hi{color:#8fd18a} .advisor .coupbar i.hi{background:#5fae5a}
+  .advisor .mid{color:#e6c35c} .advisor .coupbar i.mid{background:#c9a23a}
+  .advisor .lo{color:#e57d6a} .advisor .coupbar i.lo{background:#b8473a}
+  .advisor .coupline{margin:3px 0;color:var(--muted)} .advisor .coupline b{color:#f0e2bd}
+  .advisor .coupline.sm{font-size:.8rem}
+  .advisor .coupline .tr-sim{color:#8fd18a} .advisor .coupline .tr-talvez{color:#e6c35c} .advisor .coupline .tr-nao{color:#e57d6a}
+  .advisor .coupreq{margin:2px 0 4px 18px;padding:0} .advisor .coupreq li{margin:1px 0} .advisor .coupreq span{color:#e6c35c;margin-left:4px}
+  .advisor .coupreq.risk li{color:#e9a48f}

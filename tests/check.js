@@ -269,7 +269,7 @@ for (const sc of SCENARIOS) {
 }
 // ---- saves: migração v2 → v4 e v3 → v4, e um combate de teste ----
 {
-  const API = new Function(JOGO.codigo + "; return { SCENARIOS, scOf, newCampaign, migrateSave, SAVE_VERSION, endTurn, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices, battleReport, advisorTips, advisorDo, endingGrade, earnedAchievements, achMerge, CONQUISTAS };")();
+  const API = new Function(JOGO.codigo + "; return { SCENARIOS, scOf, newCampaign, migrateSave, SAVE_VERSION, endTurn, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices, battleReport, advisorTips, advisorDo, coupState, coupStoryTip, coupReadiness, golpeCfg, endingGrade, earnedAchievements, achMerge, CONQUISTAS };")();
   let n = 0;
   for (const sc of API.SCENARIOS){ if (sc.soon || !sc.campaign) continue;
     for (let seed = 1; seed <= 25; seed++){
@@ -347,6 +347,65 @@ for (const sc of SCENARIOS) {
         const tp = tips.find(x => x.act.k !== "tab" && x.act.k !== "end");
         if (tp && API.advisorDo(g, tp).ok === false) err(`conselheira#${seed}: "Fazer isso" falhou (${tp.id})`);
         API.endTurn(g);
+      }
+    }
+    // conselheira no caminho do golpe (ficção do cenário): "porta" antes da posse, "plano" na conspiração, nada depois de aceitar o resultado
+    {
+      const K = API.golpeCfg(API.newCampaign(sc22, 1));
+      if (!K) err("brasil2022 sem dados da linha do golpe (golpe.js)");
+      else {
+        const fs = require("fs"), EN = new Function(fs.readFileSync(require("path").join(JOGO.RAIZ, "js/i18n/en.js"), "utf8") + "; return I18N_EN;")();
+        const key = s => { let n = 0; return s.replace(/\{\d\}/g, "7").replace(/\d+(?:[.,]\d+)?/g, () => "{" + (n++) + "}"); };
+        for (const v of Object.values(K.falas).concat(Object.values(K.falas.req)).filter(v => typeof v === "string"))
+          if (!(/\d/.test(v) ? EN.tpl[key(v)] : EN.exact[v])) err(`golpe.js: fala sem tradução EN: "${v.slice(0, 50)}"`);
+        for (const [n, o] of Object.entries(K.nos)) for (const i of Object.values(o)) if (!sc22.story.nodes[n] || !sc22.story.nodes[n].choices[i]) err(`golpe.js: escolha ${n}[${i}] não existe na história`);
+        for (const id of K.focos) if (!sc22.campaign.focus.nodes.some(F => F.id === id)) err(`golpe.js: foco ${id} não existe`);
+        // porta: a dica da apuração aponta para "convocar os comandantes"; em outra aba só avisa da fila
+        const g0 = API.newCampaign(sc22, 2);
+        if (API.coupState(g0) !== "porta") err("início da campanha deveria abrir a linha do golpe (porta)");
+        const t0 = API.advisorTips(g0, { tab: "historia" });
+        if (t0.length !== 1 || t0[0].act.k !== "choose" || t0[0].act.i !== K.nos.apuracao.golpe) err("na apuração a conselheira deveria sugerir convocar os comandantes");
+        if (API.advisorTips(g0, { tab: "mapa" }).some(t => t.golpe)) err("fora da aba História a dica do golpe não deveria aparecer com a fila cheia");
+        // aceitar o resultado: dicas normais pelo resto da campanha
+        API.choose(g0, 0);
+        for (let t = 0; t < 8 && !g0.ended; t++){
+          while (g0.queue.length && !g0.ended){ const ch = API.queueChoices(g0); API.choose(g0, Math.max(0, ch.findIndex(c => c.ok))); }
+          if (g0.ended) break;
+          if (API.coupState(g0) || API.advisorTips(g0, { tab: "mapa" }).some(t => t.golpe)) { err("depois de aceitar o resultado a conselheira não deveria falar em golpe"); break; }
+          API.endTurn(g0);
+        }
+        // seguir só a conselheira até o golpe: dicas válidas, "Fazer isso" funciona, prontidão 0–100; Fácil/Normal consumam o golpe
+        const ok = { facil: 0, normal: 0, dificil: 0 }, N = 6;
+        for (const diff of ["facil", "normal", "dificil"]) for (let seed = 1; seed <= N; seed++){
+          const g = API.newCampaign(sc22, seed, { diff });
+          for (let t = 0; t < 20 && !g.ended && !g.visited.includes("golpe_inicial") && !g.visited.includes("golpe_fracassa"); t++){
+            let guard = 0;
+            while (g.queue.length && !g.ended && guard++ < 20){
+              const st = API.coupState(g), tip = API.coupStoryTip(g, st);
+              if (tip){ if (API.advisorDo(g, tip).ok === false) err(`golpe ${diff}#${seed}: escolha sugerida falhou`); }
+              else { const ch = API.queueChoices(g); API.choose(g, Math.max(0, ch.findIndex(c => c.ok))); }
+            }
+            if (g.ended || g.visited.includes("golpe_inicial") || g.visited.includes("golpe_fracassa")) break;
+            const st = API.coupState(g);
+            if (st){ const R = API.coupReadiness(g);
+              if (!(R.pct >= 0 && R.pct <= 100) || !R.reqs.length || !R.hora || !["sim", "talvez", "nao"].includes(R.troops)) err(`golpe ${diff}#${seed}: prontidão inválida`); }
+            for (let k = 0; k < 10; k++){
+              const tips = API.advisorTips(g, { tab: "mapa" });
+              if (tips.length > 2 || tips.some(x => !x.head || !x.text || !x.act)) { err(`golpe ${diff}#${seed}: dicas inválidas`); break; }
+              const tp = tips.find(x => x.act.k !== "tab" && x.act.k !== "end"); if (!tp) break;
+              if (API.advisorDo(g, tp).ok === false) break;
+            }
+            API.endTurn(g);
+          }
+          if (g.visited.includes("golpe_inicial")) ok[diff]++;
+          if (!g.visited.includes("sondagem")) err(`golpe ${diff}#${seed}: seguindo a conselheira a reunião secreta deveria acontecer`);
+        }
+        if (ok.facil < N || ok.normal < N - 1) err(`seguindo a conselheira o golpe deveria dar certo no Fácil e no Normal (Fácil ${ok.facil}/${N}, Normal ${ok.normal}/${N})`);
+        // Difícil: conselho mais vago (sem números) nas escolhas da história
+        const gd = API.newCampaign(sc22, 4, { diff: "dificil" }); API.choose(gd, K.nos.apuracao.golpe);
+        for (let t = 0; t < 6 && !gd.queue.some(q => q.node === "sondagem"); t++){ while (gd.queue.length) API.choose(gd, 0); API.endTurn(gd); }
+        if (gd.queue[0] && gd.queue[0].node === "sondagem"){ const tp = API.coupStoryTip(gd, API.coupState(gd)); if (!tp || /\d/.test(tp.text)) err("no Difícil o conselho da reunião secreta deveria ser vago (sem números)"); }
+        else err("Difícil: a reunião secreta não chegou para o teste");
       }
     }
   }
