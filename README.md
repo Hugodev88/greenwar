@@ -187,7 +187,7 @@ js/
                         facções, diplomacia, focos, turno, sul, exércitos, combate, inimigo, ordens, saves,
                         modos, golpe (prontidão e dicas da linha do golpe), conselheiro, conquistas (nota e conquistas do final)
   ui/                   TELA: menu, jogo, abas (aba-*.js), mapa, exércitos, batalha, resolução, tutorial,
-                        grandes-eventos, ajuda, economia, janelas, configurações, acessibilidade, modos, conselheiro,
+                        grandes-eventos, ajuda, economia, janelas, configurações, acessibilidade, modos, conselheiro, mapa-frentes (placar e visual das frentes, fase 9),
                         conquistas, final (tela de final), retratos (rostos/ícones/silhuetas), iniciar.js (último)
   i18n/                 traducao.js (camada PT→EN) e en.js (dicionário)
   audio/                audio.js (trilha e efeitos gerados no navegador)
