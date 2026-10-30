@@ -33,7 +33,7 @@ function majorSnap(){
   if (!G) return null;
   const ph = phaseOf(G);
   return { ph: ph.id, label: ph.label, war: !!ph.war, noArmies: !!ph.noArmies, income: ph.income, pace: paceFor(G), vis: G.visited.length, fl: G.flags.length, south: G.south ? G.south.t : null,
-    armies: armiesOf(G, "player").map(a => ({ name: a.name, str: a.str })), stats: Object.assign({}, G.stats), control: Object.assign({}, G.control) };
+    armies: armiesOf(G, "player").map(a => ({ name: a.name, str: a.str })), pool: frontMode(G) ? frontPool(G) : null, nf: frontMode(G) ? G.war.fronts.length : 0, stats: Object.assign({}, G.stats), control: Object.assign({}, G.control) };
 }
 function majorCheck(b){
   if (!b || !G || G.ended) return null;
@@ -49,13 +49,16 @@ function majorCheck(b){
   if (MF) MF.cons(G).forEach(c => cons.push(c));
   if (southOn(G) && b.south != null && G.south.state === "calmo" && G.south.t - b.south >= 8) cons.push({ k: G.south.t >= southCfg(G).warn ? "bad" : "", t: `Tensão no Sul: ${b.south} → ${G.south.t}. Clique na barra “Tensão no Sul” para ver como baixá-la.` });
   const nowA = armiesOf(G, "player"), lost = b.armies.length - nowA.length;
-  if (b.armies.length && ph.noArmies){
+  if (frontMode(G)){ // 2022: tropas das frentes
+    if (b.pool > 0 && ph.noArmies) cons.push({ k: "bad", t: `Suas tropas (${Math.round(b.pool)}) foram desmobilizadas porque ${PHASE_WHY[ph.id] || "nesta fase você não comanda tropas"}.` });
+    if (G.war.fronts.length > (b.nf || 0) && b.war && ph.war) cons.push({ k: "bad", t: "Abriu uma nova frente de batalha. Divida as tropas entre as frentes na aba Mapa." });
+  } else if (b.armies.length && ph.noArmies){
     const tot = Math.round(b.armies.reduce((s, a) => s + a.str, 0));
     cons.push({ k: "bad", t: `${b.armies.length === 1 ? `Seu exército (força ${tot}) foi desmobilizado` : `Seus ${b.armies.length} exércitos (força total ${tot}) foram desmobilizados`} porque ${PHASE_WHY[ph.id] || "nesta fase você não comanda tropas"}.` });
   } else if (lost > 0) cons.push({ k: "bad", t: `Você perdeu ${lost} exército(s) nesta virada.` });
   if (phaseChanged){
     cons.push({ k: "", t: `Nova fase: ${ph.label}${ph.war ? " — em guerra" : ""}.` });
-    if (ph.war && !b.war) cons.push({ k: "bad", t: "Começou a guerra: as frentes de combate estão abertas. Dê ordens aos seus exércitos na aba Mapa — elas não gastam AP." });
+    if (ph.war && !b.war) cons.push({ k: "bad", t: frontMode(G) ? "Começou a guerra: abriu a linha de frente. Na aba Mapa, escolha a postura de cada frente (avançar, segurar ou recuar) — não gasta AP." : "Começou a guerra: as frentes de combate estão abertas. Dê ordens aos seus exércitos na aba Mapa — elas não gastam AP." });
     if (!ph.war && b.war) cons.push({ k: "good", t: "A guerra terminou: não há mais frentes de combate." });
     if (ph.noArmies && !b.noArmies) cons.push({ k: "", t: "Agora a luta é política: use propaganda, investimentos e acordos com governadores no mapa, além de diplomacia e facções." });
     if ((ph.income ?? 0) !== (b.income ?? 0)) cons.push({ k: (ph.income ?? 0) < (b.income ?? 0) ? "bad" : "good", t: `Renda básica de ${C.money.label}: ${b.income ?? 0} → ${ph.income ?? 0} por mês.` });

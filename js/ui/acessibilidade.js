@@ -11,7 +11,11 @@ function mapDescriptionHTML(g, mode){
   let html = `<h4>Quem controla cada estado</h4><ul>${li.join("")}</ul>`;
   const hot = Object.keys(g.uf).sort((a, b) => g.uf[b].unrest - g.uf[a].unrest).slice(0, 6);
   html += `<h4>Agitação (mais tensos)</h4><p>${hot.map(uf => `${esc(uf)} ${Math.round(g.uf[uf].unrest)} (${esc(unrestLabel(g.uf[uf].unrest))})`).join(" · ")}. Média nacional ${Math.round(Object.values(g.uf).reduce((s, u) => s + u.unrest, 0) / Object.keys(g.uf).length)}.</p>`;
-  if (!ph.noArmies){
+  if (!ph.noArmies && frontMode(g)){
+    const W = g.war;
+    html += `<h4>Tropas: ${Math.round(frontPool(g))} (reserva ${Math.round(W.reserve)})</h4>`;
+    if (W.fronts.length) html += `<h4>Frentes (${W.fronts.length})</h4><ul>${W.fronts.map(f => `<li><b>${esc(frontName(g, f))}</b> · <span>linha</span> ${f.progress > 0 ? "+" : ""}${Math.round(f.progress)} · <span>sua postura</span>: <span>${esc(frontFala(g, "postura", f.special ? "avancar" : f.posture))}</span> · <span>tropas</span> ${Math.round(f.troops)} · <span>moral</span> ${Math.round(f.morale)} · <span>suprimento</span> ${Math.round(f.supply)} · <span>inimigo</span> ${Math.round(f.enemy)}, <span>próximo mês</span>: <span>${esc(frontFala(g, "posturaCurta", f.eposture || "segurar"))}</span> · <span>próximo estado a tomar</span>: ${esc(frontTarget(g, f, 1) || "—")} · <span>a perder</span>: ${esc(frontTarget(g, f, -1) || "—")}</li>`).join("")}</ul>`;
+  } else if (!ph.noArmies){
     const mine = armiesOf(g, "player"), foes = armiesOf(g, "enemy");
     html += `<h4>Seus exércitos (${mine.length})</h4>${mine.length ? `<ul>${mine.map(a => `<li>${esc(a.name)} em ${esc(a.uf)}: força ${Math.round(a.str)}, moral ${Math.round(a.org)}, ${esc(orderText(a))}.</li>`).join("")}</ul>` : "<p>Nenhum.</p>"}`;
     const byUf = {}; for (const a of foes) byUf[a.uf] = (byUf[a.uf] || 0) + a.str;

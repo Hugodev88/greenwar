@@ -25,8 +25,8 @@ function tabHistoria(el, nextStory){
   }
   if (G.log.length){
     const L = G.log[0];
-    const bl = (G.battleLog || []).filter(b => b.month === L.m);
-    html += `<div class="card report"><h3>Relatório — ${esc(monthLabel(L.m))}</h3>${bl.length ? `<div class="ordhead" style="margin-top:0"><b>Batalhas do mês (${bl.length})</b><span>toque para ver por que venceu ou perdeu</span></div>${battleRowsHTML(bl)}<div style="height:10px"></div>` : ""}<ul>${L.lines.map(l => `<li class="${l.k}">${esc(l.t)}</li>`).join("")}</ul></div>`;
+    const bl = (G.battleLog || []).filter(b => b.month === L.m), fl = frontMode(G) ? (G.war.log || []).filter(r => r.month === L.m) : [];
+    html += `<div class="card report"><h3>Relatório — ${esc(monthLabel(L.m))}</h3>${fl.length ? `<div class="ordhead" style="margin-top:0"><b>Frentes do mês</b><span>toque para ver por que a linha andou</span></div><div class="frows">${frontRowsHTML(fl)}</div><div style="height:10px"></div>` : ""}${bl.length ? `<div class="ordhead" style="margin-top:0"><b>Batalhas do mês (${bl.length})</b><span>toque para ver por que venceu ou perdeu</span></div>${battleRowsHTML(bl)}<div style="height:10px"></div>` : ""}<ul>${L.lines.map(l => `<li class="${l.k}">${esc(l.t)}</li>`).join("")}</ul></div>`;
   }
   const older = (G.battleLog || []).filter(b => !G.log.length || b.month !== G.log[0].m);
   if (older.length) html += `<details class="card hist" id="oldBattles"><summary>Batalhas anteriores (${older.length})</summary>${battleRowsHTML(older.slice().reverse())}</details>`;
@@ -35,7 +35,13 @@ function tabHistoria(el, nextStory){
   }
   el.innerHTML = html;
   el.querySelectorAll(".choice").forEach(b => b.onclick = () => { const snap = majorSnap(); choose(G, +b.dataset.i); save(); renderGame(); window.scrollTo({ top: 0, behavior: "smooth" }); showMajor(majorCheck(snap)); });
-  el.querySelectorAll(".batlist").forEach((box, bi) => {
+  el.querySelectorAll(".frows [data-frow]").forEach(btn => btn.onclick = () => { const r = (G.war.log || []).filter(x => x.month === G.log[0].m)[+btn.dataset.frow]; if (r) openFrontReport(r); });
+  if (frontMode(G) && (G.war.log || []).some(r => !G.log.length || r.month !== G.log[0].m)){
+    const old = G.war.log.filter(r => !G.log.length || r.month !== G.log[0].m).slice().reverse();
+    el.insertAdjacentHTML("beforeend", `<details class="card hist" id="oldFronts"><summary>Meses anteriores nas frentes (${old.length})</summary><div class="frows2">${frontRowsHTML(old)}</div></details>`);
+    el.querySelectorAll(".frows2 [data-frow]").forEach(btn => btn.onclick = () => openFrontReport(old[+btn.dataset.frow]));
+  }
+  el.querySelectorAll(".batlist").forEach((box, bi) => { if (box.closest(".frows, .frows2")) return;
     const list = box.closest("#oldBattles") ? older.slice().reverse() : (G.battleLog || []).filter(b => G.log.length && b.month === G.log[0].m);
     box.querySelectorAll("[data-bat]").forEach(btn => btn.onclick = () => openBattle(list[+btn.dataset.bat]));
   });

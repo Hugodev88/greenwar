@@ -30,7 +30,7 @@ function renderGame(){
       <div class="hud-res">
         <div class="ecocell" data-eco="ap" role="button" tabindex="0" title="De onde vêm suas ações (clique)"><span class="k">Ações <i class="ecoi">i</i></span><span class="ap">${apDots}</span><b>${G.ap}</b>${apSrcLine()}</div>
         <div class="ecocell" data-eco="money" role="button" tabindex="0" title="${esc(C.money.label)}: renda, teto e usos (clique)"><span class="k">${esc(C.money.label)} <i class="ecoi">i</i></span><b class="${G.money < 0 ? "neg" : G.money >= moneyCap(G) ? "capped" : ""}">${Math.round(G.money)}${Number.isFinite(moneyCap(G)) ? `<small class="cap">/${moneyCap(G)}</small>` : ""}</b><small>${sgn(inc.total)}/mês${paceFor(G) > 1 ? ` (×${paceFor(G)} por turno)` : ""}</small></div>
-        <div title="${esc(C.forces.label)}" class="hudarmy" data-tab="mapa"><span class="k">${esc(C.forces.short)}</span><b>${totStr}</b><small>${ph.noArmies ? "sem comando" : `${myA.length} exérc. · ordens ${ordersUsed(G)}/${commandLimit(G)}`}</small></div>
+        <div title="${esc(C.forces.label)}" class="hudarmy" data-tab="mapa"><span class="k">${esc(C.forces.short)}</span><b>${totStr}</b><small>${ph.noArmies ? "sem comando" : frontMode(G) ? (G.war.fronts.length ? `${G.war.fronts.length} ${G.war.fronts.length === 1 ? "frente" : "frentes"} · ${G.war.fronts.map(f => POSTURE_ICON[f.special ? "avancar" : f.posture]).join(" ")}` : "na reserva") : `${myA.length} exérc. · ordens ${ordersUsed(G)}/${commandLimit(G)}`}</small></div>
       </div>
       <button class="primary endbtn" id="btnEnd" ${pend ? "disabled" : ""} title="${pend ? "Resolva os eventos pendentes na aba História" : "Avança o tempo e resolve economia, combates, facções e diplomacia"}">Encerrar ${paceFor(G) > 1 && !(G.story.pending && G.story.due - G.month < paceFor(G)) ? `${paceFor(G)} meses` : "mês"} ▸</button>
     </div>
@@ -51,7 +51,8 @@ function renderGame(){
     AUDIO.sfx("turn"); announce(`${monthLabel(G.month)}: turno ${G.turn}. ${G.ap} ações disponíveis.`);
     UI.tab = "historia"; UI.dealMsg = null; UI.selArmy = null; save(); cloud("syncSave", SCEN.id); renderGame(); window.scrollTo({ top: 0 });
     const ev = G.mil, major = majorCheck(snap);
-    if (ev && !G.ended && ev.month === G.month && (ev.battles.length || ev.flips.length || ev.moves.length)) playResolution(ev, () => showMajor(major));
+    if (ev && !G.ended && ev.month === G.month && ev.fronts && ev.fronts.length) playFrontResolution(ev, () => showMajor(major));
+    else if (ev && !G.ended && ev.month === G.month && (ev.battles.length || ev.flips.length || ev.moves.length)) playResolution(ev, () => showMajor(major));
     else showMajor(major);
   };
   if (UI.tab !== "decisoes" && UI.ffull){ UI.ffull = false; if (!document.querySelector(".overlay, .major")) document.body.classList.remove("noscroll"); }

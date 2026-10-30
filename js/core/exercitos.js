@@ -14,7 +14,7 @@ let MIL_QUIET = false;                                     // durante a resoluç
 function armyCfg(g){ return scOf(g).campaign.army || {}; }
 function armiesOf(g, side, uf){ return (g.armies || []).filter(a => a.side === side && (uf === undefined || a.uf === uf)); }
 function armyById(g, id){ return (g.armies || []).find(a => a.id === id) || null; }
-function sideStr(g, side, uf){ return armiesOf(g, side, uf).reduce((s, a) => s + a.str, 0); }
+function sideStr(g, side, uf){ if (frontMode(g)) return frontStr(g, side, uf); return armiesOf(g, side, uf).reduce((s, a) => s + a.str, 0); }
 function armyPow(a){ return Math.max(0, a.str) * (0.45 + 0.55 * clamp(a.org, 0, 100) / 100) * (1 + (a.xp || 0) / 250); }
 function removeArmy(g, a){ g.armies = g.armies.filter(x => x !== a); }
 function foreignFoes(g){ return Object.values(g.actors).filter(a => a.supportsEnemy).length; }
@@ -59,6 +59,7 @@ function enemyCapitals(g){
 }
 // Reforços (antigo "+N unidades na reserva"): completa exércitos fracos ou forma um novo na capital
 function addPlayerStrength(g, str){
+  if (frontMode(g)) return frontAdd(g, str);
   if (!g.armies || !str) return 0;
   const ph = phaseOf(g);
   if (str < 0){

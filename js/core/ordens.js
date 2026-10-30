@@ -43,6 +43,7 @@ function setOrder(g, id, type, to){
 const RECRUIT_STR = 20, RECRUIT_PER_MONTH = 2;
 function recruitsLeft(g){ return Math.max(0, RECRUIT_PER_MONTH - (+g.used._recruit || 0)); }
 function recruitState(g, uf){
+  if (frontMode(g)) return frontRecruitState(g);
   const ph = phaseOf(g), cost = recruitCost(g);
   if (g.ended) return { ok: false, msg: "Partida encerrada." };
   if (g.queue.length) return { ok: false, msg: "Resolva os eventos pendentes na aba História." };
@@ -55,6 +56,7 @@ function recruitState(g, uf){
   return { ok: true, uf, cost };
 }
 function recruitArmy(g, uf){
+  if (frontMode(g)) return frontRecruit(g);
   const st = recruitState(g, uf);
   if (!st.ok) return st;
   g.money -= st.cost; g.used._recruit = (+g.used._recruit || 0) + 1;
@@ -92,6 +94,7 @@ function initArmies(g){
   Object.assign(g, { armies: [], armySeq: 0, armyN: {}, enemyPlans: [], enemyPool: 0, mobPool: 0, battleLog: [], mil: null, armsAid: null, milPhase: phaseOf(g).id });
   const cfg = armyCfg(g);
   for (const s of (cfg.start || [])) newArmy(g, "player", s.uf, s.str, { gen: s.gen, name: s.name });
+  if (frontCfg(g)){ g.war = frontNew(g, g.armies.reduce((s, a) => s + a.str, 0)); g.armies = []; g.warNews = []; syncFronts(g); return; } // 2022: guerra por frentes (js/core/frentes.js)
   if (phaseOf(g).war) spawnWarArmies(g);
   normalizeArmies(g);
 }

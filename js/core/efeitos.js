@@ -36,10 +36,13 @@ function applyFx(g, fx, rep){
   if (fx.ceasefire) g.ceasefire = Math.max(g.ceasefire, fx.ceasefire);
   if (fx.malus){ g.enemyMalus = Math.max(g.month <= g.malusUntil ? g.enemyMalus : 0, fx.malus.v); g.malusUntil = Math.max(g.malusUntil, g.month + fx.malus.months); }
   // efeitos de guerra usados pelos eventos: frentes, moral dos seus exércitos, perdas inimigas
+  if (frontMode(g)) frontFx(g, fx);
+  else {
   if (fx.front && g.armies){ const ph = phaseOf(g); for (const uf in g.control) if (sideOf(g, g.control[uf], ph) === "contested") g.uf[uf].progress = clamp(g.uf[uf].progress + fx.front, -100, 100); }
   if (fx.org && g.armies) for (const a of armiesOf(g, "player")) a.org = fx.org > 0 ? Math.min(Math.max(a.org, maxOrg(g, "player")), a.org + fx.org) : Math.max(5, a.org + fx.org);
   if (fx.enemyLoss && g.armies){ let left = fx.enemyLoss;
     while (left > 0){ const a = armiesOf(g, "enemy").sort((x, y) => y.str - x.str)[0]; if (!a) break; const d = Math.min(left, a.str); a.str -= d; left -= d; if (a.str < 3) removeArmy(g, a); } }
+  }
   // desdobramento: o evento encadeado chega alguns meses depois (se a condição dele ainda valer)
   if (fx.chain) for (const c of [].concat(fx.chain)) (g.chains ||= []).push({ id: c.id, due: g.month + (c.in || 1) });
   if (fx.south) southAdd(g, fx.south);

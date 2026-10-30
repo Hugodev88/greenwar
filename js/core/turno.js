@@ -65,6 +65,10 @@ function endTurn(g){
     }
   }
   // 2b. Operações militares: ordens dos exércitos (jogador) + plano da IA inimiga
+  if (frontMode(g)){ // 2022: guerra por frentes (js/core/frentes.js)
+    frontWarMonth(g, R);
+    if (g.war.end){ applyMoneyCap(g); g.report = rep; finishLog(g, rep); endCampaign(g, g.war.end.to, g.war.end.why); return true; }
+  } else {
   if (ph.war && g.autoOrders && g.autoOrders !== "off" && g.armies){ const r = autoOrders(g, g.autoOrders, true); if (r.n) R(`Ordens automáticas (${g.autoOrders === "auto" ? "automático" : "defender fronteiras"}): ${r.n} ${r.n === 1 ? "exército recebeu" : "exércitos receberam"} ordem.`); }
   if (ph.war){
     const cf = g.ceasefire > 0;
@@ -80,6 +84,7 @@ function endTurn(g){
     }
     g.enemyBoost = Math.max(0, g.enemyBoost - 0.25);
   } else militaryMonth(g, R, false);
+  }
   // 2c. Tensão no Sul (2022): pode levar à rebelião da Liga do Sul
   southTick(g, pace, R);
   // 3. Facções

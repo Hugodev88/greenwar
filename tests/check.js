@@ -269,7 +269,7 @@ for (const sc of SCENARIOS) {
 }
 // ---- saves: migração v2 → v4 e v3 → v4, e um combate de teste ----
 {
-  const API = new Function(JOGO.codigo + "; return { SCENARIOS, scOf, newCampaign, migrateSave, SAVE_VERSION, endTurn, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices, battleReport, advisorTips, advisorDo, coupState, coupStoryTip, coupReadiness, golpeCfg, endingGrade, earnedAchievements, achMerge, CONQUISTAS };")();
+  const API = new Function(JOGO.codigo + "; return { SCENARIOS, scOf, newCampaign, migrateSave, SAVE_VERSION, endTurn, sideStr, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices, battleReport, advisorTips, advisorDo, advisorFrontTips, frontMode, frontReport, frontPool, frontCfg, southRevolt, setFrontPosture, launchOffensive, offensiveState, coupState, coupStoryTip, coupReadiness, golpeCfg, endingGrade, earnedAchievements, achMerge, CONQUISTAS };")();
   let n = 0;
   for (const sc of API.SCENARIOS){ if (sc.soon || !sc.campaign) continue;
     for (let seed = 1; seed <= 25; seed++){
@@ -278,14 +278,14 @@ for (const sc of SCENARIOS) {
       if (g.ended) continue;
       // reconstrói um save antigo (v2): tropas como contadores por estado + reserva
       const v2 = JSON.parse(JSON.stringify(g)); v2.v = 2; v2.reserve = 2 + seed % 3;
-      for (const k of ["armies","armySeq","armyN","enemyPlans","enemyPool","mil","armsAid","milPhase"]) delete v2[k];
+      for (const k of ["armies","armySeq","armyN","enemyPlans","enemyPool","mil","armsAid","milPhase","war","warNews"]) delete v2[k];
       const ufs = Object.keys(v2.uf); for (const uf of ufs) v2.uf[uf].force = 0;
       for (const uf of ufs.filter(uf => API.sideOf(v2, v2.control[uf]) === "player").slice(0, 2)) v2.uf[uf].force = 1 + seed % 3;
       const total = v2.reserve + ufs.reduce((s, uf) => s + v2.uf[uf].force, 0);
       const m = API.migrateSave(v2);
       if (!m || m.v !== API.SAVE_VERSION) { err(`${sc.id}#${seed}: migração v2 falhou`); continue; }
       if ("reserve" in m || ufs.some(uf => "force" in m.uf[uf])) err(`${sc.id}#${seed}: migração deixou campos antigos`);
-      const str = API.armiesOf(m, "player").reduce((s, a) => s + a.str, 0);
+      const str = API.sideStr(m, "player"); // 2022: tropas das frentes (save v8)
       if (!API.phaseOf(m).noArmies && str < Math.min(total * 10, 8 * 60) * 0.5) err(`${sc.id}#${seed}: migração perdeu tropas (${total} unid. → ${str} de força)`);
       for (const a of m.armies) if (!API.armyAllowed(m, a.side, a.uf)) err(`${sc.id}#${seed}: exército migrado em território impossível`);
       JSON.parse(JSON.stringify(m)); if (!API.endTurn(m) && !m.queue.length) err(`${sc.id}#${seed}: save migrado não avança`);
@@ -336,6 +336,73 @@ for (const sc of SCENARIOS) {
     }
     if (API.scOf(API.newCampaign(sc22, 3)) !== sc22) err("Normal precisa usar o cenário original");
     if (JSON.stringify(sc22.campaign.money) + sc22.campaign.enemyPower + JSON.stringify(sc22.campaign.pace) !== C0) err("os modos alteraram o cenário original");
+    // guerra por frentes (save v8): achar uma partida em guerra, migrar v7 com exércitos, relatório sem NaN, Frente Sul na revolta, dicas da conselheira
+    {
+      let gw = null;
+      for (let seed = 1; seed <= 20 && !gw; seed++){ // segue a conselheira (inclusive no golpe) até a guerra começar
+        const g = API.newCampaign(sc22, seed);
+        for (let t = 0; t < 40 && !g.ended; t++){
+          let guard = 0;
+          while (g.queue.length && !g.ended && guard++ < 20){ const tip = API.coupStoryTip(g, API.coupState(g)); if (tip) API.advisorDo(g, tip); else { const ch = API.queueChoices(g); API.choose(g, Math.max(0, ch.findIndex(c => c.ok))); } }
+          if (g.ended) break;
+          if (API.frontMode(g) && g.war.fronts.length && API.phaseOf(g).war){ gw = g; break; }
+          for (let k = 0; k < 10; k++){ const tp = API.advisorTips(g, { tab: "mapa" }).find(x => x.act.k !== "tab" && x.act.k !== "end"); if (!tp || API.advisorDo(g, tp).ok === false) break; }
+          API.endTurn(g);
+        }
+      }
+      if (!gw) err("frentes: nenhuma partida de teste chegou à guerra");
+      else {
+        if ((gw.armies || []).length) err("frentes: modo frentes não deveria ter exércitos");
+        // v7 → v8: exércitos viram tropas
+        const v7 = JSON.parse(JSON.stringify(gw)); v7.v = 7; delete v7.war; delete v7.warNews;
+        const fid = gw.war.fronts[0].id;
+        v7.armies = [{ id: 1, side: "player", fac: API.phaseOf(gw).playerMain, uf: "DF", str: 30 }, { id: 2, side: "player", fac: API.phaseOf(gw).playerMain, uf: "GO", str: 25 }, { id: 3, side: "enemy", fac: fid, uf: "PE", str: 40 }];
+        const m = API.migrateSave(v7);
+        if (!m || m.v !== API.SAVE_VERSION || !API.frontMode(m) || m.armies.length) err("frentes: migração v7→v8 falhou");
+        else {
+          if (Math.abs(API.frontPool(m) - 55) > 1) err(`frentes: migração v7→v8 perdeu tropas (${API.frontPool(m)} ≠ 55)`);
+          if (!m.war.fronts.length || m.war.fronts.some(f => !(f.enemy > 0))) err("frentes: migração v7→v8 sem frente/inimigo");
+          if (!API.endTurn(m) && !m.queue.length && !m.ended) err("frentes: save v7 migrado não avança");
+        }
+        // relatório: sem NaN, motivo e barras
+        const g = JSON.parse(JSON.stringify(gw)); let reps = 0;
+        for (let t = 0; t < 6 && !g.ended; t++){
+          while (g.queue.length && !g.ended){ const ch = API.queueChoices(g); API.choose(g, Math.max(0, ch.findIndex(c => c.ok))); }
+          if (g.ended) break;
+          API.endTurn(g);
+          for (const f of (g.war && g.war.fronts) || []) if (f.last && f.last.month === g.month - 1){
+            const r = API.frontReport(g, f.last); reps++;
+            if (!r || !r.summary || !Array.isArray(r.rows) || !r.rows.length || /NaN|undefined/.test(JSON.stringify(r))) { err(`frentes: relatório inválido (${f.id})`); break; }
+          }
+        }
+        if (!reps) err("frentes: nenhum relatório de frente gerado em 6 meses de guerra");
+        // revolta do Sul abre a Frente Sul
+        const gs = JSON.parse(JSON.stringify(gw)), SF = API.frontCfg(gs).frentes;
+        if (API.phaseOf(gs).enemy.includes("separatista") && SF.separatista && !gs.war.fronts.some(f => f.id === "separatista") && gs.south){
+          API.southRevolt(gs, null); API.endTurn(gs);
+          if (!gs.ended && Object.values(gs.control).includes("separatista") && !gs.war.fronts.some(f => f.id === "separatista")) err("frentes: revolta do Sul não abriu a Frente Sul");
+          if (!gs.ended && gs.war.fronts.length > 2) err("frentes: mais de 2 frentes");
+        }
+        // conselheira em guerra: dica de postura e "Fazer isso" muda a postura
+        const ga = JSON.parse(JSON.stringify(gw)); ga.autoOrders = "manual"; while (ga.queue.length) ga.queue.pop();
+        const f0 = ga.war.fronts[0]; f0.posture = f0.eposture === "avancar" ? "avancar" : "recuar"; f0.morale = 80; f0.supply = 80;
+        const all = []; API.advisorFrontTips(ga, all); const tp = all.find(t => t.act && t.act.k === "posture");
+        if (API.advisorTips(ga, { tab: "mapa" }).some(t => !t.head || !t.text || !t.act)) err("frentes: dica inválida da conselheira");
+        if (!tp) err("frentes: a conselheira não deu dica de postura");
+        else if (API.advisorDo(ga, tp).ok === false || ga.war.fronts[0].posture !== tp.act.p) err("frentes: \"Fazer isso\" não mudou a postura");
+      }
+      // falas das frentes com inglês
+      const fs = require("fs"), EN = new Function(fs.readFileSync(require("path").join(JOGO.RAIZ, "js/i18n/en.js"), "utf8") + "; return I18N_EN;")();
+      const key = s => { let n = 0; return s.replace(/\{\d\}/g, "7").replace(/\d+(?:[.,]\d+)?/g, () => "{" + (n++) + "}"); };
+      // tradução como na tela: trCore (js/i18n/traducao.js) com os {n} preenchidos por números ou por nomes (frente, inimigo, estado)
+      const trSrc = fs.readFileSync(require("path").join(JOGO.RAIZ, "js/i18n/traducao.js"), "utf8").split("\ndocument.__ptTitle")[0];
+      const trCore = new Function("I18N_EN", "SET", "document", trSrc + "; return trCore;")(EN, { lang: "en" }, {});
+      const fills = [["7", "3"], ["Frente Nordeste", "Resistência constitucional"], ["Bahia", "Resistência constitucional"]];
+      const F = sc22.frentes.falas, miss = [];
+      for (const grp of Object.values(F)) for (const v of Object.values(grp)) if (typeof v === "string" && !fills.some(x => trCore(v.replace(/\{(\d)\}/g, (_, i) => x[+i] || x[0])) != null)) miss.push(v);
+      void key;
+      if (miss.length) err(`frentes.js: ${miss.length} falas sem tradução EN, ex.: "${miss[0].slice(0, 60)}"`);
+    }
     // conselheira: no máximo 2 dicas, com título, texto e ação; "Fazer isso" funciona e não quebra a partida
     for (let seed = 1; seed <= 12; seed++){
       const g = API.newCampaign(sc22, seed, { diff: seed % 2 ? "facil" : "normal" });

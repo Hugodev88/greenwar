@@ -17,7 +17,7 @@ const API = new Function(code + `; return { SCENARIOS, MAP_DATA, convertMoney, a
   phaseOf, sideOf, sideCounts, playerUFs, findEvent, fxSummary, incomeFor, monthLabel, OFF_TYPES,
   focusTree, focusStatus, focusCheck, startFocus, focusDef,
   ADJ, ARMY_MAX, SAVE_VERSION, armiesOf, armyById, armyTargets, setOrder, recruitArmy, battleOdds, commandLimit, ordersUsed,
-  reinforceCost, recruitCost, armyAllowed, sideStr, migrateSave, knownIntents, battleReport, choicePreview, advisorTips, advisorDo, coupState, coupStoryTip, coupReadiness, endingGrade, earnedAchievements, CONQUISTAS,
+  reinforceCost, recruitCost, armyAllowed, sideStr, frontMode, frontAdvice, setFrontPosture, frontAutoSplit, setFrontSplit, offensiveState, launchOffensive, setFrontGeneral, frontReport, frontPool, FRONT_POSTURES, migrateSave, knownIntents, battleReport, choicePreview, advisorTips, advisorDo, coupState, coupStoryTip, coupReadiness, endingGrade, earnedAchievements, CONQUISTAS,
   ...(typeof southFactors === "function" ? { southFactors, southRate, southEta, autoOrders, clearOrders, setAutoOrders, nodeView } : {}) };`)();
 const ARGS = process.argv.slice(2).filter(a => !a.startsWith("--")), FLAGS = process.argv.slice(2).filter(a => a.startsWith("--"));
 const OPTS = { diff: ((FLAGS.find(a => a.startsWith("--dif=")) || "").split("=")[1]) || "normal", quick: FLAGS.includes("--rapida") };
@@ -177,8 +177,27 @@ function spendAP(g, sc, r, greedy){
   }
 }
 // Ordens militares (não gastam PA). Gulosa: ataques com boa chance, reforços, marcha para a frente.
+// Guerra por frentes (2022): posturas, divisão das tropas, recrutamento e ofensiva especial — não há ordens a exércitos
+function frontOrders(g, sc, r, greedy){
+  const ph = API.phaseOf(g), W = g.war; if (!ph.war || ph.noArmies) return;
+  if (g.simple){ if (g.money >= API.recruitCost(g) + (greedy ? 15 : 0) && r() < (greedy ? 0.5 : 0.15)) API.recruitArmy(g); return; } // modo simples: comando automático
+  if (!greedy){ // aleatória/iniciante: posturas ao acaso, às vezes recruta, mexe na divisão ou lança a ofensiva
+    for (const f of W.fronts){ const x = r(); if (x < 0.55){ API.setFrontPosture(g, f.id, x < 0.25 ? "avancar" : x < 0.45 ? "segurar" : "recuar"); g.stat.orders++; } }
+    if (W.fronts.length > 1 && r() < 0.3) API.setFrontSplit(g, 20 + Math.floor(r() * 13) * 5);
+    if (r() < 0.15) API.recruitArmy(g);
+    if (r() < 0.1 && W.fronts.length){ const f = pick(r, W.fronts); if (API.offensiveState(g, f.id).ok) API.launchOffensive(g, f.id); }
+    return;
+  }
+  for (let k = 0; k < 2 && g.money >= API.recruitCost(g) + 15; k++) if (!API.recruitArmy(g).ok) break;
+  if (W.fronts.length > 1) API.frontAutoSplit(g);
+  for (const f of W.fronts){
+    const a = API.frontAdvice(g, f); if (f.posture !== a.posture){ API.setFrontPosture(g, f.id, a.posture); g.stat.orders++; }
+    if (a.posture === "avancar" && a.ratio >= 1.3 && g.money >= 25 && API.offensiveState(g, f.id).ok) API.launchOffensive(g, f.id);
+  }
+}
 function giveOrders(g, sc, r, greedy){
   if (g.ended || g.queue.length) return;
+  if (API.frontMode(g)) return frontOrders(g, sc, r, greedy);
   const ph = API.phaseOf(g), mine = API.armiesOf(g, "player");
   if (g.simple){ if (ph.war && g.money >= API.recruitCost(g) + (greedy ? 15 : 0) && r() < (greedy ? 0.5 : 0.15)) API.recruitArmy(g); return; } // interface simples: só ordens automáticas
   if (!greedy){
@@ -257,11 +276,17 @@ function play(sc, seed, greedy, novice, advisor){
     if (g.mil && g.mil.war){
       W.months++; if (W.statesStart === null) W.statesStart = API.sideCounts(g).player;
       for (const b of g.mil.battles){ const pi = b.sides[0].side === "player" ? 0 : 1; W.bat++; if (b.win === pi) W.won++; if (b.sides[0].side === "player" && b.attack){ W.att++; if (b.win === 0) W.attWon++; } }
+      for (const f of (g.mil.fronts || [])){ if (f.p !== "avancar" && f.e !== "avancar") continue; W.bat++; if (f.d > 0) W.won++; if (f.p === "avancar"){ W.att++; if (f.d > 0) W.attWon++; } }
       W.peak = Math.max(W.peak, API.sideStr(g, "player")); W.statesEnd = API.sideCounts(g).player;
     }
     // relatório pós-batalha: toda batalha precisa gerar um relatório coerente (sem NaN, com resumo e dica)
     if (g.mil) for (const b of g.mil.battles){ const R = API.battleReport(b);
       if (!R.summary || !R.tips.length || !R.rows.length || !Number.isFinite(R.power.p + R.power.e + R.loss.p + R.loss.e) || R.rows.some(x => !Number.isFinite(x.lr)) || R.won !== (b.win === R.pi)) return { err: `relatório de batalha inválido em ${b.uf}`, g }; }
+    if (g.mil && g.mil.fronts) for (const f of g.mil.fronts){ const R = API.frontReport(g, f);
+      if (!R.summary || !R.tips.length || !R.rows.length || !Number.isFinite(R.power.p + R.power.e + f.d + f.lossP + f.lossE) || !Number.isFinite(f.prog)) return { err: `relatório de frente inválido (${f.front})`, g }; }
+    if (g.war){ const W = g.war; if (!(W.reserve >= 0) || W.fronts.some(f => !(f.troops >= 0) || !(f.enemy >= 0) || !(f.morale >= 0 && f.morale <= 100) || !(f.supply >= 0 && f.supply <= 100) || !API.FRONT_POSTURES.includes(f.posture) || !Number.isFinite(f.progress))) return { err: "estado das frentes inválido", g };
+      if (W.fronts.length > 2 || new Set(W.fronts.map(f => f.id)).size !== W.fronts.length) return { err: "frentes duplicadas", g };
+      if ((g.armies || []).length) return { err: "exércitos no modo frentes", g }; }
     if (g.battleLog && g.battleLog.length > 30) return { err: "battleLog acima de 30", g };
     const inv = invariants(g, sc); if (inv) return { err: inv, g };
     if (++turns > 400) return { err: "partida não termina (400 turnos)", g };

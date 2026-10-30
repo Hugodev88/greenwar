@@ -54,7 +54,12 @@ function legendHTML(control){
 function renderMap(el, control, changed, withNotes, opts){
   const notes = withNotes && changed && changed.length ? `<div class="mapnotes">${changeNotes(changed).map(t => `<div>${esc(t)}</div>`).join("")}</div>` : "";
   const agit = opts && opts.mode === "agitacao";
-  const milLeg = opts && opts.military && opts.g && !phaseOf(opts.g).noArmies ? `<div class="milleg" aria-hidden="true">
+  const milLeg = opts && opts.military && opts.g && frontMode(opts.g) ? (phaseOf(opts.g).war ? `<div class="milleg" aria-hidden="true">
+    <span><svg viewBox="0 0 30 10" width="30" height="10"><path d="M2,5H28" stroke="#1a0b06" stroke-width="6"/><path d="M2,5H28" stroke="#ff6a3d" stroke-width="3" stroke-dasharray="5 3"/></svg>linha de frente</span>
+    <span><svg viewBox="0 0 30 10" width="30" height="10"><path d="M2,5H24" stroke="#f3c969" stroke-width="3"/><path d="M22,1L29,5L22,9z" fill="#f3c969"/></svg>você avança</span>
+    <span><svg viewBox="0 0 30 10" width="30" height="10"><path d="M2,5H24" stroke="#b0a898" stroke-width="2.4"/><path d="M22,1L29,5L22,9z" fill="#b0a898"/></svg>você recua</span>
+    <span><svg viewBox="0 0 30 10" width="30" height="10"><path d="M2,5H24" stroke="#ff6a52" stroke-width="2.6" stroke-dasharray="4 3"/><path d="M22,1L29,5L22,9z" fill="#ff6a52"/></svg>ataque inimigo previsto</span></div>` : "")
+    : opts && opts.military && opts.g && !phaseOf(opts.g).noArmies ? `<div class="milleg" aria-hidden="true">
     <span><svg viewBox="-21 -10 42 20" width="34" height="16"><g class="cnt p">${counterInner("player", 30, 1)}</g></svg>seu exército (força)</span>
     <span><svg viewBox="-21 -10 42 20" width="34" height="16"><g class="cnt e">${counterInner("enemy", 30, 1)}</g></svg>inimigo</span>
     ${phaseOf(opts.g).war ? `<span><svg viewBox="0 0 30 10" width="30" height="10"><path d="M2,5H28" stroke="#1a0b06" stroke-width="6"/><path d="M2,5H28" stroke="#ff6a3d" stroke-width="3" stroke-dasharray="5 3"/></svg>frente de batalha</span>` : ""}
@@ -155,6 +160,7 @@ function militaryLayers(g, control, opts){
   return { fronts, pulses, arrows, counters };
 }
 function currentArrows(g){
+  if (frontMode(g)) return frontArrows(g);
   const out = [];
   for (const a of armiesOf(g, "player")) if (a.order && a.order.to) out.push({ side: "player", from: a.uf, to: a.order.to, type: a.order.type });
   for (const p of knownIntents(g)){ const a = armyById(g, p.id); if (a) out.push({ side: "enemy", from: a.uf, to: p.to, type: p.type }); }

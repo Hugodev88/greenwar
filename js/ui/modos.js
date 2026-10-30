@@ -52,6 +52,7 @@ function bindSettingsCampaign(rerender){
 }
 // Modo simples, aba Mapa em guerra: resumo dos exércitos no automático (o comando manual fica num botão)
 function simpleArmiesHTML(){
+  if (frontMode(G)) return simpleFrontsHTML();
   const mine = armiesOf(G, "player"), auto = (G.autoOrders || "off") !== "off";
   return `<h3>Meus exércitos</h3><div class="simplebox">
     <p>${auto ? `🤖 <b>Seus exércitos lutam sozinhos.</b> Todo mês, quem está sem ordem ${G.autoOrders === "auto" ? "ataca onde a chance é boa e defende o resto." : "defende as fronteiras."}` : `⏸ <b>As ordens automáticas estão desligadas.</b> Seus exércitos vão ficar parados.`}</p>

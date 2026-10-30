@@ -22,7 +22,14 @@ const I18N_RULES = [
   [/^(.+?) ([A-Z]{2})$/, (m, f) => f(m[1]) + " " + m[2]],
   [/^([A-Z]{2}) (.+)$/, (m, f) => m[1] + " " + f(m[2])],
   [/^([A-Z]{2}) \((.+)\)$/, (m, f) => m[1] + " (" + f(m[2]) + ")"],
-  [/^(.+?) ([+\-−]\d+(?:[.,]\d+)?%?(?:\/mês)?)$/, (m, f) => f(m[1]) + " " + m[2].replace("/mês", "/mo")]
+  [/^(.+?) ([+\-−]\d+(?:[.,]\d+)?%?(?:\/mês)?)$/, (m, f) => f(m[1]) + " " + m[2].replace("/mês", "/mo")],
+  // guerra por frentes (2022)
+  [/^a linha (avançou|recuou) e o estado agora é (.+)\.$/, (m, f) => "the line " + (m[1] === "avançou" ? "advanced" : "fell back") + " and the state is now " + f(m[2]) + "."],
+  [/^Avance para tomar (.+)\.$/, (m, f) => "Advance to take " + f(m[1]) + "."],
+  [/^O inimigo vai atacar na (.+?) \(rumo a (.+)\)$/, (m, f) => "The enemy will attack on the " + f(m[1]) + " (towards " + f(m[2]) + ")"],
+  [/^O inimigo vai atacar na (.+)$/, (m, f) => "The enemy will attack on the " + f(m[1])],
+  [/^(.+) assume a (Frente .+)\.$/, (m, f) => f(m[1]) + " takes over the " + f(m[2]) + "."],
+  [/^(.+?) \((.+)\)$/, (m, f) => f(m[1]) + " (" + f(m[2]) + ")"]
 ];
 function trCore(raw, depth){
   if (typeof raw !== "string") return null;

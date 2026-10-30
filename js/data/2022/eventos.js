@@ -216,7 +216,7 @@ const EVENTOS_2022 = [
     ev("n_panico", "Pânico depois das derrotas", "Cidades sob o regime vivem filas, boatos de rendição e saques.", [
       { text: "Toque de recolher.", fx: { unrest: -6, s: { apoio: -4, internacional: -3 } } },
       { text: "Pedir mediação internacional.", fx: { ceasefire: 1, s: { internacional: 4 }, fac: { militares: -6 } } },
-      { text: "Prometer uma contraofensiva.", fx: { org: 4, s: { militar: 2, apoio: -2 } } } ], { if: { phase: "regime", sideCount: { player: { max: 10 } } }, cooldown: 8 }),
+      { text: "Prometer uma contraofensiva.", fx: { org: 4, s: { militar: 2, apoio: -2 } } } ], { if: { phase: "regime", recentLoss: 2 }, cooldown: 8 }),
     ev("n_liga_proposta", "A Liga do Sul manda emissários", "Os separatistas do Sul propõem um pacto de não agressão enquanto você enfrenta a resistência.", [
       { text: "Pagar pela neutralidade.", fx: { money: -6, malus: { v: 1, months: 3 }, s: { militar: -2 }, south: -20 } },
       { text: "Ameaçar com uma ofensiva.", fx: { s: { militar: 3 }, enemy: 1, south: 5 } } ], { if: { phase: "regime", anyControl: ["separatista"] }, once: true, weight: 1.5 }),

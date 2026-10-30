@@ -35,6 +35,7 @@ function spawnWarArmies(g){
 }
 // Chamado após qualquer mudança de mapa fora das batalhas (história, revoltas, adesões) e ao entrar num nó
 function syncMilitary(g, before){
+  if (frontMode(g)){ if (!MIL_QUIET) syncFronts(g); return; }
   if (!g.armies || MIL_QUIET) return;
   const ph = phaseOf(g), C = scOf(g).campaign;
   if (g.milPhase !== ph.id){ g.milPhase = ph.id; if (ph.war) spawnWarArmies(g); }
@@ -71,6 +72,7 @@ function stepToward(g, a, goal){
 }
 // IA inimiga: ataca estados fracos ou em disputa, guarda as capitais, avança para a frente
 function planEnemy(g, keep){
+  if (frontMode(g)) return frontPlan(g);
   const ph = phaseOf(g), C = scOf(g).campaign;
   if (!g.armies || !ph.war || g.ended){ g.enemyPlans = []; return; }
   const hot = uf => { const s = sideOf(g, g.control[uf], ph); return s === "player" || s === "contested"; };

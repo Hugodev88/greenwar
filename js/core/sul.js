@@ -89,7 +89,8 @@ function southRevolt(g, R){
   if (!g.flags.includes("sul_revolta")) g.flags.push("sul_revolta");
   const uf = SC.rebel.find(u => sideOf(g, g.control[u]) === "player");
   if (uf) southRaise(g, uf);
-  if (R) R(`A Liga do Sul se rebelou: ${uf ? MAP_DATA.states[uf].name + " rompe com Brasília (um exército separatista pequeno, força " + SC.armyStr + ")" : "os governadores do Sul rompem com Brasília"}. ${MAP_DATA.states[SC.rebel[1]].name} pode aderir em ${SC.stage2After} meses se a tensão continuar alta.`, "bad");
+  if (R && frontMode(g)) R(`A Liga do Sul se rebelou: ${uf ? MAP_DATA.states[uf].name + " rompe com Brasília e abre a Frente Sul" : "os governadores do Sul rompem com Brasília"}. ${MAP_DATA.states[SC.rebel[1]].name} pode aderir em ${SC.stage2After} meses se a tensão continuar alta.`, "bad");
+  else if (R) R(`A Liga do Sul se rebelou: ${uf ? MAP_DATA.states[uf].name + " rompe com Brasília (um exército separatista pequeno, força " + SC.armyStr + ")" : "os governadores do Sul rompem com Brasília"}. ${MAP_DATA.states[SC.rebel[1]].name} pode aderir em ${SC.stage2After} meses se a tensão continuar alta.`, "bad");
 }
 function southTruce(g, R){
   const SC = southCfg(g), st = g.south, ph = phaseOf(g), before = Object.assign({}, g.control);
@@ -106,6 +107,7 @@ function southAlly(g, R){
   const st = g.south; Object.assign(st, { state: "aliado", t: 0, stage: 0 });
   if (!g.flags.includes("sul_aliado")) g.flags.push("sul_aliado");
   if (!g.armies) return;
+  if (frontMode(g)){ frontAdd(g, SC.allyStr); if (R) R("Pacto Federativo assinado: o Sul agora é aliado e enviou uma divisão.", "good"); return; }
   const at = SC.ufs.find(uf => armyAllowed(g, "player", uf)) || capitalOf(g, "player");
   if (at && armiesOf(g, "player").length < ARMY_CAP.player) newArmy(g, "player", at, SC.allyStr, { name: SC.allyName, gen: "Gen. Lauro Becker" });
   else addPlayerStrength(g, SC.allyStr);

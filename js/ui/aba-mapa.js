@@ -1,17 +1,18 @@
 // js/ui/aba-mapa.js — Interface: aba Mapa (camadas, ordens, recrutar).
 function tabMapa(el){
-  const ph = phaseOf(G);
+  const ph = phaseOf(G), FM = frontMode(G); // 2022: guerra por frentes (js/ui/frentes.js) — sem exércitos nem ordens
+  if (FM){ UI.selArmy = null; UI.pend = null; UI.ordMode = null; }
   if (UI.selArmy && !armyById(G, UI.selArmy)) UI.selArmy = null;
   if (!UI.selArmy) UI.ordMode = null;
   const sel = UI.selArmy ? armyById(G, UI.selArmy) : null, uf = UI.selUF;
   if (UI.pend && (!sel || sel.id !== UI.pend.army || !armyTargets(G, sel).some(t => t.uf === UI.pend.to))) UI.pend = null;
   const pend = UI.pend;
-  const panel = sel ? armyPanel(sel) : uf ? ufPanel(uf) : overviewPanel();
-  const hint = ph.noArmies ? "" : G.simple && !UI.manual && !sel ? `<div class="maphint">Modo simples: seus exércitos agem sozinhos. ${MOBILE_MAP() ? "Toque" : "Clique"} num estado para ver detalhes e agir nele.</div>` : sel && sel.side === "player" ? `<div class="maphint">${esc(sel.name)} selecionado. ${UI.ordMode === "atacar" ? `${MOBILE_MAP() ? "Toque" : "Clique"} num estado com <b class="hl-a">borda vermelha</b> para atacar.` : UI.ordMode ? `${MOBILE_MAP() ? "Toque" : "Clique"} num estado com <b class="hl-m">borda azul</b> para mover.` : `${MOBILE_MAP() ? "Toque" : "Clique"} num estado destacado (<b class="hl-a">vermelho</b> = atacar, <b class="hl-m">azul</b> = mover) ou use os botões ao lado.`} Ataques mostram a previsão antes de confirmar.</div>`
+  const panel = FM ? (uf ? frontUfPanel(uf) : frontsPanel()) : sel ? armyPanel(sel) : uf ? ufPanel(uf) : overviewPanel();
+  const hint = FM ? frontHintHTML() : ph.noArmies ? "" : G.simple && !UI.manual && !sel ? `<div class="maphint">Modo simples: seus exércitos agem sozinhos. ${MOBILE_MAP() ? "Toque" : "Clique"} num estado para ver detalhes e agir nele.</div>` : sel && sel.side === "player" ? `<div class="maphint">${esc(sel.name)} selecionado. ${UI.ordMode === "atacar" ? `${MOBILE_MAP() ? "Toque" : "Clique"} num estado com <b class="hl-a">borda vermelha</b> para atacar.` : UI.ordMode ? `${MOBILE_MAP() ? "Toque" : "Clique"} num estado com <b class="hl-m">borda azul</b> para mover.` : `${MOBILE_MAP() ? "Toque" : "Clique"} num estado destacado (<b class="hl-a">vermelho</b> = atacar, <b class="hl-m">azul</b> = mover) ou use os botões ao lado.`} Ataques mostram a previsão antes de confirmar.</div>`
     : `<div class="maphint">Use os botões grandes em <b>Meus exércitos</b> (⚔ Atacar · ➜ Mover · 🛡 Defender · ＋ Reforçar) — ou ${MOBILE_MAP() ? "toque" : "clique"} numa <b>ficha azul</b> no mapa e depois no destino.</div>`;
   const lim = commandLimit(G), used = ordersUsed(G), nA = armiesOf(G, "player").length;
   const infoOpen = UI.layerInfo === true;
-  const chip = ph.noArmies ? "" : `<button class="ordchip${used >= lim ? " full" : ""}" id="btnOrders" title="Lista de ordens">⚑ Ordens ${used}/${lim}${nA ? ` · ${armiesOf(G, "player").filter(a => a.order).length}/${nA} exérc.` : ""}</button>`;
+  const chip = FM ? frontChipHTML() : ph.noArmies ? "" : `<button class="ordchip${used >= lim ? " full" : ""}" id="btnOrders" title="Lista de ordens">⚑ Ordens ${used}/${lim}${nA ? ` · ${armiesOf(G, "player").filter(a => a.order).length}/${nA} exérc.` : ""}</button>`;
   const big = !!UI.mapBig;
   el.innerHTML = `<div class="maplayout${ph.noArmies ? "" : " war"}${big ? " big" : ""}"><div class="panel"><div class="maphead"><h3>Mapa</h3><span class="mhr">${chip}<button class="ordchip" id="btnMapBig" aria-pressed="${big}" title="${big ? "Reduzir o mapa" : "Ampliar o mapa"}">${big ? "⊖ Reduzir mapa" : "⊕ Ampliar mapa"}</button></span></div>
     <div class="layerbar" role="group" aria-label="Camadas do mapa"><span class="lk">Camada:</span><div class="seg" role="radiogroup"><button role="radio" aria-checked="${UI.mapMode==="controle"}" data-mode="controle" class="${UI.mapMode==="controle"?"on":""}">🗺 Controle</button><button role="radio" aria-checked="${UI.mapMode==="agitacao"}" data-mode="agitacao" class="${UI.mapMode==="agitacao"?"on":""}">🔥 Agitação</button></div><button class="infobtn" id="btnLayerInfo" aria-expanded="${infoOpen ? "true" : "false"}" aria-controls="layerInfo" title="O que é agitação?">i</button><button class="ordchip" id="btnMapDesc" aria-expanded="${UI.mapDesc ? "true" : "false"}" aria-controls="mapDesc">📝 Descrição do mapa</button></div>
@@ -48,11 +49,13 @@ function tabMapa(el){
       if (p === sel.uf){ UI.pend = null; UI.selArmy = null; UI.selUF = p; renderGame(); return; }
     }
     UI.pend = null; UI.selArmy = null; UI.selUF = p; renderGame();
+    if (FM){ toPanel(); return; }
     if (ph.war && sideOf(G, G.control[p], ph) === "contested"){ const b = battleAt(p); b ? openBattle(b) : openForecast(p); return; }
     toPanel();
   };
   const milOn = UI.mapMode !== "agitacao", wideFc = window.innerWidth > 900 && !big;
-  renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, selArmy: sel, tgtMode: UI.ordMode || null, pend: milOn && sel ? pend : null, mode: UI.mapMode, military: milOn, onPick, onArmy: pickArmy, overlay: milOn && sel && pend && !wideFc ? forecastCardHTML(sel, pend) : "" });
+  if (FM) renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, mode: UI.mapMode, military: milOn, fronts: true, arrows: milOn ? frontArrows(G) : [], onPick });
+  else renderMap($("#mapMain"), G.control, G.lastMapChanges, true, { g: G, sel: uf, selArmy: sel, tgtMode: UI.ordMode || null, pend: milOn && sel ? pend : null, mode: UI.mapMode, military: milOn, onPick, onArmy: pickArmy, overlay: milOn && sel && pend && !wideFc ? forecastCardHTML(sel, pend) : "" });
   if (milOn && sel && pend && wideFc) $(".sidepanel").insertAdjacentHTML("afterbegin", forecastCardHTML(sel, pend));
   if (!tabMapa._esc){ tabMapa._esc = e => { if (e.key !== "Escape" || UI.tab !== "mapa" || document.querySelector(".overlay, .modal, #ecoModal") || (typeof coachBusy === "function" && coachBusy())) return;
       if (UI.pend){ UI.pend = null; renderGame(); } else if (UI.selArmy){ UI.selArmy = null; renderGame(); } }; document.addEventListener("keydown", tabMapa._esc); }
@@ -92,6 +95,7 @@ function tabMapa(el){
   if (sel){
     el.querySelectorAll(".tglist .tgt").forEach(b => b.onclick = () => { propose(sel, { uf: b.dataset.to, type: b.dataset.type }); window.scrollTo({ top: Math.max(0, ($("#mapMain").getBoundingClientRect().top + window.scrollY) - 70), behavior: "smooth" }); });
   }
+  if (FM){ bindFronts(el); if ($("#btnOrders")) $("#btnOrders").onclick = () => { UI.selUF = null; renderGame(); toPanel(); }; return; }
   if ($("#btnRecruit")) $("#btnRecruit").onclick = () => { const r = recruitArmy(G, $("#btnRecruit").dataset.uf || null); if (r.ok) UI.selArmy = r.id; afterAct(r); };
   if ($("#btnOrders")) $("#btnOrders").onclick = () => { UI.selArmy = null; UI.selUF = null; renderGame(); toPanel(); };
 }
