@@ -1,0 +1,34 @@
+/* css/decisoes-tela-grande.css — Decisões: árvore em tela grande. (a ordem dos arquivos no index.html importa) */
+  /* ---- Decisões: árvore em tela grande ---- */
+  .focuslayout{display:block;position:relative;width:min(100vw - 24px,1680px);margin-left:50%;transform:translateX(-50%)}
+  .focuslayout .fmain{position:relative}
+  .ftree-wrap{height:max(440px,calc(100vh - 210px));cursor:grab;touch-action:pan-x pan-y;outline:none}
+  .ftree-wrap:focus-visible{box-shadow:0 0 0 2px var(--gold)}
+  .ftree-wrap.drag{cursor:grabbing;user-select:none}
+  .ftree-wrap.drag .fnode{pointer-events:none}
+  .fnavhint{font-family:system-ui,sans-serif;font-size:.74rem;color:var(--muted);display:flex;gap:6px 14px;flex-wrap:wrap;margin:0 0 6px}
+  .fnavhint kbd{background:#2a241c;border:1px solid #4a4339;border-radius:3px;padding:0 4px;font-size:.7rem;color:var(--ink)}
+  .focuslayout .fdetail{position:absolute;top:96px;right:12px;width:340px;max-height:calc(100% - 110px);z-index:6;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+  .focuslayout .fdetail .fclose{display:block}
+  .focuslayout.ffull{position:fixed;inset:0;width:auto;margin:0;transform:none;z-index:45;background:var(--bg);padding:10px 12px}
+  .focuslayout.ffull .ftree-wrap{height:calc(100vh - 120px)}
+  .fnode b{font-size:.84rem}
+  @media (max-width:860px){
+    .focuslayout{width:auto;margin-left:0;transform:none}
+    .ftree-wrap{height:calc(100vh - 230px);min-height:360px}
+    .focuslayout .fdetail:not(.empty){position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;max-height:55vh;border-radius:14px 14px 0 0;z-index:46}
+    .focuslayout.ffull .ftree-wrap{height:calc(100vh - 130px)}
+    .fnavhint .dk{display:none}
+  }
+  @media (min-width:861px){ .fnavhint .mb{display:none} }
+  @media (max-width:600px){
+    header{flex-wrap:wrap}
+    header h1{font-size:.85rem;letter-spacing:.12em}
+    header > div{display:flex;flex-wrap:wrap;gap:6px}
+    .btn-sm{padding:5px 9px;font-size:.75rem}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .card{padding:20px 16px}
+    .card h2{font-size:1.35rem}
+    .card p{font-size:1rem}
+  }
+

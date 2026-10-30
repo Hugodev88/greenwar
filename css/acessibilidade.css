@@ -1,0 +1,32 @@
+/* css/acessibilidade.css — Acessibilidade: daltônico, alto contraste, reduzir animações. (a ordem dos arquivos no index.html importa) */
+  /* ---- Fase 3: acessibilidade e configurações ---- */
+  .sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .skip{position:absolute;left:8px;top:0;transform:translateY(-120%);background:var(--gold);color:#111;padding:6px 10px;border-radius:4px;z-index:50;font-family:system-ui,sans-serif}
+  .skip:focus{transform:translateY(8px)}
+  :focus-visible{outline:2px solid #f3c969;outline-offset:2px}
+  .mapbox path.uf:focus{outline:none}.mapbox path.uf:focus-visible{stroke:#fff;stroke-width:3.4;stroke-dasharray:none}
+  .mapbox g.cnt:focus{outline:none}.mapbox g.cnt:focus-visible rect.bg{stroke:#f3c969;stroke-width:2.6}
+  .mapdesc{background:#0f0d0b;border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin:6px 0;font-family:system-ui,sans-serif;font-size:.8rem;max-height:260px;overflow:auto}
+  .mapdesc h4{margin:6px 0 2px;color:var(--gold);font-size:.8rem}.mapdesc ul{margin:2px 0;padding-left:18px}.mapdesc p{margin:2px 0}
+  .layerbar{flex-wrap:wrap}
+  .setcard{max-width:600px}.setcard fieldset{border:1px solid var(--line);border-radius:8px;margin:0 0 12px;padding:8px 12px 10px}
+  .setcard legend{color:var(--gold);padding:0 6px;font-size:.9rem}
+  .setcard .opts{display:flex;flex-wrap:wrap;gap:6px 14px}.setcard .opt{font-family:system-ui,sans-serif;font-size:.86rem;cursor:pointer}
+  .setcard .tgl{display:flex;gap:8px;align-items:flex-start;margin:6px 0;font-family:system-ui,sans-serif;font-size:.86rem;cursor:pointer}
+  .setcard .frow{display:flex;align-items:center;gap:10px;margin:8px 0;font-family:system-ui,sans-serif;font-size:.86rem;flex-wrap:wrap}
+  .setcard .frow>span,.setcard .frow>label{min-width:120px}.setcard input[type=range]{flex:1;min-width:140px;accent-color:#c9a45c}
+  .setcard .keys{font-family:system-ui,sans-serif;font-size:.84rem}.setcard kbd{background:#2a2622;border:1px solid #4a443c;border-radius:3px;padding:0 5px;font-size:.78rem}
+  .setcard .sm,.muted.sm{font-size:.78rem}
+  #btnSnd{min-width:38px}
+  @media (max-width:600px){ header .bl{display:none} header>div{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end} }
+  /* alto contraste */
+  body.hc{--ink:#fff;--muted:#e3dccf;--line:#8a7f70;--panel:#000;--panel2:#0b0b0b;--bg:#000;background:#000}
+  body.hc .card,body.hc .panel,body.hc .stat,body.hc .hud,body.hc .modal-card{border-color:#c9b48a!important}
+  body.hc .muted,body.hc small,body.hc .maphint,body.hc .legend,body.hc .milleg{color:#ece6da!important}
+  body.hc button.secondary,body.hc .btn-sm,body.hc .ordchip{border-color:#e8d39c;color:#fff}
+  body.hc :focus-visible{outline:3px solid #ffe14d;outline-offset:3px}
+  body.hc .mapbox path.uf{stroke:#000;stroke-width:1.6}
+  body.hc .tab.on{background:#3a2f12;color:#fff}
+  /* reduzir animações */
+  body.rm *,body.rm *::before,body.rm *::after{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.001s!important;scroll-behavior:auto!important}
+

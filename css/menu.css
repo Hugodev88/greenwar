@@ -1,0 +1,40 @@
+/* css/menu.css — Menu de cenários e tela de título. (a ordem dos arquivos no index.html importa) */
+  /* ---- Menu de cenários ---- */
+  .menu-head{text-align:center;margin:10px 0 22px}
+  .menu-head h2{font-weight:normal;color:var(--gold);font-size:2rem;margin:0}
+  .menu-head p{color:var(--muted);margin:4px 0 0;font-style:italic}
+  .scen-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+  .scen{position:relative;background:linear-gradient(180deg,#221e1a,#151310);border:1px solid var(--line);border-top:3px solid var(--red);border-radius:8px;padding:18px 18px 16px;display:flex;flex-direction:column;cursor:pointer;transition:transform .2s,border-color .2s}
+  .scen:hover{transform:translateY(-3px);border-color:var(--gold)}
+  .scen .yr{font-size:3rem;line-height:1;color:var(--gold);letter-spacing:.04em}
+  .scen .tag{font-family:system-ui,sans-serif;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--red);margin:6px 0 2px}
+  .scen h3{margin:0 0 4px;font-weight:normal;font-size:1.3rem}
+  .scen .dt{font-family:system-ui,sans-serif;font-size:.8rem;color:var(--muted)}
+  .scen .who{font-family:system-ui,sans-serif;font-size:.82rem;margin:10px 0 6px;padding:6px 8px;background:#0006;border-left:3px solid var(--gold)}
+  .scen .ds{font-size:.95rem;color:#cfc6b6;flex:1}
+  .scen .meta{font-family:system-ui,sans-serif;font-size:.75rem;color:var(--muted);margin-top:10px;display:flex;justify-content:space-between;gap:8px}
+  .scen .saved{color:#8fc488}
+  .scen.soon{cursor:not-allowed;opacity:.55;border-top-color:#555;border-style:dashed;filter:grayscale(.85)}
+  .scen.soon:hover{transform:none;border-color:var(--line)}
+  .scen.soon .yr{color:#777}
+  .scen.soon .tag{color:#8a8178}
+  .scen .lockbadge{align-self:flex-start;font-family:system-ui,sans-serif;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:#bbb;border:1px solid #666;border-radius:20px;padding:3px 10px;margin-top:10px}
+  /* cenário em destaque (o único jogável) */
+  .scen.feat{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:22px;padding:26px 26px 22px;border-top-width:4px;box-shadow:0 10px 40px #0008}
+  .scen.feat:hover{transform:translateY(-2px)}
+  .scen.feat .yr{font-size:5rem}
+  .scen.feat h3{font-size:1.9rem}
+  .scen.feat .ds{font-size:1.05rem;line-height:1.5;flex:none}
+  .scen.feat .txt{display:flex;flex-direction:column}
+  .scen.feat .cta{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .scen.feat .cta .go{font-family:system-ui,sans-serif;font-size:1rem;background:var(--red);color:#fff;border-radius:6px;padding:10px 22px;letter-spacing:.04em}
+  .scen.feat:hover .cta .go{filter:brightness(1.15)}
+  .scen.feat .mapbox{pointer-events:none;align-self:center;justify-self:center;width:100%;max-width:390px}
+  .scen-later{margin-top:26px}
+  .scen-later h4{font-family:system-ui,sans-serif;font-weight:normal;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+  .scen-later .scen-grid{grid-template-columns:repeat(auto-fill,minmax(260px,360px))}
+  .scen-later .scen{padding:14px 16px}
+  .scen-later .scen .yr{font-size:2.2rem}
+  .scen-later .scen h3{font-size:1.1rem}
+  .scen-later .scen .ds{font-size:.85rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  @media (max-width:760px){ .scen.feat{grid-template-columns:1fr;padding:18px} .scen.feat .yr{font-size:3.6rem} .scen.feat h3{font-size:1.5rem} .scen-later .scen-grid{grid-template-columns:1fr} }

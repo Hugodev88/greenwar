@@ -1,14 +1,14 @@
 // Verifica todos os cenários: links quebrados, nós inalcançáveis, finais atingíveis, referências do mapa (UFs/facções)
 // e os dados de campanha (atores, facções, ações, eventos, fases). No fim roda a simulação de campanhas (sim.js).
-// Uso: node check.js [partidas_por_IA_na_simulação=150]
+// Uso: node tests/check.js [partidas_por_IA_na_simulação=150]
 const fs = require("fs");
-const html = fs.readFileSync(__dirname + "/index.html", "utf8");
-const src = html.split("/*SCENARIOS_START*/")[1].split("/*SCENARIOS_END*/")[0];
+const JOGO = require("./carregar.js");
+const src = JOGO.dados;
 const SCENARIOS = new Function(src + "; return SCENARIOS;")();
-const msrc = html.split("/*MAP_START*/")[1].split("/*MAP_END*/")[0];
-const MAP_DATA = new Function(msrc + "; return MAP_DATA;")();
+const msrc = "";   // o mapa (MAP_DATA) já faz parte de JOGO.dados
+const MAP_DATA = new Function(src + "; return MAP_DATA;")();
 const UFS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
-const csrc = html.split("/*CORE_START*/")[1].split("/*CORE_END*/")[0];
+const csrc = JOGO.dados + "\n" + JOGO.nucleo;   // texto de dados + núcleo (para grab)
 const grab = name => new Function(csrc.match(new RegExp("const " + name + " = [^;]+;"))[0] + "; return " + name + ";")();
 const FOCUS_FX_KEYS = grab("FOCUS_FX_KEYS"), EVENT_FX_KEYS = new Function(csrc.match(/const FOCUS_FX_KEYS = [^;]+;/)[0] + csrc.match(/const EVENT_FX_KEYS = [^;]+;/)[0] + "; return EVENT_FX_KEYS;")(), OFF_TYPES = grab("OFF_TYPES"), REQ_TYPES = grab("REQ_TYPES");
 let errors = 0;
@@ -269,7 +269,7 @@ for (const sc of SCENARIOS) {
 }
 // ---- saves: migração v2 → v4 e v3 → v4, e um combate de teste ----
 {
-  const API = new Function(src + msrc + csrc + "; return { SCENARIOS, newCampaign, migrateSave, SAVE_VERSION, endTurn, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices, battleReport };")();
+  const API = new Function(JOGO.codigo + "; return { SCENARIOS, newCampaign, migrateSave, SAVE_VERSION, endTurn, armiesOf, armyAllowed, setOrder, armyTargets, fight, phaseOf, sideOf, choose, queueChoices, battleReport };")();
   let n = 0;
   for (const sc of API.SCENARIOS){ if (sc.soon || !sc.campaign) continue;
     for (let seed = 1; seed <= 25; seed++){

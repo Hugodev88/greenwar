@@ -1,0 +1,15 @@
+/* css/faccoes.css — Facções: explicação. (a ordem dos arquivos no index.html importa) */
+  /* ---- Facções: explicação ---- */
+  .facx{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-bottom:12px}
+  .facx > div{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:system-ui,sans-serif;font-size:.82rem;line-height:1.45;color:#ddd3c2}
+  .facx h4{margin:0 0 4px;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:600}
+  .facx ul{margin:0;padding-left:16px}.facx li{margin:2px 0}
+  .facx .lv{display:grid;grid-template-columns:auto 1fr;gap:3px 8px;align-items:baseline}
+  .facx .lv em{font-style:normal;font-weight:600;white-space:nowrap}
+  .fac .fnow{font-family:system-ui,sans-serif;font-size:.8rem;background:#0005;border-radius:5px;padding:6px 8px;color:#ddd3c2;line-height:1.4}
+  .fac .fnow b{color:#f3e6c8}
+  .fac details.fwhat summary{cursor:pointer;color:var(--gold);font-size:.8rem}
+  .fac details.fwhat ul{margin:6px 0 0;padding-left:16px;font-size:.8rem;line-height:1.45;color:#ddd3c2}
+  .fac .fbtns button small{display:block;font-size:.68rem;color:var(--muted);font-weight:normal;margin-top:2px}
+  .fac .bar u.t65{position:absolute;top:-2px;bottom:-2px;border-left:1px dashed #8fbf7a}
+  .fac .bar u.t35{position:absolute;top:-2px;bottom:-2px;border-left:1px dashed #d0902a}

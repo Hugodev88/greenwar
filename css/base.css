@@ -1,0 +1,54 @@
+/* css/base.css — Base: cores (variáveis), tipografia, cabeçalho, botões. (a ordem dos arquivos no index.html importa) */
+  :root{
+    --bg:#0e0d0c; --panel:#171513; --panel2:#1f1c19; --ink:#e9e1d3; --muted:#9c9182;
+    --gold:#c9a45c; --red:#a8402f; --green:#5f8f5a; --blue:#4f7aa3; --line:#2e2a25;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink)}
+  body{
+    font-family: Georgia, "Times New Roman", "Liberation Serif", serif;
+    line-height:1.65; min-height:100vh;
+    background:
+      radial-gradient(ellipse at top, rgba(168,64,47,.18), transparent 60%),
+      radial-gradient(ellipse at bottom, rgba(201,164,92,.08), transparent 60%),
+      var(--bg);
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:20px 18px 60px}
+  header{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:16px}
+  header h1{font-size:1.05rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin:0;font-weight:normal}
+  .btn-sm{background:transparent;border:1px solid var(--line);color:var(--muted);padding:6px 12px;border-radius:4px;cursor:pointer;font:inherit;font-size:.82rem}
+  .btn-sm:hover{color:var(--ink);border-color:var(--gold)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+  .stat .lbl{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
+  .stat .val{color:var(--ink);font-weight:600}
+  .bar{height:5px;background:#2a2622;border-radius:3px;margin-top:6px;overflow:hidden}
+  .bar i{display:block;height:100%;transition:width .6s ease;border-radius:3px}
+  .delta{font-size:.7rem;margin-left:4px}
+  .delta.up{color:#8fc488}.delta.down{color:#e07a66}
+  .card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:8px;padding:26px 24px;box-shadow:0 10px 40px rgba(0,0,0,.45);animation:fade .5s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .chap{font-family:system-ui,sans-serif;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:4px}
+  .card h2{margin:0 0 14px;font-size:1.6rem;font-weight:normal;color:var(--gold)}
+  .card p{margin:0 0 14px;font-size:1.05rem}
+  .card p:first-of-type::first-letter{font-size:2.6em;float:left;line-height:.9;padding:4px 8px 0 0;color:var(--gold)}
+  .choices{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+  .choice{text-align:left;background:#14120f;border:1px solid var(--line);border-left:3px solid var(--gold);color:var(--ink);padding:13px 16px;border-radius:4px;cursor:pointer;font:inherit;font-size:1rem;transition:all .2s}
+  .choice:hover:not(:disabled){background:#211d18;border-left-color:var(--red);transform:translateX(3px)}
+  .choice:disabled{opacity:.42;cursor:not-allowed;border-left-color:#555}
+  .choice small{display:block;font-family:system-ui,sans-serif;font-size:.74rem;color:var(--muted);margin-top:4px}
+  .ending .chap{color:var(--gold)}
+  .ending-tag{display:inline-block;font-family:system-ui,sans-serif;font-size:.75rem;padding:3px 10px;border-radius:20px;border:1px solid var(--gold);color:var(--gold);margin-bottom:12px}
+  .summary{margin-top:18px;padding-top:14px;border-top:1px solid var(--line);font-size:.9rem;color:var(--muted)}
+  .summary ol{padding-left:20px;margin:6px 0}
+  .title-screen{text-align:center;padding:40px 22px}
+  .title-screen h2{font-size:2.2rem;margin-bottom:4px}
+  .title-screen .sub{color:var(--muted);font-style:italic;margin-bottom:22px}
+  .title-screen p{text-align:left}
+  .title-screen p:first-of-type::first-letter{all:unset}
+  .disclaimer{font-family:system-ui,sans-serif;font-size:.75rem;color:var(--muted);border:1px dashed var(--line);padding:8px 12px;border-radius:4px;margin:18px 0}
+  .primary{background:var(--red);border:none;color:#fff;padding:12px 26px;border-radius:4px;font:inherit;font-size:1rem;cursor:pointer;margin:6px}
+  .primary:hover{filter:brightness(1.15)}
+  .secondary{background:transparent;border:1px solid var(--gold);color:var(--gold);padding:11px 24px;border-radius:4px;font:inherit;font-size:1rem;cursor:pointer;margin:6px}
+  .endings-found{font-family:system-ui,sans-serif;font-size:.8rem;color:var(--muted);margin-top:16px}
+  footer{margin-top:24px;text-align:center;font-family:system-ui,sans-serif;font-size:.72rem;color:#5d554b}

@@ -3,11 +3,10 @@
 // em cada cenário e verifica falhas, invariantes, finais alcançáveis e equilíbrio.
 // "golpista" segue o roteiro do golpe sem se preocupar com o Sul; "pacificador" segue o mesmo roteiro, mas usa as
 // ações e escolhas que baixam a Tensão no Sul (mede se dá para evitar a rebelião da Liga do Sul).
-// Uso: node sim.js [partidas_por_IA=300] [cenário]
+// Uso: node tests/sim.js [partidas_por_IA=300] [cenário]
 const fs = require("fs");
-const html = fs.readFileSync(__dirname + "/index.html", "utf8");
-const part = (a, b) => html.split(a)[1].split(b)[0];
-const code = part("/*SCENARIOS_START*/", "/*SCENARIOS_END*/") + part("/*MAP_START*/", "/*MAP_END*/") + part("/*CORE_START*/", "/*CORE_END*/");
+const JOGO = require("./carregar.js");
+const code = JOGO.codigo;
 const API = new Function(code + `; return { SCENARIOS, MAP_DATA, convertMoney, apFor, moneyCap, newCampaign, queueChoices, choose, endTurn, visibleActions, actionState, doAction,
   mapActions, doMapAction, factionAction, allowedReqs, allowedOffs, dealScore, dealCheck, proposeDeal, acceptCounter, diploMission,
   phaseOf, sideOf, sideCounts, playerUFs, findEvent, fxSummary, incomeFor, monthLabel, OFF_TYPES,
@@ -312,6 +311,6 @@ for (const sc of API.SCENARIOS){
     if (never.length) fail(`${sc.id}: focos nunca concluídos: ${never.join(", ")}`);
   }
 }
-if (!process.argv[3]) fs.writeFileSync(__dirname + "/sim-resultados.json", JSON.stringify(report, null, 1));
+if (!process.argv[3]) fs.writeFileSync(JOGO.RAIZ + "/sim-resultados.json", JSON.stringify(report, null, 1));
 console.log(fails ? `\n${fails} falha(s).` : "\nSimulação OK: nenhuma falha.");
 process.exitCode = fails ? 1 : 0;

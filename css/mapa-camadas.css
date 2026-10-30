@@ -1,0 +1,20 @@
+/* css/mapa-camadas.css — Camadas do mapa (controle/agitação). (a ordem dos arquivos no index.html importa) */
+  /* ---- Camadas do mapa ---- */
+  .maphead{flex-wrap:wrap;gap:8px}
+  .layerbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#0006;border:1px solid #5a4e3c;border-radius:8px;padding:5px 6px 5px 10px;margin:8px 0}
+  .layerbar .lk{font-family:system-ui,sans-serif;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-right:2px}
+  .layerbar .seg button{padding:6px 12px;font-size:.84rem;color:#ddd3c2}
+  .layerbar .seg button.on{background:var(--gold);color:#111;font-weight:600}
+  .infobtn{background:#2a241c;border:1px solid #6b6255;color:var(--ink);border-radius:50%;width:26px;height:26px;cursor:pointer;font:600 .85rem system-ui,sans-serif;line-height:1}
+  .infobtn:hover,.infobtn[aria-expanded="true"]{border-color:var(--gold);color:var(--gold)}
+  .layerinfo{font-family:system-ui,sans-serif;font-size:.84rem;line-height:1.45;background:#1f1b16;border:1px solid #5a4e3c;border-left:3px solid var(--gold);border-radius:6px;padding:10px 12px;margin:0 0 8px;color:#ddd3c2}
+  .layerinfo b{color:#f3e6c8}.layerinfo ul{margin:4px 0;padding-left:18px}
+  .gradlegend{font-family:system-ui,sans-serif;font-size:.76rem;color:#cfc6b6;margin-top:8px}
+  .gradlegend .gbar{position:relative;height:14px;border-radius:3px;border:1px solid #0008}
+  .gradlegend .gticks{position:relative;height:30px}
+  .gradlegend .gticks span{position:absolute;transform:translateX(-50%);white-space:nowrap;top:2px;text-align:center;line-height:1.15}
+  .gradlegend .gticks span::before{content:"";position:absolute;left:50%;top:-6px;height:6px;border-left:1px solid #cfc6b6}
+  .gradlegend .gticks span:first-child{transform:none}.gradlegend .gticks span:first-child::before{left:0}
+  .gradlegend .gticks span:last-child{transform:translateX(-100%)}.gradlegend .gticks span:last-child::before{left:auto;right:0}
+  .mapbox text.uv{font-size:10px;font-weight:700;fill:#fff}
+  @media (max-width:600px){ .mapbox text.uv{font-size:15px} }

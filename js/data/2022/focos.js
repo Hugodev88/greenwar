@@ -1,0 +1,172 @@
+// js/data/2022/focos.js — Cenário 2022 — árvore de decisões nacionais (focos) e as ações/eventos que os focos liberam.
+/* ---------- 2022: Árvore de decisões nacionais (estilo "national focus") ---------- */
+// Cada foco: meses para concluir, pré-requisitos (req = todos; reqAny = pelo menos um), exclusivos (excl),
+// disponibilidade (avail) e bloqueio pela história (lockIf). Ao concluir: fx, flag "fo_<id>", risco, desbloqueios.
+const NOT_REGIME = { notPhase: "regime" };
+const OPO = { phase: "oposicao" }, OPO_TXT = "Disponível como líder da oposição (depois da posse).";
+const GOLPE_LOCK = { visited: ["golpe_inicial"] }, GOLPE_TXT = "A ruptura institucional fechou este caminho.";
+const POSSE_LOCK = { visitedAny: ["transicao", "crise_janeiro"] }, POSSE_TXT = "A posse aconteceu: a ruptura saiu da mesa.";
+const REG = { phase: "regime" }, REG_TXT = "Só existe se houver ruptura (fase Regime de exceção).";
+CAMPAIGN_2022.focus = {
+  ap: 1, cell: { w: 150, h: 96 },
+  grants: { golpe_inicial: ["c_ruptura"] }, // a história pode impor um foco (o golpe consumado abre o ramo do regime)
+  branches: [
+    { id: "tronco", label: "Tronco", x0: 5.5, x1: 6.5, color: "#c9a45c" },
+    { id: "democ", label: "Oposição democrática", x0: -0.5, x1: 3.5, color: "#5f8f5a" },
+    { id: "jurid", label: "Contestação institucional", x0: 3.5, x1: 6.5, color: "#7d8fb3" },
+    { id: "ruptura", label: "Ruptura · Regime · Guerra", x0: 6.5, x1: 10.5, color: "#a8402f" },
+    { id: "econ", label: "Economia", x0: 10.5, x1: 13, color: "#c9a45c" },
+    { id: "diplo", label: "Diplomacia", x0: 13, x1: 15.5, color: "#4f7aa3" },
+    { id: "soc", label: "Sociedade", x0: 15.5, x1: 18.5, color: "#9a6fb0" }
+  ],
+  nodes: [
+    // ---- Tronco ----
+    { id: "t_balanco", name: "Balanço da derrota", branch: "tronco", x: 6, y: 0, months: 1,
+      desc: "Reunir números, aliados e danos da eleição perdida antes de decidir o rumo.", fx: { s: { base: 2 } } },
+    { id: "a_regras", name: "Aceitar as regras do jogo", branch: "democ", x: 1.5, y: 1, months: 2, req: ["t_balanco"], excl: ["b_contestar", "c_ruptura"],
+      lockIf: GOLPE_LOCK, lockText: GOLPE_TXT,
+      desc: "Assumir publicamente o papel de oposição dentro da Constituição. Acalma instituições e parceiros externos; parte da base se frustra.",
+      fx: { s: { internacional: 5, apoio: -2 }, fac: { stf: 8, militares: -2, centrao: 4 }, act: { eua: 8, ue: 8, onu: 6 } } },
+    { id: "b_contestar", name: "Contestação institucional", branch: "jurid", x: 5, y: 1, months: 2, req: ["t_balanco"], excl: ["a_regras", "c_ruptura"],
+      lockIf: GOLPE_LOCK, lockText: GOLPE_TXT,
+      desc: "Questionar o processo pelos canais legais — tribunais, Congresso e auditorias — sem romper com as instituições.",
+      fx: { s: { base: 3, apoio: 2, internacional: -2 }, fac: { stf: -5 } } },
+    { id: "c_ruptura", name: "Sondar a ruptura", branch: "ruptura", x: 8.5, y: 1, months: 1, req: ["t_balanco"], excl: ["a_regras", "b_contestar"],
+      lockIf: POSSE_LOCK, lockText: POSSE_TXT,
+      desc: "Conversas reservadas sobre caminhos fora da Constituição. Golpe de Estado é crime: no jogo, este ramo tem custos pesados e pode fracassar.",
+      fx: { s: { militar: 3, internacional: -4 }, fac: { militares: 4, stf: -8 } } },
+    { id: "t_conselho", name: "Reunir o núcleo político", branch: "tronco", x: 14, y: 1, months: 1, req: ["t_balanco"],
+      desc: "Montar um gabinete paralelo de conselheiros. Abre as agendas de economia, diplomacia e sociedade.", fx: { money: 3, fac: { centrao: 3 } } },
+
+    // ---- (a) Oposição democrática ----
+    { id: "a_lideranca", name: "Liderar a oposição", branch: "democ", x: 1.5, y: 2, months: 3, req: ["a_regras"], avail: OPO, availText: OPO_TXT,
+      desc: "Organizar a bancada e ocupar o espaço de principal voz da oposição.", fx: { s: { base: 4 }, fac: { centrao: 5 } } },
+    { id: "a_partido", name: "Construir o partido", branch: "democ", x: 0, y: 3, months: 4, req: ["a_lideranca"], avail: OPO, availText: OPO_TXT,
+      desc: "Diretórios, filiações e candidatos municipais para 2024.", fx: { money: 5, s: { base: 3 }, infl: { centrao: -3 } } },
+    { id: "a_centrao", name: "Aliança com o Centrão", branch: "democ", x: 2, y: 3, months: 3, req: ["a_lideranca"], excl: ["a_puro"], avail: OPO, availText: OPO_TXT,
+      desc: "Trocar pureza por votos no Congresso: cargos, palanques e acordos regionais.", fx: { s: { base: 6, apoio: -2 }, fac: { centrao: 14, evangelicos: -3 } } },
+    { id: "a_puro", name: "Oposição sem acordos", branch: "democ", x: 3, y: 3, months: 3, req: ["a_lideranca"], excl: ["a_centrao"], avail: OPO, availText: OPO_TXT,
+      desc: "Recusar alianças de ocasião e falar só com a base fiel.", fx: { s: { apoio: 5, base: -2 }, fac: { evangelicos: 5, centrao: -8 } } },
+    { id: "a_herdeiro", name: "Preparar um herdeiro", branch: "democ", x: 0, y: 4, months: 3, reqAny: ["a_partido", "b_anistia", "b_pacto"], excl: ["a_candidato"], avail: OPO, availText: OPO_TXT,
+      desc: "Escolher e projetar um nome do campo para 2026 — útil se a Justiça barrar a sua candidatura.", fx: { s: { base: 3, apoio: 2 }, fac: { centrao: 4 } } },
+    { id: "a_candidato", name: "Candidatura própria", branch: "democ", x: 1, y: 4, months: 3, reqAny: ["a_partido", "b_anistia", "b_pacto"], excl: ["a_herdeiro"], avail: OPO, availText: OPO_TXT,
+      lockIf: { visited: ["inelegivel"] }, lockText: "A Justiça Eleitoral declarou você inelegível.",
+      desc: "Apostar tudo no seu próprio nome para 2026.", fx: { s: { apoio: 5 }, fac: { stf: -4, centrao: -2 } } },
+    { id: "a_campanha", name: "Campanha 2026", branch: "democ", x: 2.5, y: 5, months: 4, reqAny: ["a_centrao", "a_puro", "b_anistia", "b_pacto"],
+      avail: { phase: "oposicao", from: "2025-06" }, availText: "Líder da oposição, a partir de junho de 2025.",
+      desc: "Estrutura de campanha, programa e palanques estaduais para a eleição de 2026.", cost: 4, fx: { s: { apoio: 5, base: 5 }, unrestAll: 3 } },
+
+    // ---- (b) Contestação institucional ----
+    { id: "b_auditoria", name: "Auditoria das urnas", branch: "jurid", x: 4, y: 2, months: 2, req: ["b_contestar"], avail: NOT_REGIME, availText: "Indisponível sob regime de exceção.",
+      desc: "Encomendar uma auditoria técnica independente. Agrada a base; os tribunais e observadores veem com desconfiança.", fx: { s: { apoio: 3, internacional: -3 }, fac: { stf: -4 } } },
+    { id: "b_defesa", name: "Defesa técnica de elite", branch: "jurid", x: 5.5, y: 2, months: 3, req: ["b_contestar"], cost: 4, avail: NOT_REGIME, availText: "Indisponível sob regime de exceção.",
+      desc: "Contratar uma banca respeitada e trocar ataques por petições.", fx: { s: { base: 2 }, fac: { stf: 10 } } },
+    { id: "b_reforma", name: "PEC contra o Judiciário", branch: "jurid", x: 4, y: 3, months: 4, req: ["b_auditoria"], excl: ["b_pacto"], avail: OPO, availText: OPO_TXT,
+      desc: "Propor mandatos e limites para tribunais superiores. Mobiliza a base e abre guerra com o Judiciário.", fx: { s: { base: 4, apoio: 3, internacional: -3 }, fac: { stf: -15, militares: 3 } } },
+    { id: "b_pacto", name: "Pacto com as instituições", branch: "jurid", x: 5, y: 3, months: 3, req: ["b_defesa"], excl: ["b_reforma"], avail: OPO, availText: OPO_TXT,
+      desc: "Baixar a temperatura com tribunais e Congresso em troca de previsibilidade.", fx: { s: { internacional: 4, apoio: -3 }, fac: { stf: 14, centrao: 4 } } },
+    { id: "b_anistia", name: "Articular a anistia", branch: "jurid", x: 6, y: 3, months: 4, req: ["b_defesa"], avail: { phase: "oposicao", min: { base: 50 } }, availText: "Líder da oposição com Base Política ≥ 50.",
+      desc: "Costurar no Congresso um projeto de anistia ampla. Ajuda no capítulo 'Nos Tribunais', mas tensiona o Judiciário.", fx: { s: { base: 5 }, fac: { centrao: 6, stf: -6, movimentos: -5 } } },
+
+    // ---- (c) Ruptura, regime e guerra ----
+    { id: "c_quarteis", name: "Cortejar os quartéis", branch: "ruptura", x: 7, y: 2, months: 1, req: ["c_ruptura"], avail: { phase: "governo" }, availText: "Só antes da posse.",
+      lockIf: POSSE_LOCK, lockText: POSSE_TXT,
+      desc: "Agrados e reuniões com comandantes. Deixa rastros: a conspiração passa a constar nos autos (bloqueia a defesa limpa em 'Nos Tribunais').",
+      fx: { s: { militar: 5, internacional: -4 }, fac: { militares: 8, stf: -6 }, flag: "conspiracao" },
+      risk: { p: 0.3, msg: "Um relatório reservado vaza para a imprensa.", fx: { s: { apoio: -3, internacional: -5 } } } },
+    { id: "c_minuta", name: "Preparar a minuta", branch: "ruptura", x: 8, y: 2, months: 1, req: ["c_ruptura"], avail: { phase: "governo" }, availText: "Só antes da posse.",
+      lockIf: POSSE_LOCK, lockText: POSSE_TXT,
+      desc: "Redigir um decreto de exceção. Aumenta a chance de adesão militar — e a gravidade de um fracasso.",
+      fx: { s: { militar: 4 }, fac: { stf: -10 } },
+      risk: { p: 0.35, msg: "O rascunho vaza: tribunais e embaixadas reagem.", fx: { s: { internacional: -6, militar: -3 }, fac: { stf: -8 } } } },
+    { id: "c_excecao", name: "Estado de exceção", branch: "ruptura", x: 9.5, y: 2, months: 2, req: ["c_ruptura"], avail: REG, availText: REG_TXT,
+      desc: "Formalizar o regime: toque de recolher, prisões e governo por decreto. Custo humano e isolamento crescentes.",
+      fx: { reserve: 2, s: { militar: 3, internacional: -6, apoio: -3 }, actAll: -4, unrestAll: 5, fac: { movimentos: -10 } } },
+    { id: "c_intervencao", name: "Interventores nos estados", branch: "ruptura", x: 9, y: 3, months: 3, req: ["c_excecao"], excl: ["c_eleicoes"], avail: REG, availText: REG_TXT,
+      desc: "Afastar governadores que resistem e nomear interventores militares.", fx: { reserve: 1, unrest: -6, s: { apoio: -4, internacional: -4 }, fac: { centrao: -8 } } },
+    { id: "c_eleicoes", name: "Prometer eleições em 12 meses", branch: "ruptura", x: 10, y: 3, months: 2, req: ["c_excecao"], excl: ["c_intervencao"], avail: REG, availText: REG_TXT,
+      desc: "Anunciar um calendário eleitoral supervisionado para reduzir o isolamento.", fx: { s: { internacional: 8 }, act: { eua: 8, ue: 8, onu: 8 }, fac: { militares: -5, centrao: 5 } } },
+    { id: "c_comando", name: "Comando unificado", branch: "ruptura", x: 8, y: 4, months: 2, req: ["c_excecao"], cost: 6, avail: REG, availText: REG_TXT,
+      desc: "Um só estado-maior para todas as frentes.", fx: { reserve: 2, s: { militar: 5 } } },
+    { id: "c_constituinte", name: "Carta do regime", branch: "ruptura", x: 9.5, y: 4, months: 2, reqAny: ["c_intervencao", "c_eleicoes"], avail: REG, availText: REG_TXT,
+      desc: "Construção de Estado: uma carta provisória para dar forma jurídica ao regime. Poucos dentro e fora a reconhecem.", fx: { s: { base: 4, internacional: -2 }, fac: { stf: -10, centrao: 3 } } },
+    { id: "c_mobilizacao", name: "Mobilização geral", branch: "ruptura", x: 7, y: 5, months: 2, req: ["c_comando"], avail: REG, availText: REG_TXT,
+      desc: "Convocação de reservistas. Mais tropas, mais medo, menos economia.", fx: { reserve: 3, s: { apoio: -6 }, fac: { agro: -6, movimentos: -6 }, unrestAll: 6 } },
+    { id: "c_nordeste", name: "Ofensiva no Nordeste", branch: "ruptura", x: 8, y: 5, months: 2, req: ["c_comando"], avail: REG, availText: REG_TXT,
+      desc: "Concentrar forças para quebrar a resistência constitucional. Enfraquece o inimigo por alguns meses.", fx: { malus: { v: 1.5, months: 3 }, s: { internacional: -4 }, reserve: -1 } },
+    { id: "c_economia_guerra", name: "Economia de guerra", branch: "ruptura", x: 7, y: 6, months: 2, req: ["c_comando"], avail: REG, availText: REG_TXT,
+      desc: "Controle de preços, requisições e câmbio fixo.", fx: { money: 10, s: { apoio: -3 }, fac: { agro: -8 } } },
+    { id: "c_liga_esmagar", name: "Esmagar a Liga do Sul", branch: "ruptura", x: 8, y: 6, months: 2, req: ["c_comando"], excl: ["c_liga_pacto"],
+      avail: { phase: "regime", anyControl: ["separatista"] }, availText: "Só se a Liga do Sul se rebelar (Tensão no Sul chega a 100).",
+      desc: "Abrir uma segunda frente contra os separatistas do Sul.", fx: { malus: { v: 1, months: 3 }, reserve: -1, s: { apoio: -3, internacional: -4 }, unrestUF: { RS: 15, SC: 15, PR: 10 } } },
+    { id: "c_liga_pacto", name: "Pacto com a Liga do Sul", branch: "ruptura", x: 9, y: 6, months: 2, req: ["c_comando"], excl: ["c_liga_esmagar"],
+      avail: { phase: "regime", anyControl: ["separatista"] }, availText: "Só se a Liga do Sul se rebelar (Tensão no Sul chega a 100).",
+      desc: "Trégua de conveniência com os separatistas: reconhece fato consumado e divide o comando. Derruba a Tensão no Sul (−40), o que pode levar a um armistício.", fx: { south: -40, ceasefire: 2, s: { internacional: -2, apoio: -4 }, fac: { militares: -6 } } },
+    { id: "c_reconhecimento", name: "Buscar reconhecimento externo", branch: "ruptura", x: 10, y: 5, months: 2, req: ["c_constituinte"], avail: REG, availText: REG_TXT,
+      desc: "Ofensiva diplomática junto a governos dispostos a ignorar a ruptura.", fx: { act: { russia: 12, china: 6 }, s: { internacional: 2 } }, dipBonus: { russia: 10, china: 8 } },
+
+    // ---- Economia ----
+    { id: "e_agro", name: "Pacto com o agro", branch: "econ", x: 11, y: 2, months: 3, req: ["t_conselho"],
+      desc: "Compromissos com entidades do agronegócio: crédito, infraestrutura e segurança no campo.", fx: { money: 4, fac: { agro: 12, movimentos: -4 }, act: { ue: -4 } } },
+    { id: "e_privat", name: "Agenda de privatizações", branch: "econ", x: 12, y: 2, months: 3, req: ["t_conselho"],
+      desc: "Um programa de concessões e venda de estatais — aplaudido pelo mercado, combatido por sindicatos.", fx: { money: 6, fac: { agro: 5, movimentos: -8 }, s: { apoio: -2 } } },
+    { id: "e_commodities", name: "Diplomacia das commodities", branch: "econ", x: 11.5, y: 3, months: 2, reqAny: ["e_agro", "e_privat"],
+      desc: "Soja, minério e petróleo como cartas na mesa. Libera promessas de commodities também na oposição.", fx: { money: 4, act: { china: 5 } }, dipOff: ["commodities"] },
+    { id: "e_china", name: "Parceria econômica com a China", branch: "econ", x: 11, y: 4, months: 3, req: ["e_commodities"], excl: ["e_eua"],
+      desc: "Priorizar o maior comprador do Brasil: financiamento e infraestrutura.", fx: { act: { china: 18, eua: -10 }, fac: { agro: 6, militares: -3 } }, dipBonus: { china: 12 } },
+    { id: "e_eua", name: "Alinhamento econômico com os EUA", branch: "econ", x: 12, y: 4, months: 3, req: ["e_commodities"], excl: ["e_china"],
+      desc: "Acordos com investidores e o mercado norte-americano, com distância de Pequim.", fx: { act: { eua: 18, china: -12 }, fac: { militares: 4, agro: -2 } }, dipBonus: { eua: 12 } },
+
+    // ---- Diplomacia ----
+    { id: "d_ocidente", name: "Pontes com Washington e Bruxelas", branch: "diplo", x: 13.5, y: 2, months: 3, req: ["t_conselho"], excl: ["d_brics"],
+      desc: "Agendas com parlamentares, think tanks e diplomatas ocidentais. Libera promessas de cooperação em defesa.", fx: { act: { eua: 12, ue: 6, russia: -8 }, s: { internacional: 3 } }, dipOff: ["bases"] },
+    { id: "d_brics", name: "Aposta nos BRICS", branch: "diplo", x: 14.5, y: 2, months: 3, req: ["t_conselho"], excl: ["d_ocidente"],
+      desc: "Aproximação com China, Rússia e o Sul Global.", fx: { act: { china: 8, russia: 12, eua: -10, ue: -5 } }, dipOff: ["commodities"] },
+    { id: "d_mercosul", name: "Eixo Mercosul", branch: "diplo", x: 14, y: 3, months: 2, reqAny: ["d_ocidente", "d_brics"],
+      desc: "Agenda regional com governadores de fronteira e vizinhos.", fx: { act: { argentina: 12, vizinhos: 6 } } },
+    { id: "d_rede", name: "Rede da direita regional", branch: "diplo", x: 14, y: 4, months: 3, req: ["d_mercosul"], avail: { from: "2023-12" }, availText: "A partir de dezembro de 2023.",
+      desc: "Laços com partidos e governos afins na região. Aproxima uns, afasta outros.", fx: { act: { argentina: 18, vizinhos: -10, ue: -4 }, s: { base: 2 } }, dipBonus: { argentina: 10 } },
+
+    // ---- Sociedade ----
+    { id: "s_igrejas", name: "Frente com as igrejas", branch: "soc", x: 16, y: 2, months: 3, req: ["t_conselho"],
+      desc: "Encontros regulares com lideranças religiosas e suas bancadas.", fx: { s: { apoio: 3 }, fac: { evangelicos: 12 } } },
+    { id: "s_seguranca", name: "Bandeira da segurança pública", branch: "soc", x: 17, y: 2, months: 3, req: ["t_conselho"],
+      desc: "Propostas duras contra o crime organizado. Popular, polêmica entre movimentos sociais.", fx: { s: { apoio: 4 }, fac: { militares: 4, movimentos: -6 } } },
+    { id: "s_redes", name: "Máquina nas redes", branch: "soc", x: 16.5, y: 3, months: 3, reqAny: ["s_igrejas", "s_seguranca"], excl: ["s_imprensa"],
+      desc: "Estrutura profissional de conteúdo e mobilização digital. Alcance enorme, atrito com tribunais e plataformas.", fx: { s: { apoio: 5, internacional: -3 }, fac: { stf: -6 } },
+      risk: { p: 0.25, msg: "Plataformas suspendem perfis ligados à rede.", fx: { s: { apoio: -3 } } } },
+    { id: "s_imprensa", name: "Reaproximação com a imprensa", branch: "soc", x: 17.5, y: 3, months: 3, reqAny: ["s_igrejas", "s_seguranca"], excl: ["s_redes"],
+      desc: "Entrevistas, coletivas e menos ataques a jornalistas.", fx: { s: { internacional: 4, apoio: -2, base: 2 }, fac: { stf: 4 } } },
+    { id: "s_costumes", name: "Pauta de costumes no Congresso", branch: "soc", x: 16, y: 4, months: 3, req: ["s_igrejas"],
+      desc: "Projetos de valores familiares e religiosos como bandeira da oposição.", fx: { s: { base: 3 }, fac: { evangelicos: 8, movimentos: -8 }, act: { ue: -3 } } }
+  ]
+};
+// Ações e eventos liberados pelos focos (flag "fo_<id>")
+CAMPAIGN_2022.actions.push(
+  act("p_frente", "pol", "Frente parlamentar de oposição", "Liberada por 'Liderar a oposição'.", { cost: 2, show: { flags: ["fo_a_lideranca"], phase: "oposicao" }, fx: { s: { base: 3 }, fac: { centrao: 3 } } }),
+  act("e_filiacao", "eco", "Campanha de filiação", "Liberada por 'Construir o partido'.", { show: { flags: ["fo_a_partido"], phase: "oposicao" }, fx: { money: 4, s: { base: 1 } } }),
+  act("p_auditoria", "pol", "Divulgar relatório da auditoria", "Liberada por 'Auditoria das urnas'.", { show: { flags: ["fo_b_auditoria"] }, fx: { s: { apoio: 3, internacional: -3 }, fac: { stf: -5 } }, risk: { p: 0.3, msg: "Peritos contestam o relatório.", fx: { s: { base: -3 } } } }),
+  act("p_redes", "pol", "Ofensiva coordenada nas redes", "Liberada por 'Máquina nas redes'.", { show: { flags: ["fo_s_redes"] }, fx: { s: { apoio: 4 } }, risk: { p: 0.3, msg: "Inquérito sobre desinformação.", fx: { fac: { stf: -6 }, s: { internacional: -2 } } } }),
+  act("d_mercosul", "dip", "Cúpula regional", "Liberada por 'Eixo Mercosul'.", { cost: 2, show: { flags: ["fo_d_mercosul"] }, fx: { act: { argentina: 6, vizinhos: 4 } } }),
+  act("e_investchina", "eco", "Rodada de investimentos chineses", "Liberada por 'Parceria econômica com a China'.", { show: { flags: ["fo_e_china"] }, fx: { money: 5, act: { china: 3, eua: -3 } } }),
+  act("e_investeua", "eco", "Rodada com investidores dos EUA", "Liberada por 'Alinhamento econômico com os EUA'.", { show: { flags: ["fo_e_eua"] }, fx: { money: 5, act: { eua: 3, china: -3 } } }),
+  act("p_seguranca", "pol", "Agenda de segurança nos estados", "Liberada por 'Bandeira da segurança pública'.", { show: { flags: ["fo_s_seguranca"] }, fx: { s: { apoio: 2 }, fac: { militares: 3, movimentos: -3 } } }),
+  act("m_blindados", "mil", "Reforçar com blindados", "+20 de força (sem AP). Liberada por 'Comando unificado'.", { ap: 0, cost: 8, show: { flags: ["fo_c_comando"], phase: "regime" }, fx: { reserve: 2, s: { internacional: -2 } } })
+);
+CAMPAIGN_2022.events.push(
+  ev("f_vazamento_minuta", "A minuta circula", "Cópias de um decreto de exceção chegam a jornalistas e investigadores. A pergunta agora é quem sabia.", [
+    { text: "Negar autoria e falar em armação.", fx: { s: { apoio: 2, internacional: -5 }, fac: { stf: -6 } } },
+    { text: "Afastar assessores e baixar o tom.", fx: { s: { militar: -4, internacional: 2 }, fac: { militares: -4 } } } ], { if: { flags: ["fo_c_minuta"] }, once: true, weight: 4 }),
+  ev("f_anistia_votacao", "A anistia vai a voto", "O projeto articulado pela sua bancada chega ao plenário sob protestos e pressão dos tribunais.", [
+    { text: "Pressionar pela votação imediata.", fx: { s: { base: 3 }, fac: { stf: -8, centrao: 3 }, unrestAll: 4 } },
+    { text: "Aceitar adiar e negociar o texto.", fx: { s: { base: -1, internacional: 2 }, fac: { stf: 4, centrao: 5 } } } ], { if: { flags: ["fo_b_anistia"], phase: "oposicao" }, once: true, weight: 4 }),
+  ev("f_herdeiro", "O herdeiro ganha luz própria", "O nome que você projetou começa a dar entrevistas e a discordar em temas menores.", [
+    { text: "Dar autonomia e dividir o palanque.", fx: { s: { base: 3, apoio: -1 }, fac: { centrao: 4 } } },
+    { text: "Enquadrar em público.", fx: { s: { apoio: 2, base: -3 } } } ], { if: { flags: ["fo_a_herdeiro"] }, once: true, weight: 3 }),
+  ev("f_seguranca", "Crise de segurança numa capital", "Uma onda de ataques de facções criminosas domina o noticiário.", [
+    { text: "Cobrar o governo e propor endurecimento.", fx: { s: { apoio: 3 }, fac: { movimentos: -3 } } },
+    { text: "Oferecer cooperação suprapartidária.", fx: { s: { internacional: 2, base: 2 }, fac: { centrao: 3 } } } ], { if: { flags: ["fo_s_seguranca"] }, cooldown: 12, weight: 2 }),
+  ev("f_liga_exige", "A Liga do Sul cobra a fatura", "Os separatistas exigem autonomia fiscal e comando próprio em troca da trégua.", [
+    { text: "Ceder e manter a trégua.", fx: { money: -6, fac: { militares: -6 }, ceasefire: 1, south: -15 } },
+    { text: "Romper o pacto.", fx: { s: { militar: -2 }, enemy: 2, south: 10 } } ], { if: { flags: ["fo_c_liga_pacto"], phase: "regime" }, once: true, weight: 10 })
+);

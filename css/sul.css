@@ -1,0 +1,18 @@
+/* css/sul.css — Tensão no Sul. (a ordem dos arquivos no index.html importa) */
+  /* ---- Fase 4: Tensão no Sul ---- */
+  .southbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-4px 0 12px;padding:8px 12px;border:1px solid var(--line);border-left:4px solid #6fae6a;border-radius:6px;background:#14120f;font-family:system-ui,sans-serif;font-size:.84rem;cursor:pointer;color:var(--ink);width:100%;text-align:left}
+  .southbar:hover,.southbar:focus-visible{border-color:var(--gold)}
+  .southbar.warn{border-left-color:#d0902a}.southbar.bad{border-left-color:#c2563f;background:#1d1210}
+  .southbar.bad.pulse{animation:sbpulse 1.4s ease-in-out infinite alternate}
+  @keyframes sbpulse{from{box-shadow:0 0 0 #c2563f00}to{box-shadow:0 0 14px #c2563f88}}
+  .southbar .sk{color:var(--gold);white-space:nowrap}
+  .sbar{position:relative;flex:1 1 200px;max-width:420px;min-width:110px;height:12px;border-radius:6px;background:#2a2620;overflow:visible}
+  .sbar>i{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+  .sbar>u{position:absolute;top:-3px;bottom:-3px;width:2px;background:#f2e7d0aa;text-decoration:none}
+  .sbar>u.w{background:#d0902a}.sbar>u.r{background:#c2563f}
+  .southbar b.sv{font-size:1rem;min-width:56px}.southbar .st{color:var(--muted);font-size:.78rem}
+  .southbar .swl{font-weight:600;white-space:nowrap}.southbar .st{flex:1 1 220px;min-width:0;white-space:normal}.southbar{white-space:normal}.southbar.bad .swl{color:#ff9b85}.southbar.warn .swl{color:#e8b25a}.southbar.ok .swl{color:#8fc488}
+  .sfac{list-style:none;padding:0;margin:6px 0 10px;font-size:.86rem}.sfac li{display:flex;justify-content:space-between;gap:10px;padding:4px 8px;border-left:3px solid var(--line);margin:2px 0;background:#0004}
+  .sfac li.up{border-left-color:#c2563f}.sfac li.dn{border-left-color:#6fae6a}.sfac li b{white-space:nowrap}
+  .sacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin:8px 0}
+  .sthr{display:flex;gap:6px;flex-wrap:wrap;font-size:.78rem;margin:6px 0}.sthr span{padding:2px 8px;border-radius:12px;border:1px solid var(--line)}

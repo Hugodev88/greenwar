@@ -1,0 +1,9 @@
+/* css/ajuda.css — Ajuda e configurações. (a ordem dos arquivos no index.html importa) */
+  /* ---- Ajuda / configurações ---- */
+  .helpgrid{display:grid;gap:10px;margin:10px 0}
+  .helpgrid button{width:100%;text-align:left}
+  .gloss{font-family:system-ui,sans-serif;font-size:.86rem;line-height:1.45}
+  .gloss dt{color:var(--gold);margin-top:8px;font-weight:600}
+  .gloss dd{margin:2px 0 0 0;color:#ddd3c2}
+  .modal-card .row2{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .tgl{display:flex;align-items:center;gap:8px;font-family:system-ui,sans-serif;font-size:.88rem;cursor:pointer}

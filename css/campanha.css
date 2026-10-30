@@ -1,0 +1,43 @@
+/* css/campanha.css — Tela da campanha: topo, indicadores, abas, história. (a ordem dos arquivos no index.html importa) */
+  /* ---- Campanha ---- */
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+  .panel h3{margin:0 0 8px;font-weight:normal;color:var(--gold);font-size:1rem;letter-spacing:.12em;text-transform:uppercase}
+  .sans,.hud,.tabs,.ufinfo,.deal,.predict,.fac,.act,.actor,.report,.hint,.muted,.pendbar,.notice,.why,.dealmsg,.conseq,.hist{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+  .hud{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(90deg,#241a14,#171513);border:1px solid var(--line);border-left:4px solid var(--red);border-radius:8px;padding:10px 14px;margin-bottom:10px}
+  .hud-date strong{display:block;font-family:Georgia,serif;font-size:1.35rem;color:var(--gold);font-weight:normal;line-height:1.2}
+  .hud-date small{color:var(--muted);font-size:.78rem}
+  .hud-res{display:flex;gap:18px;flex:1;flex-wrap:wrap}
+  .hud-res > div{display:flex;flex-direction:column;font-size:.8rem;line-height:1.3}
+  .hud-res .k{font-size:.64rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .hud-res b{font-size:1.1rem}.hud-res b.neg{color:#e07a66}
+  .hud-res small{color:var(--muted);font-size:.72rem}
+  .ap{display:inline-flex;gap:3px;margin:3px 0}.ap i{width:11px;height:11px;border-radius:50%;border:1px solid var(--gold);display:inline-block}.ap i.on{background:var(--gold)}
+  .hud-res div:first-child{flex-direction:row;align-items:center;gap:6px;flex-wrap:wrap}.hud-res div:first-child .k{width:100%}
+  .endbtn{margin:0;white-space:nowrap}
+  .primary:disabled,.secondary:disabled{opacity:.4;cursor:not-allowed;filter:none}
+  .primary.sm,.secondary.sm{padding:6px 12px;font-size:.82rem;margin:4px 4px 0 0}
+  .stats{margin-bottom:10px}
+  .stat{padding:6px 10px}
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px;overflow-x:auto;scrollbar-width:none}
+  .tab{background:transparent;border:1px solid transparent;border-bottom:none;color:var(--muted);padding:9px 16px;border-radius:6px 6px 0 0;font:inherit;font-size:.9rem;cursor:pointer;white-space:nowrap}
+  .tab.on{background:var(--panel2);border-color:var(--line);color:var(--gold)}
+  .tab:hover{color:var(--ink)}
+  .badge{display:inline-block;background:var(--red);color:#fff;border-radius:10px;padding:0 6px;font-size:.72rem;margin-left:3px}
+  .pendbar{background:#3a1e17;border:1px solid var(--red);padding:7px 12px;border-radius:6px;margin-bottom:12px;font-size:.85rem}
+  .linkbtn{background:none;border:none;color:var(--gold);text-decoration:underline;cursor:pointer;font:inherit;padding:0 4px}
+  .card a{color:var(--gold)}
+  .card.event{border-left:4px solid var(--gold)}
+  .card.event.crisis{border-left-color:var(--red);background:linear-gradient(180deg,#2a1814,var(--panel))}
+  .card.quiet{padding:18px 22px}.card.quiet p::first-letter{all:unset}
+  .card.event p:first-of-type::first-letter{all:unset}
+  .hint{color:var(--muted);font-size:.82rem;margin-top:8px}
+  .report,.hist{margin-top:14px;padding:16px 20px}
+  .report h3{margin:0 0 8px;font-weight:normal;color:var(--gold);font-size:1rem;letter-spacing:.1em;text-transform:uppercase}
+  .report ul{margin:0;padding:0;list-style:none;font-size:.86rem}
+  .report li{padding:4px 8px;border-left:3px solid #4a443c;margin-bottom:4px;background:#0004}
+  .report li.good{border-left-color:#6fae6a}.report li.bad{border-left-color:#c2563f}.report li.war{border-left-color:#d0902a}.report li.story{border-left-color:var(--gold)}
+  .hist summary{cursor:pointer;color:var(--muted);font-size:.85rem}.hist ol{font-size:.85rem;color:var(--muted)}
+  .muted{color:var(--muted);font-size:.84rem}
+  .intro{margin:0 0 12px}
+  .notice{background:#2a2414;border:1px solid var(--gold);padding:8px 12px;border-radius:6px;font-size:.82rem;text-align:left;margin:10px 0}
+  .why{background:#0006;border-left:3px solid var(--gold);padding:6px 10px;font-size:.88rem;margin-bottom:12px}

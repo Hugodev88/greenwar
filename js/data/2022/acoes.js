@@ -1,0 +1,28 @@
+// js/data/2022/acoes.js — Cenário 2022 — ações da aba Ações (custam pontos de ação/Recursos).
+// Cada linha: act(id, categoria, nome, descrição, { ap, cost, fx, req, reqText, show, risk }).
+// Categorias: eco, pol, mil, dip, sul… (as abas usam a categoria para agrupar).
+const ACOES_2022 = [
+    act("e_beneficios", "eco", "Ampliar benefícios sociais", "Mais transferência de renda; pesa no orçamento.", { cost: 6, show: { phase: ["governo", "regime"] }, fx: { s: { apoio: 4 }, fac: { centrao: 3 } } }),
+    act("e_combustivel", "eco", "Segurar preços de combustíveis", "Alívio imediato, desconfiança do mercado.", { cost: 4, show: { phase: ["governo", "regime"] }, fx: { s: { apoio: 3 }, fac: { agro: -3 } } }),
+    act("e_concessoes", "eco", "Anunciar privatizações e concessões", "Caixa e aplauso do mercado; críticas dos movimentos.", { show: { phase: ["governo", "regime"] }, fx: { money: 7, fac: { agro: 6, movimentos: -6 } } }),
+    act("e_arrecadacao", "eco", "Arrecadação com apoiadores", "Campanha de doações para o partido e o movimento.", { show: { phase: "oposicao" }, fx: { money: 6, s: { base: 1 } }, risk: { p: 0.25, msg: "Questionamentos sobre as doações chegam à Justiça.", fx: { fac: { stf: -6 } } } }),
+    act("e_agro", "eco", "Agenda com o agronegócio", "Feiras, entidades e promessas de apoio ao setor.", { show: { phase: "oposicao" }, fx: { money: 2, fac: { agro: 8 } } }),
+    act("m_comandantes", "mil", "Reunir-se com comandantes", "Gesto de prestígio aos quartéis; acende alertas institucionais.", { show: { phase: ["governo", "regime"] }, fx: { fac: { militares: 8, stf: -4 }, s: { militar: 3, internacional: -3 } } }),
+    act("m_promocoes", "mil", "Promoções e reajuste militar", "Mantém os comandos ao seu lado.", { cost: 5, show: { phase: "regime" }, fx: { s: { militar: 5 }, fac: { militares: 8 } } }),
+    act("m_mobilizar", "mil", "Mobilizar unidades leais", "+10 de força para seus exércitos (sem AP; custa só recursos).", { ap: 0, cost: 5, show: { phase: "regime" }, fx: { reserve: 1 } }),
+    act("m_seguranca", "mil", "Operação de segurança nas cidades", "Reduz protestos com presença ostensiva; custo humano e de imagem.", { show: { phase: "regime" }, fx: { unrest: -10, s: { internacional: -5, apoio: -3 }, fac: { movimentos: -8 } } }),
+    act("m_reserva", "mil", "Encontro com militares da reserva", "Mantém laços com a caserna fora do governo.", { show: { phase: "oposicao" }, fx: { fac: { militares: 5, stf: -3 }, s: { apoio: 1 } } }),
+    act("p_live", "pol", "Transmissão ao vivo para a base", "Fala direta com os apoiadores nas redes.", { fx: { s: { apoio: 3 } }, risk: { p: 0.2, msg: "Uma declaração repercute mal no exterior.", fx: { s: { internacional: -4 } } } }),
+    act("p_centrao", "pol", "Articular com o Centrão", "Negociação de apoios no Congresso.", { cost: 4, fx: { s: { base: 4 }, fac: { centrao: 8 } } }),
+    act("p_igrejas", "pol", "Agenda com lideranças religiosas", "Cultos, encontros e alianças.", { fx: { s: { apoio: 2 }, fac: { evangelicos: 8 } } }),
+    act("p_moderar", "pol", "Discurso moderado", "Acena ao centro e às instituições.", { fx: { s: { internacional: 3, apoio: -2 }, fac: { stf: 6, militares: -2 } } }),
+    act("p_ato", "pol", "Ato de rua / motociata", "Demonstração de força nas ruas.", { cost: 2, show: { phase: "oposicao" }, fx: { s: { apoio: 5 }, fac: { stf: -4 } } }),
+    act("p_censura", "pol", "Censurar imprensa e redes", "Silencia críticas; isola o país.", { show: { phase: "regime" }, fx: { unrest: -8, s: { internacional: -8, apoio: -3 }, fac: { movimentos: -6 } } }),
+    act("d_viagem", "dip", "Viagem internacional", "Agenda no exterior para melhorar a imagem.", { cost: 3, fx: { actAll: 3, s: { internacional: 2 } } }),
+    act("s_cupula", "sul", "Cúpula com os governadores do Sul", "Ouvir RS, SC e PR em Brasília: gesto barato que baixa a tensão.", { cost: 5, show: { phase: "regime", south: { state: ["calmo", "revolta"] } }, fx: { south: -12, flag: "sul_cupula", fac: { agro: 2 } } }),
+    act("s_fiscal", "sul", "Concessões fiscais ao Sul", "Perdão de dívidas estaduais e repasses extras: caro, mas eficaz.", { cost: 12, show: { phase: "regime", south: { state: ["calmo", "revolta"] } }, fx: { south: -20, s: { base: -2 }, fac: { centrao: -3, agro: 3 } } }),
+    act("s_investir", "sul", "Investimentos no Sul", "Obras e crédito agrícola em RS, SC e PR (−10 de agitação lá).", { cost: 8, show: { phase: "regime", south: { state: ["calmo", "revolta"] } }, fx: { south: -8, unrestUF: { RS: -10, SC: -10, PR: -10 }, fac: { agro: 4 } } }),
+    act("s_autonomia", "sul", "Autonomia administrativa ao Sul", "Polícias e tributos sob comando estadual. Uma vez por partida; os quartéis não gostam.", { show: { phase: "regime", south: { state: ["calmo", "revolta"] } }, req: { noFlags: ["sul_autonomia"] }, reqText: "Já concedida nesta partida", fx: { south: -25, flag: "sul_autonomia", s: { militar: -3 }, fac: { militares: -8 } } }),
+    act("s_pacto", "sul", "Pacto Federativo com o Sul", "Transforma a Liga do Sul em aliada: a tensão some e uma divisão sulista entra no seu lado.", { ap: 2, cost: 25, show: { phase: "regime", south: { state: ["calmo"] } }, req: { flags: ["sul_cupula"], south: { max: 25 } }, reqText: "Requer uma Cúpula com os governadores já feita e Tensão no Sul ≤ 25", fx: { southAlly: true, s: { internacional: -3 }, fac: { centrao: -4, militares: -3 } } }),
+    act("d_forum", "dip", "Discurso em fórum internacional", "Defende a sua posição diante do mundo.", { show: { phase: ["governo", "regime"] }, fx: { s: { internacional: 3 }, act: { onu: 6 } } })
+];

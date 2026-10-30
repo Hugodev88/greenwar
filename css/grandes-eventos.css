@@ -1,0 +1,31 @@
+/* css/grandes-eventos.css — Grandes eventos em tela cheia. (a ordem dos arquivos no index.html importa) */
+  /* ---- Grandes eventos (clímax) ---- */
+  .major{position:fixed;inset:0;z-index:65;display:flex;align-items:center;justify-content:center;padding:14px;background:radial-gradient(ellipse at center,rgba(40,10,6,.97),rgba(4,3,2,.99));animation:majorIn .5s ease both;overflow:auto}
+  .major.gold{background:radial-gradient(ellipse at center,rgba(38,30,12,.97),rgba(4,3,2,.99))}
+  .major::before{content:"";position:fixed;inset:0;pointer-events:none;background:#ff2a12;opacity:0;animation:majorFlash 1.6s ease-out 1}
+  .major.gold::before{background:#ffe2a0}
+  .major .mstripe{position:fixed;left:0;right:0;height:26px;background:repeating-linear-gradient(-45deg,#a8402f 0 16px,#1a0c08 16px 32px);opacity:.85;animation:stripeMove 1.2s linear infinite}
+  .major.gold .mstripe{background:repeating-linear-gradient(-45deg,#c9a45c 0 16px,#1a140a 16px 32px)}
+  .major .mstripe.t{top:0}.major .mstripe.b{bottom:0}
+  .major .mbox{position:relative;max-width:820px;width:100%;text-align:center;font-family:system-ui,sans-serif;padding:34px 10px}
+  .major .mkick{display:inline-block;font-size:.8rem;letter-spacing:.32em;text-transform:uppercase;color:#fff;background:#a8402f;padding:5px 14px;border-radius:3px;animation:kpulse .8s ease-in-out 3}
+  @keyframes kpulse{50%{opacity:.6}}
+  .major.gold .mkick{background:#9a7426}
+  .major .mdate{color:#cfc6b6;font-size:.85rem;letter-spacing:.14em;text-transform:uppercase;margin-top:14px}
+  .major h2{font-family:Georgia,serif;font-weight:normal;font-size:clamp(2.1rem,7vw,4.4rem);line-height:1.05;margin:10px 0 12px;color:#fff3dc;text-shadow:0 0 30px rgba(255,90,50,.35);animation:headIn .9s cubic-bezier(.2,.8,.2,1) .15s both}
+  .major.gold h2{text-shadow:0 0 30px rgba(255,210,120,.35)}
+  .major .msub{font-family:Georgia,serif;font-size:clamp(1.02rem,2.6vw,1.3rem);line-height:1.45;color:#e9e1d3;max-width:640px;margin:0 auto 18px;animation:fadein .8s ease .6s both}
+  .major .mcons{text-align:left;background:#0009;border:1px solid #5a3a2c;border-left:4px solid #e07a62;border-radius:8px;padding:12px 16px;margin:0 auto 18px;max-width:640px;animation:fadein .8s ease 1s both}
+  .major.gold .mcons{border-color:#5a4a2c;border-left-color:var(--gold)}
+  .major .mcons h3{margin:0 0 6px;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#f0b4a4;font-weight:600}
+  .major.gold .mcons h3{color:#f0d58a}
+  .major .mcons ul{margin:0;padding-left:20px;font-size:.92rem;line-height:1.5;color:#efe6d6}
+  .major .mcons li{margin:4px 0}
+  .major .mcons li.bad{color:#ffb4a2}.major .mcons li.good{color:#b8e0a8}
+  .major .mgo{font-size:1rem;padding:11px 26px;animation:fadein .6s ease 1.3s both}
+  @keyframes majorIn{from{opacity:0}to{opacity:1}}
+  @keyframes majorFlash{0%{opacity:.75}12%{opacity:0}22%{opacity:.45}40%{opacity:0}100%{opacity:0}}
+  @keyframes stripeMove{from{background-position:0 0}to{background-position:45px 0}}
+  @keyframes blink{50%{opacity:.25}}
+  @keyframes headIn{from{opacity:0;transform:scale(1.25);letter-spacing:.06em;filter:blur(6px)}to{opacity:1;transform:none;letter-spacing:0;filter:none}}
+  @media (prefers-reduced-motion: reduce){ .major,.major::before,.major .mstripe,.major h2,.major .msub,.major .mcons,.major .mgo,.major .mkick{animation:none!important} .major::before{display:none} }

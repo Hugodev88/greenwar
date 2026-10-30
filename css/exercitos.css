@@ -1,0 +1,33 @@
+/* css/exercitos.css — Meus exércitos: cartões, botões grandes, ordens automáticas. (a ordem dos arquivos no index.html importa) */
+  /* ---- Fase 4: Meus exércitos ---- */
+  .ordsum{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 8px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:#0005;font-family:system-ui,sans-serif}
+  .ordsum .osn{display:flex;align-items:center;gap:8px}.ordsum .osn b{font-size:1.9rem;line-height:1;color:var(--gold);min-width:28px;text-align:center}
+  .ordsum.full .osn b{color:#c2563f}.ordsum .osn span{font-size:.8rem;line-height:1.25}.ordsum small{color:var(--muted)}
+  .warnc{color:#e8b25a;font-size:.8rem;font-weight:600}.okc{color:#8fc488;font-size:.8rem}
+  .myarmies{display:flex;flex-direction:column;gap:8px}
+  .acard{border:1px solid var(--line);border-left:4px solid #4f7aa3;border-radius:6px;background:#14120f;padding:6px 8px 8px;font-family:system-ui,sans-serif}
+  .acard.idle{border-left-color:#d0902a}.acard.on{border-color:var(--gold)}
+  .acard .ahead{display:flex;align-items:center;gap:6px;width:100%;background:none;border:none;color:var(--ink);text-align:left;cursor:pointer;padding:2px 0;font:inherit;font-size:.86rem}
+  .acard .ahead span{display:flex;flex-direction:column;flex:1;min-width:0}.acard .ahead small{color:var(--muted);font-size:.74rem}
+  .acard .ost{font-style:normal;font-size:.76rem;white-space:nowrap;padding:2px 7px;border-radius:10px;background:#0006;color:var(--gold)}
+  .acard.idle .ost{color:#e8b25a}
+  .abtns{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:6px}
+  .ab{font-family:system-ui,sans-serif !important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:48px;padding:5px 2px;border-radius:6px;border:1px solid var(--line);background:#1d1a16;color:var(--ink);font:inherit;font-size:1.05rem;cursor:pointer;line-height:1.1}
+  .ab span{font-size:.74rem;font-weight:600}.ab small{font-size:.66rem;color:var(--muted)}
+  .ab.atk{border-color:#a8402f}.ab.atk:not(:disabled):hover{background:#3a1a14}
+  .ab.mov{border-color:#4f7aa3}.ab.mov:not(:disabled):hover{background:#16263a}
+  .ab.def:not(:disabled):hover,.ab.ref:not(:disabled):hover{background:#2a2414}
+  .ab.on{background:#2a2414;border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+  .ab:disabled{opacity:.38;cursor:not-allowed}
+  .ab:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+  .acard .undo{display:inline-block;margin-top:6px;font-size:.8rem}
+  .acard .why{margin:6px 0 0;font-size:.74rem;padding:3px 8px}
+  .autobox{margin:10px 0;padding:8px 10px;border:1px dashed var(--line);border-radius:6px;font-family:system-ui,sans-serif;font-size:.82rem}
+  .autobtns{display:flex;flex-wrap:wrap;gap:6px}.autobtns .secondary{margin:0;padding:7px 10px;font-size:.82rem}
+  .autorep{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;color:var(--muted)}
+  .autorep select{background:#14120f;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:4px 6px;font:inherit}
+  .ordlegend{margin:10px 0;font-family:system-ui,sans-serif;font-size:.8rem}.ordlegend summary{cursor:pointer;color:var(--gold)}
+  .ordlegend ul{margin:6px 0 0;padding-left:18px}.ordlegend li{margin:3px 0}
+  .modehint{margin:6px 0;padding:6px 10px;border-left:3px solid var(--gold);background:#0006;font-family:system-ui,sans-serif;font-size:.8rem}
+  .atkwith{display:flex;flex-direction:column;gap:5px;margin:6px 0}
+  @media (max-width:520px){ .ab{min-height:52px} .southbar{font-size:.8rem} .southbar .st{flex-basis:100%} }
