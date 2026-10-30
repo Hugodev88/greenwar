@@ -281,6 +281,7 @@ function frontClash(g, f, R){
   else { d = (p === "recuar" ? -recuo / 2 : 0) + (e === "recuar" ? K.recuo / 2 : 0); why = p === "recuar" ? "recuou" : e === "recuar" ? "inimigoRecuou" : "parado"; }
   const luck = (rnd(g) * 2 - 1) * K.ruido; d += luck;
   if (f.special){ if (d > 0) d *= K.ofensiva.avanco; why = d > 15 ? "ofensivaOk" : "ofensivaFalhou"; }
+  const wf = frontWeary(g); if (wf) d *= 1 + wf; // cansaço da guerra: tropas exaustas, linhas mais voláteis (o impasse se resolve)
   d = Math.round(d); if (d <= -20) g.war.lostAt = g.month; // derrota feia também conta como "perdemos" (evento de pânico)
   // baixas e desgaste
   const rP = clamp(Ee / Math.max(1, Pe), 0.5, 2), rE = clamp(Pe / Math.max(1, Ee), 0.5, 2);
@@ -313,6 +314,9 @@ function frontClash(g, f, R){
   return rec;
 }
 // Mês de guerra no modo frentes (substitui ordens, batalhas e IA inimiga dos exércitos)
+// Cansaço da guerra: depois de WAR_WEARY_FROM meses de combate, os choques ficam maiores (até 2,5×) e o apoio cai devagar.
+const WAR_WEARY_FROM = 12;
+function frontWeary(g){ const m = (g.war && g.war.months) || 0; return Math.min(1.5, Math.max(0, (m - WAR_WEARY_FROM) / 18)); }
 function frontWarMonth(g, R){
   const K = frontCfg(g), C = scOf(g).campaign, KK = C.keys, ph = phaseOf(g), W = g.war;
   syncFronts(g);
@@ -324,6 +328,9 @@ function frontWarMonth(g, R){
   if (cf){ g.ceasefire--; R("Trégua em vigor: sem combates neste mês. As tropas descansam.", "good");
     for (const f of W.fronts){ f.morale = Math.min(Math.max(f.morale, frontMaxMorale(g)), f.morale + 8); f.supply = Math.min(100, f.supply + 10); if (f.special){ f.special = false; f.posture = f.prevPosture || "segurar"; delete f.prevPosture; g.money += K.ofensiva.custo; } } }
   else {
+    W.months = (W.months || 0) + 1;
+    const wm = W.months - WAR_WEARY_FROM;
+    if (wm > 0 && wm % 3 === 0){ applyStats(g, { [KK.pop]: -1 }); R(`Cansaço da guerra (${W.months} meses de combate): Apoio Popular −1 e as frentes ficam mais voláteis.`, "bad"); }
     MIL_QUIET = true;
     for (const f of W.fronts.slice()){ if (!frontById(g, f.id)) continue; const rec = frontClash(g, f, R); ev.fronts.push(rec); for (const m of rec.moved) ev.flips.push(m); }
     MIL_QUIET = false;

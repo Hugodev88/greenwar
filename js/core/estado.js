@@ -29,6 +29,9 @@ function cond(g, c, slack){ // slack: folga da dificuldade nos mínimos (só nos
   if (c.money){ if (c.money.min !== undefined && g.money < c.money.min) return false; if (c.money.max !== undefined && g.money > c.money.max) return false; }
   if (c.fac) for (const id in c.fac){ const f = g.fac[id]; if (!f) return false; if (c.fac[id].min !== undefined && f.loyalty < c.fac[id].min) return false; if (c.fac[id].max !== undefined && f.loyalty > c.fac[id].max) return false; }
   if (c.actor) for (const id in c.actor){ const a = g.actors[id]; if (!a) return false; if (c.actor[id].min !== undefined && a.opinion < c.actor[id].min) return false; if (c.actor[id].max !== undefined && a.opinion > c.actor[id].max) return false; }
+  if (c.quick !== undefined && !!g.quick !== c.quick) return false; // partida rápida (js/core/modos.js)
+  if (c.diff && !c.diff.includes(g.diff || "normal")) return false; // só nestas dificuldades
+  if (c.warMonths && !((g.war && g.war.months || 0) >= c.warMonths.min)) return false; // frentes: meses de guerra (cansaço)
   if (c.recentLoss && !(g.war && g.war.lostAt != null && g.month - g.war.lostAt <= c.recentLoss)) return false; // frentes: perdeu um estado nos últimos N meses
   if (c.control) for (const uf in c.control) if (g.control[uf] !== c.control[uf]) return false;
   if (c.anyControl && !Object.values(g.control).some(f => c.anyControl.includes(f))) return false;
@@ -77,6 +80,7 @@ function newCampaign(sc, seed, opts){
   initArmies(g);
   focusInit(g);
   enterStory(g, S.start, []);
+  if (g.focus) g.focus.known = focusTree(g).nodes.filter(F => !F.oport && focusStatus(g, F).state === "available").map(F => F.id);
   { const A = apFor(g); g.ap = A.total; g.apParts = A.parts; }
   return g;
 }

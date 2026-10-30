@@ -9,9 +9,14 @@ function focusGeom(T){
   const W = Math.ceil(X(bxMax) + pad), H = Math.ceil(Y(Math.max(...T.nodes.map(n => n.y))) + nh + 24);
   return { w, h, nw, nh, X, Y, W, H, head };
 }
+// Texto da oportunidade: quando aparece, por quanto tempo fica aberta e se volta
+function focusOppText(F){
+  const O = F.oport; if (!O) return "";
+  return `Aparece quando ${O.text} Fica aberta ${O.dura} ${O.dura === 1 ? "mês" : "meses"}${O.repeat ? ` e pode voltar ${O.cooldown} meses depois de usada` : " (uma vez só)"}.`;
+}
 function focusTip(F, st){
   const fx = fxSummary(G, F.fx), un = focusUnlocks(G, F);
-  return [F.name, F.desc, `Duração: ${F.months} ${F.months === 1 ? "mês" : "meses"} · custo ${focusTree(G).ap ?? 1} AP${F.cost ? ` + ${F.cost} ${SCEN.campaign.money.short}` : ""}`,
+  return [F.name, F.oport ? "⚡ Oportunidade — " + focusOppText(F) : "", F.desc, `Duração: ${F.months} ${F.months === 1 ? "mês" : "meses"} · custo ${focusTree(G).ap ?? 1} AP${F.cost ? ` + ${F.cost} ${SCEN.campaign.money.short}` : ""}`,
     fx ? "Efeitos: " + fx : "", F.risk ? `Risco (${Math.round(F.risk.p * 100)}%): ${F.risk.msg}` : "", ...un, `Situação: ${st.why}`].filter(Boolean).map(trText).join("\n");
 }
 function focusSVG(T, Gm){
@@ -42,16 +47,23 @@ function tabDecisoes(el){
   const f = G.focus, Gm = focusGeom(T), C = SCEN.campaign;
   const small = window.innerWidth < 700;
   let z = UI.fz ?? (small ? 0.8 : 1);
+  UI.freshSeen = G.turn; // abriu a aba: o aviso "novo" some da aba (os cartões continuam marcados neste turno)
+  const fresh = f.fresh || [], open = T.nodes.filter(F => F.oport && f.opps[F.id] !== undefined);
   const nodes = T.nodes.map(F => {
     const st = focusStatus(G, F), br = T.branches.find(b => b.id === F.branch) || {};
-    const pr = st.state === "active" ? Math.round(100 * f.prog / F.months) : 0;
-    return `<button class="fnode st-${st.state}${UI.selFocus === F.id ? " sel" : ""}" data-fid="${F.id}" style="left:${Gm.X(F.x) - Gm.nw / 2}px;top:${Gm.Y(F.y)}px;--bc:${br.color || "#c9a45c"}" title="${esc(focusTip(F, st))}" aria-label="${esc(F.name)} — ${esc(FSTATE[st.state][0])}">
-      <span class="fic" aria-hidden="true">${FSTATE[st.state][1]}</span><b>${esc(F.name)}</b><small>${F.months} ${F.months === 1 ? "mês" : "meses"}${F.cost ? ` · ${F.cost} ${esc(C.money.short)}` : ""}${(F.excl || []).length ? " · exclusivo" : ""}</small>${st.state === "active" ? `<i class="fprog"><u style="width:${pr}%"></u></i>` : ""}</button>`;
+    const pr = st.state === "active" ? Math.round(100 * f.prog / F.months) : 0, isNew = fresh.includes(F.id) && st.state === "available";
+    const ic = F.oport && st.state === "unavailable" ? "⚡" : FSTATE[st.state][1], rep = F.oport && f.rep[F.id] ? ` · ×${f.rep[F.id]}` : "";
+    const extra = F.oport ? (st.state === "available" ? ` · <em class="fexp">⚡ ${st.left} ${st.left === 1 ? "mês" : "meses"}</em>` : "") : (F.excl || []).length ? " · exclusivo" : F.avail && !F.avail.phase && !F.avail.notPhase ? " · depende do momento" : "";
+    return `<button class="fnode st-${st.state}${F.oport ? " opp" : ""}${isNew ? " fresh" : ""}${UI.selFocus === F.id ? " sel" : ""}" data-fid="${F.id}" style="left:${Gm.X(F.x) - Gm.nw / 2}px;top:${Gm.Y(F.y)}px;--bc:${br.color || "#c9a45c"}" title="${esc(focusTip(F, st))}" aria-label="${esc(F.name)} — ${esc(F.oport && st.state === "unavailable" ? "Oportunidade fechada" : FSTATE[st.state][0])}${isNew ? " — novo" : ""}">
+      ${isNew ? `<span class="fnew" aria-hidden="true">${F.oport ? "NOVA" : "NOVO"}</span>` : ""}<span class="fic" aria-hidden="true">${ic}</span><b>${esc(F.name)}</b><small>${F.months} ${F.months === 1 ? "mês" : "meses"}${F.cost ? ` · ${F.cost} ${esc(C.money.short)}` : ""}${extra}${rep}</small>${st.state === "active" ? `<i class="fprog"><u style="width:${pr}%"></u></i>` : ""}</button>`;
   }).join("");
+  const freshReg = fresh.filter(id => !(focusDef(G, id) || {}).oport && focusStatus(G, focusDef(G, id)).state === "available");
+  const oppBar = `<div class="fopps" role="region" aria-label="Oportunidades e focos novos"><span class="fopl">⚡ Oportunidades</span>${open.length ? open.map(F => { const st = focusStatus(G, F); return `<button class="fchip${fresh.includes(F.id) ? " fresh" : ""}" data-fid="${F.id}">${esc(F.name)} <small>${st.state === "active" ? "em andamento" : `expira em ${st.left} ${st.left === 1 ? "mês" : "meses"}`}</small></button>`; }).join("") : `<small>Nenhuma aberta agora. Elas aparecem conforme a situação (apoio, guerra, caixa, Sul…) e somem se você não aproveitar.</small>`}
+    ${freshReg.length ? `<span class="fopl new">✨ Novos focos</span>${freshReg.map(id => `<button class="fchip fresh" data-fid="${id}">${esc(focusName(G, id))}</button>`).join("")}` : ""}</div>`;
   const act = f.active ? focusDef(G, f.active) : null;
   const status = act
     ? `<div class="fstatus on"><span>Foco atual</span><strong>${esc(act.name)}</strong><div class="bar"><i style="width:${Math.round(100 * f.prog / act.months)}%;background:#c9a45c"></i></div><small>${f.prog}/${act.months} meses · avança ao encerrar o mês</small></div>`
-    : `<div class="fstatus"><span>Foco atual</span><strong>Nenhum</strong><small>Escolha um foco disponível (●). Começar custa ${T.ap ?? 1} AP; só um por vez. Concluídos: ${f.done.length} de ${T.nodes.length}.</small></div>`;
+    : `<div class="fstatus"><span>Foco atual</span><strong>Nenhum</strong><small>Escolha um foco disponível (●). Começar custa ${T.ap ?? 1} AP; só um por vez. Concluídos: ${f.done.filter(id => !(focusDef(G, id) || {}).oport).length} de ${T.nodes.filter(F => !F.oport).length}.</small></div>`;
   const sel = UI.selFocus ? focusDef(G, UI.selFocus) : null;
   let detail = "";
   if (sel){
@@ -68,23 +80,26 @@ function tabDecisoes(el){
       ${(sel.req || []).length ? `<dt>Requer</dt><dd>${list(sel.req, " + ")}</dd>` : ""}
       ${(sel.reqAny || []).length ? `<dt>Requer um de</dt><dd>${list(sel.reqAny, " / ")}</dd>` : ""}
       ${(sel.excl || []).length ? `<dt>Exclusivo com</dt><dd class="exc">${sel.excl.map(x => "⊘ " + esc(focusName(G, x))).join("<br>")}</dd>` : ""}
+      ${sel.oport ? `<dt>⚡ Oportunidade</dt><dd>${esc(focusOppText(sel))}${f.rep[sel.id] ? ` ${esc(`Já aproveitada ${f.rep[sel.id]}×.`)}` : ""}</dd>` : ""}
       ${sel.avail ? `<dt>Quando</dt><dd>${esc(sel.availText || "")}</dd>` : ""}
       ${sel.lockIf ? `<dt>A história pode bloquear</dt><dd>${esc(sel.lockText || "")}</dd>` : ""}</dl>
       ${st.state === "active" ? `<button class="secondary" id="fCancel">Cancelar foco (perde o progresso)</button>`
         : st.state === "done" ? "" : `<button class="primary" id="fStart" ${bad ? "disabled" : ""}>Iniciar foco (${T.ap ?? 1} AP${sel.cost ? ` · ${sel.cost} ${esc(C.money.short)}` : ""})</button>${bad ? `<small class="why">${esc(bad)}</small>` : ""}`}
     </div>`;
   }
-  const legend = Object.entries(FSTATE).map(([k, [l, i]]) => `<span class="st-${k}"><em>${i}</em>${l}</span>`).join("") + `<span>── pré-requisito</span><span>- - basta um</span><span style="color:#e07a62">⊘ exclusivo</span>`;
+  const legend = Object.entries(FSTATE).map(([k, [l, i]]) => `<span class="st-${k}"><em>${i}</em>${l}</span>`).join("") + `<span class="st-opp"><em>⚡</em>Oportunidade (aparece e expira)</span><span class="st-new"><em>✨</em>Novo neste turno</span><span>── pré-requisito</span><span>- - basta um</span><span style="color:#e07a62">⊘ exclusivo</span>`;
   el.innerHTML = `<div class="focuslayout${UI.ffull ? " ffull" : ""}">
     <div class="fmain">
       <div class="fbar2">${status}<div class="fzoom" role="group" aria-label="Zoom da árvore"><button class="btn-sm" data-z="-" aria-label="Diminuir zoom">−</button><span id="fzLbl" aria-live="polite">${Math.round(z * 100)}%</span><button class="btn-sm" data-z="+" aria-label="Aumentar zoom">+</button><button class="btn-sm" data-z="fit">Ajustar</button><button class="btn-sm" id="fFull" aria-pressed="${UI.ffull ? "true" : "false"}">${UI.ffull ? "✕ Sair da tela cheia" : "⛶ Tela cheia"}</button></div></div>
+      ${oppBar}
       <div class="fnavhint"><span class="dk">🖱 <b>Arraste</b> para mover</span><span class="dk"><kbd>Roda</kbd> rola · <kbd>Shift</kbd>+<kbd>Roda</kbd> lateral</span><span class="dk"><kbd>Ctrl</kbd>+<kbd>Roda</kbd> zoom</span><span class="mb">☝ Arraste com o dedo · pinça para zoom</span><span>Toque num foco para ver os detalhes</span></div>
       <div class="ftree-wrap" id="ftWrap" tabindex="0" role="region" aria-label="Árvore de decisões: arraste ou role para navegar"><div class="ftree-size" id="ftSize" style="width:${Gm.W * z}px;height:${Gm.H * z}px"><div class="ftree" id="ftTree" style="width:${Gm.W}px;height:${Gm.H}px;transform:scale(${z})">${focusSVG(T, Gm)}${nodes}</div></div></div>
       <div class="flegend">${legend}</div>
     </div>${detail}</div>`;
   const wrap = $("#ftWrap"), size = $("#ftSize"), tree = $("#ftTree"), lbl = $("#fzLbl");
-  if (UI.fscroll) { wrap.scrollLeft = UI.fscroll[0]; wrap.scrollTop = UI.fscroll[1]; }
-  else { const c = act || focusDef(G, "t_balanco") || T.nodes[0]; wrap.scrollLeft = Math.max(0, Gm.X(c.x) * z - wrap.clientWidth / 2); wrap.scrollTop = Math.max(0, Gm.Y(c.y) * z - 40); }
+  const fc = UI.fcenter && focusDef(G, UI.fcenter); UI.fcenter = null; // chip da faixa de oportunidades: centraliza o foco
+  if (UI.fscroll && !fc) { wrap.scrollLeft = UI.fscroll[0]; wrap.scrollTop = UI.fscroll[1]; }
+  else { const c = fc || act || focusDef(G, "t_balanco") || T.nodes[0]; wrap.scrollLeft = Math.max(0, Gm.X(c.x) * z - wrap.clientWidth * (fc && wrap.clientWidth > 700 ? 0.3 : 0.5)); wrap.scrollTop = Math.max(0, Gm.Y(c.y) * z - 40); }
   wrap.onscroll = () => { UI.fscroll = [wrap.scrollLeft, wrap.scrollTop]; };
   // zoom no lugar, mantendo o ponto (px, py) da janela fixo
   const setZoom = (nz, px, py) => {
@@ -127,7 +142,7 @@ function tabDecisoes(el){
     else if (k === "+" || k === "=") setZoom(z + 0.1); else if (k === "-") setZoom(z - 0.1); else return;
     e.preventDefault();
   });
-  el.querySelectorAll("[data-fid]").forEach(b => b.onclick = () => { if (wrap.dataset.dragged) return; UI.selFocus = b.dataset.fid; tabDecisoes(el); });
+  el.querySelectorAll("[data-fid]").forEach(b => b.onclick = () => { if (wrap.dataset.dragged) return; UI.selFocus = b.dataset.fid; if (b.classList.contains("fchip")) UI.fcenter = b.dataset.fid; tabDecisoes(el); });
   el.querySelectorAll("[data-z]").forEach(b => b.onclick = () => {
     const k = b.dataset.z;
     if (k === "fit"){ setZoom(Math.max(0.3, Math.min(1.2, (wrap.clientWidth - 4) / Gm.W))); wrap.scrollLeft = 0; }

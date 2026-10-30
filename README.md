@@ -7,7 +7,7 @@ Jogo de estratégia e história interativa sobre o Brasil, inspirado em Hearts o
 ## Cenários
 | Ano | Cenário | Situação | Resumo |
 |---|---|---|---|
-| 2022 | **A Faixa Presidencial** | ✅ jogável | Depois da eleição de 2022: aceitar o resultado, contestar ou tentar uma ruptura. Tem a **árvore de decisões nacionais** (44 focos). |
+| 2022 | **A Faixa Presidencial** | ✅ jogável | Depois da eleição de 2022: aceitar o resultado, contestar ou tentar uma ruptura. Tem a **árvore de decisões nacionais** (58 focos, 9 deles oportunidades que aparecem e expiram). |
 | 1964 | **Os Anos Decisivos** | 🔒 em breve | A crise política de 1964 e suas alternativas. Os dados continuam no código, mas o cenário aparece no menu como "Em breve" e não pode ser aberto. |
 
 O foco atual é o cenário de **2022**. (O antigo cenário fictício de 1924, "Aurora do Sul", foi removido; continua no histórico do git.)
@@ -21,7 +21,7 @@ O foco atual é o cenário de **2022**. (O antigo cenário fictício de 1924, "A
 - **Guerra por frentes (2022, estilo Victoria 3):** você não move exércitos. Cada inimigo tem uma **linha de frente** que anda sozinha estado por estado; todo mês você só escolhe a **postura** de cada frente (⚔ Avançar, 🛡 Segurar a linha, ↩ Recuar e reorganizar), recruta tropas, troca o general (fictício, com traço) e, de vez em quando, lança uma **ofensiva especial** arriscada. Se a Liga do Sul se rebelar abre a **Frente Sul**, e um controle deslizante divide as tropas. Tomar Recife (PE) vence a guerra; perder Brasília (DF) é a derrota. Um relatório mensal mostra, com barras, **por que a linha andou**.
 - **Exércitos e combate visual (1964):** exércitos com nome, força, moral (organização), experiência e general fictício aparecem no mapa como contadores no estilo OTAN. Você dá **uma ordem por exército por mês** (atacar, defender, mover, recuar, reforçar) **sem gastar AP**: toque no exército, depois no estado vizinho, confira a previsão e confirme. O mapa mostra setas animadas (suas ordens e as intenções inimigas conhecidas), linhas de frente e estados em batalha pulsando. No **Encerrar mês** há uma resolução animada (pode pular) e uma **tela de batalha** com rodadas, moral, general e modificadores (terreno, apoio local, suprimentos, armas estrangeiras).
 - **Relatório pós-batalha:** toda batalha (na tela de batalha e na lista da resolução do mês) mostra **por que e como** você venceu ou perdeu: tabela fator por fator (tropas, moral, experiência, terreno, posições, apoio, comando, suprimentos, armas, defensor, sorte nas rolagens) com o valor de cada lado e quem foi favorecido, barra de poder, baixas, uma frase-resumo ("Você perdeu principalmente porque o inimigo tinha 2,5× mais tropas…") e dicas do que fazer melhor. As batalhas do mês ficam na aba **História** (e as anteriores em "Batalhas anteriores", até 30) e no painel do mapa.
-- **Árvore de decisões nacionais** (focos no estilo HoI4), só no cenário de 2022.
+- **Árvore de decisões nacionais** (focos no estilo HoI4), só no cenário de 2022. Desde a fase 8 os focos duram 1 ou 2 meses, há focos que só aparecem em certos momentos e uma coluna de **⚡ Oportunidades** (veja abaixo).
 - **Finais múltiplos.**
 - **Tutorial contextual (coach marks):** em vez de um texto longo, pequenos balões aparecem na primeira vez que você abre cada aba ou recurso (painel do topo, História, Mapa, Exércitos, Decisões, Facções, Diplomacia, Ações), destacando o elemento e explicando cada variável. **Pular tutorial** está sempre visível; **? Ajuda → ↻ Refazer tutorial** recomeça do zero. O progresso fica no `localStorage` (`gw_tut_v3`).
 - **Grandes eventos:** momentos decisivos (a posse do eleito, o 8 de janeiro, o golpe, o racha nas Forças, a guerra, a inelegibilidade) abrem uma tela cheia com manchete e a lista **"O que muda para você"** (exércitos desmobilizados e por quê, nova fase, renda, ritmo dos turnos, mapa, atributos).
@@ -71,6 +71,16 @@ npx serve .        # ou: python3 -m http.server 8000
 - **Baixa a tensão:** ações da categoria **Sul** (aba Ações), investir/negociar com o governador em RS/SC/PR, deixar exércitos no Sul, agradar o agronegócio. **Sobe:** o golpe, o racha nas Forças, agitação alta no Sul, Apoio Militar baixo.
 - Em 60+ os governadores pedem uma **Cúpula**; com a tensão em 25 ou menos dá para assinar o **Pacto Federativo**: o Sul vira **aliado** e manda uma divisão.
 - Se chegar a 100, a revolta começa **pequena** (só RS, exército de 15). Santa Catarina só adere se a tensão ficar acima de 85 por 2 meses. Baixar para 45 ou menos traz um **armistício**.
+
+### Decisões dinâmicas e campanha sem prazo (novo, fase 8)
+- **Focos mais curtos:** todos levam 1 ou 2 meses (antes 1 a 4).
+- **Focos que dependem do momento:** alguns só ficam disponíveis em certas situações — "Renovar a direita" ⊘ "Dobrar a aposta" depois de um revés (inelegível ou derrota nas urnas), "Caravana de comícios" com Apoio Popular 55+, "Pacto com os governadores do Sul" com a Tensão no Sul acima de 55, "Canal secreto com o inimigo" depois de 10 meses de guerra. O tooltip diz quando cada um aparece.
+- **⚡ Oportunidades:** 9 focos curtos (coluna laranja) que **abrem sozinhos** quando a situação permite (apoio alto, caixa vazio, escândalo do governo, guerra longa, revés na frente, relações internacionais altas, eleição chegando…), ficam abertos poucos meses e **expiram** se você não aproveitar. Vários voltam depois de um tempo; alguns eventos também abrem uma oportunidade. Uma faixa acima da árvore mostra as abertas, com contagem regressiva.
+- **Aviso de foco novo:** quando um foco fica disponível, ele ganha a etiqueta **NOVO** e a aba Decisões mostra **✨N**; o relatório do mês também avisa. Clicar no aviso centraliza a árvore no foco. A Marta sugere a oportunidade aberta mais útil.
+- **Sem limite de tempo na campanha completa:** o jogo continua até uma vitória ou derrota real. Perdeu a eleição? Há **Derrota nas Urnas** (recomeçar, passar o bastão ou aceitar ser líder da oposição) e **Mais Uma Eleição** quatro anos depois. Inelegível? O herdeiro disputa **O Herdeiro nas Urnas** em 2026. Na guerra, "seguir lutando" leva a **A guerra se arrasta**, que se repete até alguém ceder (ofensiva final, cessar-fogo, mediação com trégua, renúncia).
+- **Cansaço da guerra:** depois de 12 meses de combate, o Apoio Popular cai 1 ponto a cada 3 meses e as frentes ficam mais voláteis (até +150%), então impasses se resolvem sozinhos. Tréguas pausam o desgaste.
+- **Partida rápida** continua curta (os finais com prazo de antes). **Difícil** tem só uma revanche nas urnas e Apoio/Base acima de 65 caem 1 ponto por mês.
+- Saves v8 são migrados para v9.
 
 ### Dificuldade e duração (novo, fase 5)
 - Ao clicar em **Nova campanha** abre uma janela com a **dificuldade** e a **duração**. A escolha aparece no topo (selo ao lado da data) e em **⚙ Configurações → Campanha atual**, e não muda no meio da campanha.
@@ -204,7 +214,7 @@ ev("e_greve_caminhoes", "Greve dos caminhoneiros", "Rodovias bloqueadas em vári
 act("e_feira_agro", "eco", "Visitar a feira do agro", "Fotos com produtores; mercado gosta.", { ap: 1, cost: 2, fx: { fac: { agro: 6 }, money: 3 } }),
 ```
 
-**Novo foco** (árvore de Decisões) em `js/data/2022/focos.js`, dentro de `nodes`:
+**Novo foco** (árvore de Decisões) em `js/data/2022/focos.js`, dentro de `nodes` (para uma oportunidade, acrescente `oport: { if: {...}, text: "...", dura: 2, cooldown: 6, repeat: true }` e coloque no ramo `opor`):
 ```js
 { id: "s_feira", name: "Circuito das feiras", branch: "soc", x: 17, y: 4, months: 2, req: ["s_igrejas"],
   desc: "Agenda pelo interior.", fx: { s: { apoio: 3 }, fac: { agro: 5 } } },

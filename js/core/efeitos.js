@@ -46,6 +46,7 @@ function applyFx(g, fx, rep){
   // desdobramento: o evento encadeado chega alguns meses depois (se a condição dele ainda valer)
   if (fx.chain) for (const c of [].concat(fx.chain)) (g.chains ||= []).push({ id: c.id, due: g.month + (c.in || 1) });
   if (fx.south) southAdd(g, fx.south);
+  if (fx.opp && typeof focusOpenOpp === "function") focusOpenOpp(g, focusDef(g, fx.opp), rep ? (t, k) => rep.push({ t, k: k || "info" }) : null, "aberta por um evento");
   if (fx.southAlly) southAlly(g, rep ? (t, k) => rep.push({ t, k: k || "info" }) : null);
   syncActorStats(g);
 }
@@ -71,6 +72,7 @@ function fxSummary(g, fx){
   if (fx.org) out.push(`Moral dos seus exércitos ${sg(fx.org)}`);
   if (fx.enemyLoss) out.push(`Força inimiga −${fx.enemyLoss}`);
   if (fx.chain) out.push("Pode ter desdobramentos");
+  if (fx.opp) out.push(`Abre a oportunidade “${focusName(g, fx.opp)}”`);
   return out.join(" · ");
 }
 

@@ -37,7 +37,7 @@ function choicePreview(g, idx){
   const stats = Object.assign({}, g.stats);
   for (const k in (c.effects || {})) if (k in stats) stats[k] = clamp(stats[k] + c.effects[k], 0, 100);
   const gg = Object.assign({}, g, { stats });
-  for (const k in (S.collapse || {})) if (stats[k] <= 0) return { to: S.collapse[k], outcome: endingOutcome(sc, S.collapse[k]) };
+  for (const k in (S.collapse || {})) if (stats[k] <= 0){ const t = collapseTo(gg, k); return { to: t, outcome: endingOutcome(sc, t) }; }
   const to = resolveNextG(c.next, gg), out = endingOutcome(sc, to);
   return out ? { to, outcome: out } : null;
 }

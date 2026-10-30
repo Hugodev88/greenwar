@@ -23,8 +23,8 @@ const CAMPAIGN_2022 = {
   unrestBase: 35, unrest: { DF: 45 },
   pace: [{ from: "2022-10", months: 1 }, { from: "2023-03", months: 3 }],
   defaultDelay: 1,
-  storyDelay: { expurgo: 0, decreto: 1, golpe_fracassa: 0, reacao_internacional: 1, racha_militar: 2, guerra: 5, transicao: 1, silencio: 1, contestacao: 1 },
-  storyAt: { sondagem: "2022-12", golpe_inicial: "2023-01", crise_janeiro: "2023-01", oposicao: "2023-03", justica: "2023-09", inelegivel: "2024-03", campanha2026: "2026-08" },
+  storyDelay: { expurgo: 0, decreto: 1, golpe_fracassa: 0, reacao_internacional: 1, racha_militar: 2, guerra: 5, impasse: 8, nova_eleicao: 48, transicao: 1, silencio: 1, contestacao: 1 },
+  storyAt: { sondagem: "2022-12", golpe_inicial: "2023-01", crise_janeiro: "2023-01", oposicao: "2023-03", justica: "2023-09", inelegivel: "2024-03", campanha2026: "2026-08", eleicao_herdeiro: "2026-08" },
   phases: [
     { id: "regime", if: { visited: ["golpe_inicial"] }, label: "Regime de exceção", war: true,
       player: ["regime"], enemy: ["resistencia", "separatista"], playerMain: "regime", enemyMain: "resistencia",
@@ -97,7 +97,8 @@ const CAMPAIGN_2022 = {
     oposicao: [ { fac: { centrao: 10 } }, { fac: { evangelicos: 5 } }, { fac: { stf: 5, centrao: 5 } } ],
     justica: [ { fac: { stf: 6 } }, { fac: { stf: -15 } }, { fac: { centrao: 8 } } ],
     golpe_inicial: [ { fac: { centrao: 6 }, south: -15 }, { fac: { militares: 6, movimentos: -10 }, south: 15 }, { fac: { movimentos: -8 }, south: 5 } ],
-    reacao_internacional: [ { act: { eua: 10, ue: 10, onu: 10 }, south: -5 }, { act: { russia: 15, china: 5 } }, { fac: { agro: -10 }, south: 10 } ]
+    reacao_internacional: [ { act: { eua: 10, ue: 10, onu: 10 }, south: -5 }, { act: { russia: 15, china: 5 } }, { fac: { agro: -10 }, south: 10 } ],
+    impasse: [ { fac: { militares: 3 } }, { ceasefire: 3, act: { onu: 10, ue: 5 } } ]
   },
   // Tensão no Sul: a Liga do Sul só se rebela se a tensão chegar a 100 (antes: rebelião garantida no racha nas Forças)
   south: { startNode: "golpe_inicial", ufs: ["RS", "SC", "PR"], rebel: ["RS", "SC"], fac: "separatista", start: 50, base: 5,

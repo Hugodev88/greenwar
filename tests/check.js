@@ -65,7 +65,7 @@ for (const sc of SCENARIOS) {
   const def = STORY.defaultFaction || "federal";
   if (!FAC.includes(def) && Object.keys(STORY.initialMap||{}).length < 27) err(`facção padrão "${def}" não existe (defina defaultFaction)`);
   for (const u of Object.keys(STORY.stateNotes||{})) if (!UFS.includes(u)) err("stateNotes com UF inválida " + u);
-  for (const [k,t] of Object.entries(STORY.collapse||{})) { if (!STATS.includes(k)) err("collapse atributo " + k); if (!nodes[t]) err("collapse quebrado " + t); }
+  for (const [k,t] of Object.entries(STORY.collapse||{})) { if (!STATS.includes(k)) err("collapse atributo " + k); for (const to of typeof t === "string" ? [t] : t.map(b => b.to)) if (!nodes[to]) err("collapse quebrado " + to); }
   let mapRefs = 0;
   for (const [id, n] of Object.entries(nodes)) {
     if (n.onEnter) { checkMap(id+".onEnter", n.onEnter.map); checkResolve(id+".onEnter", n.onEnter.resolve); mapRefs++; }
@@ -179,7 +179,7 @@ for (const sc of SCENARIOS) {
     if (C.focus){
       const T = C.focus, N = T.nodes, byId = {}, BR = (T.branches||[]).map(b => b.id);
       for (const F of N){ if (byId[F.id]) err("foco duplicado " + F.id); byId[F.id] = F; }
-      if (N.length < 30 || N.length > 45) err(`árvore com ${N.length} focos (esperado 30–45)`);
+      if (N.length < 30 || N.length > 65) err(`árvore com ${N.length} focos (esperado 30–65)`);
       const pos = new Set();
       for (const F of N){
         const w = "foco " + F.id;
@@ -215,13 +215,20 @@ for (const sc of SCENARIOS) {
       };
       const unreach = N.filter(F => !closures(F.id, new Set()).length).map(F => F.id);
       if (unreach.length) err("focos inalcançáveis por qualquer caminho: " + unreach);
-      const roots = N.filter(F => !(F.req||[]).length && !(F.reqAny||[]).length);
+      const roots = N.filter(F => !F.oport && !(F.req||[]).length && !(F.reqAny||[]).length);
+      for (const F of N.filter(F => F.oport)){ const O = F.oport, w = "oportunidade " + F.id;
+        if (!O.text || !O.if) err(`${w}: sem condição/texto`); checkC(w + ".if", O.if);
+        if (!(O.dura >= 1) || !(O.cooldown >= 1)) err(`${w}: dura/cooldown`);
+        if (O.chance !== undefined && !(O.chance > 0 && O.chance <= 1)) err(`${w}: chance`);
+        if ((F.req||[]).length || (F.reqAny||[]).length || (F.excl||[]).length) err(`${w}: oportunidades não têm pré-requisitos nem exclusivos`); }
+      const evOpp = JSON.stringify(C.events).match(/"opp":"[a-z_0-9]+"/g) || [];
+      for (const o of evOpp){ const id = o.slice(7, -1); if (!byId[id] || !byId[id].oport) err(`evento abre oportunidade inexistente ${id}`); }
       if (roots.length !== 1) err(`a árvore deve ter uma raiz (tem ${roots.map(F => F.id)})`);
       // flags fo_* usadas por ações/eventos
       const fo = JSON.stringify([C.actions, C.events]).match(/"fo_[a-z_0-9]+"/g) || [];
       for (const f of new Set(fo)) if (!byId[f.slice(4, -1)]) err(`flag ${f} não corresponde a um foco`);
       const nEx = N.reduce((s, F) => s + (F.excl||[]).length, 0) / 2;
-      console.log(`  Árvore de decisões: ${N.length} focos em ${BR.length} ramos, ${nEx} pares exclusivos, ${new Set(fo).size} flags de foco usadas por ações/eventos — sem ciclos, todos alcançáveis`);
+      console.log(`  Árvore de decisões: ${N.length} focos em ${BR.length} ramos (${N.filter(F => F.oport).length} oportunidades, ${N.filter(F => F.avail && !F.oport && /warMonths|south|visited|"min"/.test(JSON.stringify(F.avail))).length} dinâmicos), ${nEx} pares exclusivos, ${new Set(fo).size} flags de foco usadas por ações/eventos — sem ciclos, todos alcançáveis`);
     }
     console.log(`  Campanha: ${C.actors.length} atores, ${C.factions.length} facções, ${C.actions.length} ações, ${C.events.length} eventos, ${C.phases.length} fases, ${(C.checks||[]).length} condições de fim`);
   }
@@ -230,26 +237,29 @@ for (const sc of SCENARIOS) {
     for (const k in c.min||{}) if (s.stats[k] < c.min[k]) return false;
     for (const k in c.max||{}) if (s.stats[k] > c.max[k]) return false;
     for (const f of c.flags||[]) if (!s.flags.includes(f)) return false;
-    for (const f of c.noFlags||[]) if (s.flags.includes(f)) return false; return true; };
+    for (const f of c.noFlags||[]) if (s.flags.includes(f)) return false;
+    for (const n of c.visited||[]) if (!s.visited.includes(n)) return false;
+    if (c.quick !== undefined && !!s.quick !== c.quick) return false;
+    if (c.diff && !c.diff.includes(s.diff)) return false; return true; };
   const applyMap = (s, spec) => { if (!spec) return;
     if (spec.resolve) for (const uf in s.control) if (spec.resolve[s.control[uf]]) s.control[uf] = spec.resolve[s.control[uf]];
     if (spec.map) Object.assign(s.control, spec.map); };
   const visited = new Set(), endings = {}, used = new Set(), endMaps = {};
   for (let run = 0; run < 40000; run++) {
-    const s = { stats: {}, flags: [], control: {} };
+    const s = { stats: {}, flags: [], control: {}, quick: run % 2 === 1, diff: ["facil", "normal", "dificil"][Math.floor(run / 2) % 3], visited: [] }; // metade das partidas no modo rápido (finais com prazo)
     for (const k of STATS) s.stats[k] = STORY.stats[k].initial;
     for (const u of UFS) s.control[u] = STORY.defaultFaction || "federal";
     Object.assign(s.control, STORY.initialMap);
     let id = STORY.start, steps = 0; applyMap(s, nodes[id].onEnter);
     while (!nodes[id].ending) {
-      visited.add(id);
+      visited.add(id); s.visited.push(id);
       const opts = nodes[id].choices.map((c,i)=>[c,i]).filter(([c]) => cond(c.req, s));
       if (!opts.length) { err("Beco sem saída em " + id); break; }
       const [c,i] = opts[Math.floor(Math.random()*opts.length)]; used.add(id+"#"+i);
       for (const k in c.effects||{}) s.stats[k] = Math.max(0, Math.min(100, s.stats[k] + c.effects[k]));
       if (c.flag && !s.flags.includes(c.flag)) s.flags.push(c.flag);
       if (c.map) applyMap(s, { map: c.map });
-      let col = null; for (const k in STORY.collapse||{}) if (s.stats[k] <= 0) { col = STORY.collapse[k]; break; }
+      let col = null; for (const k in STORY.collapse||{}) if (s.stats[k] <= 0) { const t = STORY.collapse[k]; col = typeof t === "string" ? t : (t.find(b => cond(b.if, s)) || t.at(-1)).to; break; }
       id = col || (typeof c.next === "string" ? c.next : (c.next.find(b => cond(b.if, s)) || c.next.at(-1)).to);
       applyMap(s, nodes[id].onEnter);
       if (++steps > 100) { err("Loop infinito?"); break; }

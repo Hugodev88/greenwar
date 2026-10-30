@@ -58,6 +58,7 @@ function tutSteps(ctx){
     decisoes: [
       { sel: "#ftWrap", t: "Árvore de decisões nacionais", h: `<p>Cada caixa é um <b>foco</b>: um projeto de alguns meses. Escolha <b>um por vez</b> (1 AP); ele avança a cada mês e, ao concluir, aplica efeitos e libera ações, eventos e opções.</p><p><b>Navegação:</b> arraste para mover, use a roda do mouse ou o trackpad para rolar e <b>Ctrl + roda</b> (ou pinça no celular) para o zoom.</p>` },
       { sel: ".flegend", t: "Como ler a árvore", h: `<p>Linhas sólidas: pré-requisito. Tracejadas: basta um. <b>⊘ vermelho</b>: caminhos exclusivos — escolher um fecha o outro. Decisões da história também abrem e fecham ramos.</p>` },
+      { sel: ".fopps", t: "Oportunidades e focos novos", h: `<p><b>⚡ Oportunidades</b> aparecem conforme a situação (apoio alto, caixa vazio, guerra longa…) e <b>somem em poucos meses</b>. Ficam na coluna laranja e nesta faixa, com a contagem regressiva.</p><p>Quando um foco novo fica disponível, ele ganha a etiqueta <b>NOVO</b> e a aba mostra <b>✨</b>.</p>` },
       { sel: ".fzoom", t: "Zoom e tela cheia", h: `<p>Use <b>−/+</b>, <b>Ajustar</b> (cabe na largura) e <b>Tela cheia</b> para ver a árvore inteira.</p>` }
     ],
     faccoes: [

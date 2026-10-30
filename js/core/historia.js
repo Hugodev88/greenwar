@@ -21,10 +21,12 @@ function storyDue(g, next){
   if (at) return Math.max(parseYM(at), g.month + (dl ?? 0));
   return g.month + (dl ?? (C.defaultDelay ?? 1));
 }
+// Final por atributo zerado: o destino pode ser um nó fixo ou uma lista de rumos (como "next")
+function collapseTo(g, k){ const t = scOf(g).story.collapse[k]; return typeof t === "string" ? t : resolveNextG(t, g); }
 function queueChoices(g){
   const q = g.queue[0]; if (!q) return [];
   const sc = scOf(g);
-  if (q.type === "story") return sc.story.nodes[q.node].choices.map(c => ({ text: c.text, ok: cond(g, c.req), req: c.req, fx: c.effects ? { s: c.effects } : null }));
+  if (q.type === "story") return sc.story.nodes[q.node].choices.map(c => ({ text: g.quick && c.textRapida ? c.textRapida : c.text, ok: cond(g, c.req), req: c.req, fx: c.effects ? { s: c.effects } : null }));
   const ev = findEvent(g, q.id);
   return ev.choices.map(c => ({ text: c.text, ok: cond(g, c.req), req: c.req, fx: c.fx }));
 }
@@ -40,8 +42,8 @@ function choose(g, idx){
     if (c.flag && !g.flags.includes(c.flag)) g.flags.push(c.flag);
     if (c.map) mapChange(g, { map: c.map });
     syncActorStats(g);
-    g.history.push({ m: g.month, t: c.text });
-    for (const k in S.collapse) if (g.stats[k] <= 0){ enterStory(g, S.collapse[k]); return true; }
+    g.history.push({ m: g.month, t: g.quick && c.textRapida ? c.textRapida : c.text });
+    for (const k in S.collapse) if (g.stats[k] <= 0){ enterStory(g, collapseTo(g, k)); return true; }
     const next = resolveNextG(c.next, g), nn = S.nodes[next];
     if (nn.ending){ enterStory(g, next); return true; }
     const due = storyDue(g, next);
@@ -58,7 +60,7 @@ function choose(g, idx){
     const to = resolveNextG(c.next, g);
     if (to && S.nodes[to]) enterStory(g, to);
   }
-  if (!g.ended) for (const k in S.collapse) if (g.stats[k] <= 0){ enterStory(g, S.collapse[k]); break; }
+  if (!g.ended) for (const k in S.collapse) if (g.stats[k] <= 0){ enterStory(g, collapseTo(g, k)); break; }
   return true;
 }
 function endCampaign(g, node, why){

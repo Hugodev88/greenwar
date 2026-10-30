@@ -17,7 +17,10 @@ function openHelp(){
       ${STORY ? Object.entries(STORY.stats).map(([k, v]) => `<dt>${esc(v.label)}</dt><dd>${esc(STAT_HELP[k] || "")} Se chegar a zero, a campanha termina.</dd>`).join("") : ""}
       <dt>Agitação</dt><dd>Tensão em cada estado (0–100). Média acima de 62 nos seus estados derruba o apoio; um estado acima de 88 sem tropas pode se revoltar. Investir, fazer propaganda e negociar com o governador baixam a agitação.</dd>
       <dt>Facções</dt><dd>Lealdade (do seu lado?) e influência (quanto pesam). Lealdade abaixo de 15 com influência 25 ou mais gera crises.</dd>
-      <dt>Focos (Decisões)</dt><dd>Projetos de vários meses, um por vez. Ao concluir, aplicam efeitos e liberam opções.</dd>
+      <dt>Focos (Decisões)</dt><dd>Projetos de 1 ou 2 meses, um por vez. Ao concluir, aplicam efeitos e liberam opções. Alguns só aparecem em certos momentos (guerra longa, Tensão no Sul alta, apoio alto, depois de um revés) — o jogo avisa com ✨.</dd>
+      <dt>Oportunidades (⚡)</dt><dd>Focos curtos que abrem quando a situação permite e somem em poucos meses se você não aproveitar. Muitos voltam mais tarde.</dd>
+      <dt>Sem prazo</dt><dd>A campanha completa não acaba por data: ela continua até você vencer ou perder (ou escolher um final). Só a partida rápida tem prazo curto.</dd>
+      <dt>Cansaço da guerra</dt><dd>Depois de 12 meses de combate, o Apoio Popular cai aos poucos e as frentes ficam mais voláteis, para que o impasse se resolva.</dd>
       <dt>Exércitos e ordens</dt><dd>Contadores azuis no mapa (o número é a força). Ordens não gastam AP; o limite por mês depende do Apoio Militar e da lealdade dos militares.</dd>
     </dl></details>
     <div class="disclaimer">${esc(SCEN ? SCEN.intro.disclaimer : "Obra de ficção / história alternativa.")}</div>

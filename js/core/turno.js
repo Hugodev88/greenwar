@@ -39,6 +39,9 @@ function endTurn(g){
   g.debts = g.debts.filter(d => d.due > g.month);
   if (g.money < 0){ applyStats(g, Object.assign({ [K.pop]: -2 }, C.keys.money ? { [C.keys.money]: -2 } : {})); R("Cofres no vermelho: salários atrasam e a confiança cai.", "bad"); }
   else if (C.keys.money){ if (g.money < 3) applyStats(g, { [C.keys.money]: -1 }); else if (g.money >= (C.money.comfort ?? 20)) applyStats(g, { [C.keys.money]: g.money > (C.money.comfort ?? 20) + 15 ? 2 : 1 }); }
+  // 1a. Desgaste (Difícil): Apoio Popular e Base Política acima do limite caem 1 ponto por mês
+  const dz = diffOf(g).desgaste;
+  if (dz) for (const k of ["apoio", "base"]) if (g.stats[k] > dz) g.stats[k] -= 1;
   // 1b. Foco nacional (árvore de decisões)
   if (C.focus) focusTick(g, pace, R);
   // 2. Mapa: agitação, simpatia, combates, inimigo
@@ -113,7 +116,7 @@ function endTurn(g){
   }
   syncActorStats(g);
   // 5. Fim por colapso / estado da campanha
-  for (const k in S.collapse) if (g.stats[k] <= 0){ g.report = rep; finishLog(g, rep); enterStory(g, S.collapse[k]); g.ended.why = `${S.stats[k].label} chegou a zero.`; return true; }
+  for (const k in S.collapse) if (g.stats[k] <= 0){ g.report = rep; finishLog(g, rep); enterStory(g, collapseTo(g, k)); g.ended.why = `${S.stats[k].label} chegou a zero.`; return true; }
   for (const chk of (C.checks || [])) if (cond(g, chk.if)){ g.report = rep; finishLog(g, rep); endCampaign(g, chk.to, chk.why); return true; }
   // 6. Eventos: história > crise de facção > dependência > aleatório
   if (g.story.pending && g.month >= g.story.due) enterStory(g, g.story.node, rep);
@@ -137,6 +140,8 @@ function endTurn(g){
     }
     g.chains = (g.chains || []).filter(c => g.month - c.due <= 6); // desdobramento que não coube em 6 meses se perde
   }
+  // 7. Oportunidades (focos que aparecem e expiram) e aviso de focos novos
+  if (C.focus) focusEndTick(g, R);
   planEnemy(g);
   const capInfo = applyMoneyCap(g); if (capInfo) R(`Teto de ${C.money.short}: ${capInfo} acima de ${C.money.cap} foram perdidos (caixa parado não rende).`, "bad");
   { const A = apFor(g); g.ap = A.total; g.apParts = A.parts; if (C.apScale) R(`Ações neste turno: ${A.total} (${A.parts.filter((p, i) => i === 0 || p.v).map((p, i) => i === 0 ? `base ${p.v}` : `${p.label} ${p.v > 0 ? "+" : "−"}${Math.abs(p.v)}`).join(" · ")}).`); }

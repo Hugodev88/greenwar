@@ -138,9 +138,9 @@ O `index.html` tem só a marcação e a lista de `<link>`/`<script>`. **Os scrip
 - **Sem tabelas:** se o SQL ainda não foi rodado, a API devolve `PGRST205`. Nesse caso `cloud.js` mantém o login, avisa no perfil que o servidor não foi configurado e não tenta sincronizar.
 
 ## 5. Árvore de decisões nacionais (2022)
-Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 focos em 7 ramos, com 11 pares exclusivos.
+Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 58 focos em 8 ramos (49 normais + 9 oportunidades no ramo `opor`), com 12 pares exclusivos. Duração 1 ou 2 meses (fase 8).
 
-- **Campos de um nó:** `id`, `name`, `branch`, `x`, `y` (posição na grade), `months`, `cost` (Recursos), `req` (todos), `reqAny` (pelo menos um), `excl` (mutuamente exclusivos, sempre simétricos), `avail` (condição para iniciar) e `availText`, `lockIf` (condição de história que bloqueia), `desc`, `fx`, `risk {p, msg, fx}`, `dipBonus`, `dipOff`, `dipReq`, `unlocks`.
+- **Campos de um nó:** `id`, `name`, `branch`, `x`, `y` (posição na grade), `months`, `cost` (Recursos), `req` (todos), `reqAny` (pelo menos um), `excl` (mutuamente exclusivos, sempre simétricos), `avail` (condição para iniciar) e `availText`, `lockIf` (condição de história que bloqueia), `desc`, `fx`, `risk {p, msg, fx}`, `dipBonus`, `dipOff`, `dipReq`, `unlocks` e, nas oportunidades, `oport { if, text, dura, cooldown, chance?, repeat? }` (sem `req`/`excl`).
 - **Regras:**
   - Um foco ativo por vez, iniciado com 1 PA. O progresso avança em "Encerrar mês".
   - Ao concluir, aplica `fx` e a flag `fo_<id>`, e escreve no relatório.
@@ -245,11 +245,21 @@ Dados em `CAMPAIGN_2022.focus = { ap, cell, grants, branches, nodes }`. São 44 
 - **Conselheira:** `advisorFrontTips` (postura sugerida por `frontAdvice`, ofensiva especial, divisão das tropas, recrutar); `act.k` novos: `posture`, `ofensiva`, `split`. Tutorial: contexto `frentes` (aba Mapa em guerra). Modo simples (Fácil): `simpleFrontsHTML` — os generais escolhem as posturas; você só recruta.
 - **sim.js:** as IAs dão posturas (`frontOrders`: aleatórias, ou as sugeridas pelas gulosas, que também recrutam, dividem as tropas e lançam ofensivas com razão ≥ 1,3). 300 partidas: Normal golpista 35% / pacificador 62% de vitória; Fácil iniciante 60%, conselheira 70%; Difícil golpista 4% / pacificador 12%; Rápida golpista 49% / pacificador 74%. `check.js` testa a migração v7→v8, o relatório sem NaN, a abertura da Frente Sul, a dica de postura e as traduções EN das falas.
 
+## 7j. Fase 8 (out/2026): decisões dinâmicas e campanha sem prazo (save v9)
+- **Focos:** durações cortadas pela metade (mín. 1 mês). Novos focos com `avail` dinâmico: `a_renovar` ⊘ `a_radicalizar` (`visitedAny: ["inelegivel","derrota_urnas"]`), `c_canal_secreto` (`warMonths: {min: 10}`), `s_comicios` (Apoio 55+), `d_governadores_sul` (Sul 55+ e calmo). `cond` ganhou `quick`, `warMonths {min}` e `diff: [...]`.
+- **Oportunidades (`F.oport`):** estado em `g.focus.opps {id: mêsLimite}`, `cool {id: mês}`, `rep {id: n}`, `fresh []`, `known []` (`focusInit` garante). `focusEndTick(g, R)` (passo 7 do `endTurn`, antes do `planEnemy`) expira as não usadas (cooldown/2), abre as que cumprem `oport.if` (+ `chance` com `rnd(g)`) via `focusOpenOpp`, e detecta focos normais recém-disponíveis comparando com `known` (relatório "✨ Novo foco disponível" + `fresh`). `completeFocus` numa oportunidade fecha a janela, aplica `cooldown` e conta `rep` (repetíveis não entram em `done`). Efeito de evento `opp: "id"` abre uma oportunidade (`n_municipais`, `n_voluntarios`).
+- **UI:** `.fopps` (faixa com as abertas + contagem e "✨ Novos focos"; clicar centraliza via `UI.fcenter`), nós `.opp`/`.fresh` com fita NOVO/NOVA, ⚡ e "⚡ N meses", badge `✨N` na aba (some ao abrir: `UI.freshSeen`). Marta: dica `opp` (pri 64). Tutorial: passo `.fopps` no contexto `decisoes`; Ajuda: Oportunidades, Sem prazo, Cansaço da guerra.
+- **Sem prazo (campanha completa):** novos nós `eleicao_herdeiro` (2026-08), `derrota_urnas` → `nova_eleicao` (48 meses depois, laço até ganhar ou aceitar a oposição; "Recomeçar" pede Base 25+; Difícil: só uma revanche) e `impasse` (substitui a ofensiva final do nó `guerra` fora da rápida; repete a cada 8 meses). `collapse` aceita lista de ramos (`collapseTo`): no regime, Apoio 0 → `fim_restauracao`. Partida rápida usa `textRapida` e os ramos `quick: true` (finais antigos com prazo).
+- **Cansaço da guerra (`frontWeary`):** a partir de 12 meses de combate (`g.war.months`, tréguas não contam), `frontClash` multiplica o deslocamento da linha por 1 + até 1,5 e o Apoio cai 1 a cada 3 meses. Aviso em `js/ui/frentes.js`.
+- **Difícil:** `desgaste: 65` em `DIFICULDADES` (Apoio/Base acima de 65 perdem 1/mês, passo 1a do turno).
+- **sim.js:** teto de segurança `SIM_CAP = 600` turnos só no simulador (falha se >1% bater), linha `resultado:` por IA com vitória/intermediário/derrota, duração média/mediana/máx. e % no teto; oportunidades aproveitadas por partida. Números (300 partidas): Normal aleatória 39% (28,0 meses em média, máx. 95), gulosa 89% (42,6), golpista 59% (22,3, máx. 135), pacificador 82% (20,0); Fácil iniciante 62% (30,4 meses), aleatória 48%; Difícil aleatória 31% (26,6), golpista 18% (26,7, máx. 211), pacificador 28%; Rápida aleatória 22% (19,5), golpista 39% e pacificador 73% (8 meses). Teto do simulador: 0% em todos.
+
 ## 8. Limitações conhecidas
 - Modo English: cobre interface, tutorial, os grandes eventos e o evento de abertura; os demais textos de eventos, os epílogos e o cenário 1964 seguem em português.
 - A trilha sonora é sintetizada (Web Audio), não há música gravada.
 - Quem conclui `c_ruptura` e depois recua para a transição fica só com os ramos temáticos, porque democ e jurid ficam excluídos.
-- Depois de 2023-03 os turnos valem 3 meses, então os focos terminam em saltos.
+- Depois de 2023-03 os turnos valem 3 meses, então os focos (1–2 meses) terminam dentro de um turno; as oportunidades ficam abertas pelo menos um turno inteiro (`max(dura, ritmo)`).
+- Os epílogos novos e os textos da fase 8 têm inglês; vários textos antigos de eventos continuam em português.
 - O ramo do regime é curto (cerca de 9 meses até o nó `guerra`). Não dá para fazer todos os focos numa partida.
 - As IAs da simulação são heurísticas.
 - **Militar:**

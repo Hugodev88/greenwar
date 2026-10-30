@@ -37,6 +37,23 @@
   .fnode.st-excluded b{text-decoration:line-through;text-decoration-color:#d06a55}
   .fnode.st-excluded .fic{color:#e07a62}
   .fnode.st-locked,.fnode.st-unavailable{opacity:.5;filter:grayscale(.7)}
+  /* oportunidades (aparecem e expiram) e focos novos */
+  .fnode.opp{border-style:dashed;border-top-style:solid}
+  .fnode.opp.st-available{background:#2a2114;border-color:#d98c2b;box-shadow:0 0 0 1px rgba(217,140,43,.5),0 0 12px rgba(217,140,43,.3)}
+  .fnode.opp.st-unavailable .fic{color:#d98c2b}
+  .fnode .fexp{font-style:normal;color:#f0b35a;font-weight:600}
+  .fnode.fresh{animation:fpulse 1.6s ease-in-out 4;border-color:#f0d58a}
+  .fnew{position:absolute;right:22px;top:3px;font-size:.55rem;font-weight:700;letter-spacing:.06em;background:#f0d58a;color:#1d1a17;border-radius:3px;padding:1px 4px}
+  @keyframes fpulse{0%,100%{box-shadow:0 2px 6px rgba(0,0,0,.4)}50%{box-shadow:0 0 0 2px #f0d58a,0 0 18px rgba(240,213,138,.55)}}
+  .fopps{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;padding:6px 10px;border:1px dashed rgba(217,140,43,.55);border-radius:6px;background:rgba(217,140,43,.06);font-family:system-ui,sans-serif;font-size:.78rem}
+  .fopps small{color:var(--muted)}
+  .fopl{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:#f0b35a;margin-right:2px}.fopl.new{color:#f0d58a;margin-left:6px}
+  .fchip{border:1px solid #d98c2b;background:#2a2114;color:var(--ink);border-radius:14px;padding:3px 10px;font:inherit;cursor:pointer}
+  .fchip small{color:#f0b35a;margin-left:4px}
+  .fchip.fresh{border-color:#f0d58a;box-shadow:0 0 8px rgba(240,213,138,.35)}
+  .flegend .st-opp em{color:#d98c2b}.flegend .st-new em{color:#f0d58a}
+  .badge.fnewb{background:#f0d58a;color:#1d1a17}
+  @media (prefers-reduced-motion: reduce){ .fnode.fresh{animation:none;box-shadow:0 0 0 2px #f0d58a} }
   .fprog{display:block;height:5px;background:#3a3226;border-radius:3px;overflow:hidden}
   .fprog u{display:block;height:100%;background:#c9a45c}
   .flegend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-family:system-ui,sans-serif;font-size:.72rem;color:var(--muted)}

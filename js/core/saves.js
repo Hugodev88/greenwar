@@ -1,4 +1,4 @@
-// js/core/saves.js — Núcleo: migração de saves antigos (v2 → v8). Ao mudar o formato do save, suba SAVE_VERSION (core/base.js) e migre aqui.
+// js/core/saves.js — Núcleo: migração de saves antigos (v2 → v9). Ao mudar o formato do save, suba SAVE_VERSION (core/base.js) e migre aqui.
 function migrateSave(g){
   if (!g || g.v === SAVE_VERSION) return g;
   if (!(g.v >= 2 && g.v < SAVE_VERSION) || !scOf(g)) return null;
@@ -8,6 +8,7 @@ function migrateSave(g){
   if (g.v === 5){ migrateSouth(g); g.autoOrders = "off"; g.v = 6; }
   if (g.v === 6){ g.diff = "normal"; g.quick = false; g.simple = false; g.v = 7; } // saves antigos seguem no Normal, campanha completa
   if (g.v === 7){ migrateFronts(g); g.v = 8; } // 2022: exércitos → tropas das frentes (js/core/frentes.js)
+  if (g.v === 8){ if (g.focus) focusInit(g); if (g.war) g.war.months = g.war.months || 0; g.v = 9; } // oportunidades e cansaço da guerra (campos novos começam vazios)
   return g.v === SAVE_VERSION ? g : null;
 }
 // v5 → v6: cria a Tensão no Sul em partidas já no regime. Se a Liga já controla estados, ela está em revolta.

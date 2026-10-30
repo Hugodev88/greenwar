@@ -71,6 +71,14 @@ function advisorTips(g, ctx){
   }
   // caminho do golpe: dicas do plano (no "plano" substituem a sugestão genérica de decisão nacional)
   if (cs) tips.push(...coupTips(g, cs));
+  // oportunidade aberta (some se não for aproveitada)
+  const T = focusTree(g);
+  if (T && g.focus && !g.focus.active){
+    const op = T.nodes.filter(F => F.oport && g.focus.opps && g.focus.opps[F.id] !== undefined && !focusCheck(g, F.id) && (cs !== "plano" || F.id === "o_quarteis"))
+      .map(F => ({ F, v: advisorFxValue(g, F.fx) - (F.cost || 0) * 0.3 })).sort((a, b) => b.v - a.v)[0];
+    if (op && op.v > 0){ const left = focusStatus(g, op.F).left || 1;
+      tips.push({ id: "opp", pri: 64, head: "Oportunidade", text: left === 1 ? "Apareceu uma oportunidade na aba Decisões e ela some no fim do mês. Vale aproveitar:" : `Apareceu uma oportunidade na aba Decisões e ela some em ${left} meses. Vale aproveitar:`, sub: op.F.name, act: { k: "focus", id: op.F.id } }); }
+  }
   // nenhuma decisão nacional em andamento
   const bf = advisorBestFocus(g);
   if (bf && cs !== "plano") tips.push({ id: "focus", pri: 62, head: "Decisões nacionais", text: bf.F.months === 1 ? "Nenhuma decisão nacional está em andamento. Sugiro esta, que leva 1 mês:" : `Nenhuma decisão nacional está em andamento. Sugiro esta, que leva ${bf.F.months} meses:`, sub: bf.F.name, act: { k: "focus", id: bf.F.id } });

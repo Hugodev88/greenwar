@@ -50,7 +50,7 @@ const STORY_2022 = {
     SP:"Lula 44,76% · Bolsonaro 55,24%", SE:"Lula 67,21% · Bolsonaro 32,79%", TO:"Lula 51,36% · Bolsonaro 48,64%"
   },
   stateNotesLabel: "2º turno 2022",
-  collapse: { apoio: "fim_ostracismo" },
+  collapse: { apoio: [ { if: { visited: ["golpe_inicial"] }, to: "fim_restauracao" }, { to: "fim_ostracismo" } ] }, // no regime, sem apoio o regime cai
   nodes: {
     apuracao: {
       chapter: "30 de outubro de 2022 — noite",
@@ -154,8 +154,8 @@ const STORY_2022 = {
         "Você ainda move multidões. A questão é o que fazer com elas."
       ],
       choices: [
-        { text: "Escolher e apoiar um herdeiro político para 2026.",
-          next: [ { if: { min: { apoio: 50, base: 50 } }, to: "fim_herdeiro" }, { to: "fim_ostracismo" } ] },
+        { text: "Escolher e apoiar um herdeiro político para 2026.", flag: "herdeiro",
+          next: [ { if: { quick: true, min: { apoio: 50, base: 50 } }, to: "fim_herdeiro" }, { if: { quick: true }, to: "fim_ostracismo" }, { to: "eleicao_herdeiro" } ] },
         { text: "Insistir na própria candidatura, desafiando a Justiça.", effects: { apoio: 5, base: -15 }, next: "fim_ostracismo" },
         { text: "Recolher-se e comandar a direita como conselheiro.", effects: { base: 5 }, next: "fim_oposicao" }
       ]
@@ -170,9 +170,52 @@ const STORY_2022 = {
       ],
       choices: [
         { text: "Campanha centrada na economia e em alianças com o centro.",
-          next: [ { if: { min: { apoio: 50, base: 60 } }, to: "fim_retorno" }, { to: "fim_oposicao" } ] },
+          next: [ { if: { min: { apoio: 50, base: 60 } }, to: "fim_retorno" }, { if: { quick: true }, to: "fim_oposicao" }, { to: "derrota_urnas" } ] },
         { text: "Campanha de mobilização máxima da base.", effects: { apoio: 5 },
-          next: [ { if: { min: { apoio: 65 } }, to: "fim_retorno" }, { to: "fim_oposicao" } ] }
+          next: [ { if: { min: { apoio: 65 } }, to: "fim_retorno" }, { if: { quick: true }, to: "fim_oposicao" }, { to: "derrota_urnas" } ] }
+      ]
+    },
+
+    /* ---- campanha sem prazo: depois de 2026 o jogo continua até você ganhar ou desistir ---- */
+    eleicao_herdeiro: {
+      chapter: "Outubro de 2026",
+      title: "O Herdeiro nas Urnas",
+      text: [
+        "Inelegível, você passa dois anos percorrendo o país ao lado do candidato que escolheu. Agora chega a hora da verdade: os seus votos vão migrar para ele?",
+        "As pesquisas mostram uma disputa apertada. O último empurrão da campanha é seu."
+      ],
+      choices: [
+        { text: "Subir no palanque em todos os estados ao lado do herdeiro.", effects: { apoio: 3 },
+          next: [ { if: { min: { apoio: 57, base: 55 } }, to: "fim_herdeiro" }, { to: "derrota_urnas" } ] },
+        { text: "Deixar o herdeiro brilhar sozinho e costurar alianças com o centro.", effects: { base: 4 },
+          next: [ { if: { min: { apoio: 52, base: 66 } }, to: "fim_herdeiro" }, { to: "derrota_urnas" } ] }
+      ]
+    },
+    derrota_urnas: {
+      chapter: "Depois da eleição",
+      title: "Derrota nas Urnas",
+      text: [
+        "Desta vez o resultado não favorece o seu campo. A direita sai das urnas machucada, mas não destruída: ainda tem bancada, governadores e milhões de eleitores.",
+        "Daqui a quatro anos haverá outra eleição. A pergunta é se você ainda estará no centro do palco."
+      ],
+      choices: [
+        { text: "Recomeçar: reconstruir a base para a próxima eleição.", req: { min: { base: 25 } }, effects: { base: -8, apoio: 2 }, next: "nova_eleicao" },
+        { text: "Passar o bastão a um nome novo e trabalhar nos bastidores.", effects: { base: 4, apoio: -6 }, flag: "herdeiro", next: "nova_eleicao" },
+        { text: "Aceitar o papel de líder da oposição (encerra a campanha).", next: "fim_oposicao" }
+      ]
+    },
+    nova_eleicao: {
+      chapter: "Quatro anos depois",
+      title: "Mais Uma Eleição",
+      text: [
+        "Quatro anos de oposição, processos, alianças e brigas internas. O país vai às urnas de novo, e o seu campo chega à reta final competitivo.",
+        "É a chance de virar o jogo — ou de descobrir que o país mudou de assunto."
+      ],
+      choices: [
+        { text: "Campanha pela economia e alianças com o centro.",
+          next: [ { if: { flags: ["herdeiro"], min: { apoio: 56, base: 62 } }, to: "fim_herdeiro" }, { if: { min: { apoio: 58, base: 62 } }, to: "fim_retorno" }, { if: { diff: ["dificil"] }, to: "fim_oposicao" }, { to: "derrota_urnas" } ] },
+        { text: "Campanha de mobilização máxima da base.", effects: { apoio: 4 },
+          next: [ { if: { flags: ["herdeiro"], min: { apoio: 66 } }, to: "fim_herdeiro" }, { if: { min: { apoio: 69 } }, to: "fim_retorno" }, { if: { diff: ["dificil"] }, to: "fim_oposicao" }, { to: "derrota_urnas" } ] }
       ]
     },
 
@@ -285,7 +328,25 @@ const STORY_2022 = {
         { if: { flags: ["sul_revolta"], anyControl: ["separatista"] }, text: ["A frente de batalha corta Minas Gerais e o oeste da Bahia. A economia está em colapso; milhares de famílias fogem para o Paraguai, a Bolívia e o Uruguai. No Sul, a Liga do Sul consolida o que tomou e já fala em fronteira própria.", "O Brasil, que entrou em 2022 como um país polarizado, agora corre o risco de não ser mais um país."] }
       ],
       choices: [
-        { text: "Lançar tudo numa ofensiva final.",           next: [ { if: { min: { militar: 65, apoio: 30 } }, to: "fim_regime" }, { if: { flags: ["sul_aliado"], min: { militar: 58, apoio: 25 } }, to: "fim_regime" }, { if: { min: { militar: 45 } }, to: "fim_divisao" }, { to: "fim_restauracao" } ] },
+        { text: "Seguir lutando: a guerra continua até um lado ceder.", textRapida: "Lançar tudo numa ofensiva final.",
+          next: [ { if: { quick: true, min: { militar: 65, apoio: 30 } }, to: "fim_regime" }, { if: { quick: true, flags: ["sul_aliado"], min: { militar: 58, apoio: 25 } }, to: "fim_regime" }, { if: { quick: true, min: { militar: 45 } }, to: "fim_divisao" }, { if: { quick: true }, to: "fim_restauracao" }, { to: "impasse" } ] },
+        { text: "Aceitar um cessar-fogo com as linhas atuais congeladas.", effects: { base: 5 }, next: "fim_divisao" },
+        { text: "Renunciar e negociar uma saída do país.", next: "fim_restauracao" }
+      ]
+    },
+
+    impasse: {
+      chapter: "A guerra se arrasta",
+      title: "Impasse",
+      text: [
+        "Meses de combate depois, nenhum lado consegue o golpe decisivo. Cidades vivem sob racionamento, as famílias contam os mortos e os dois exércitos estão exaustos. O cansaço da guerra pesa sobre o Apoio Popular e deixa as frentes mais voláteis a cada mês.",
+        "Diplomatas, bispos e generais batem à sua porta com a mesma pergunta: até quando?"
+      ],
+      choices: [
+        { text: "Nenhuma paz sem vitória: a guerra continua.", effects: { militar: 2, apoio: -4 }, next: "impasse" },
+        { text: "Aceitar a mediação e uma trégua de três meses.", effects: { internacional: 5, militar: -3 }, next: "impasse" },
+        { text: "Lançar tudo numa ofensiva final.", req: { min: { militar: 55 } },
+          next: [ { if: { min: { militar: 65, apoio: 30 } }, to: "fim_regime" }, { if: { min: { militar: 50 } }, to: "fim_divisao" }, { to: "fim_restauracao" } ] },
         { text: "Aceitar um cessar-fogo com as linhas atuais congeladas.", effects: { base: 5 }, next: "fim_divisao" },
         { text: "Renunciar e negociar uma saída do país.", next: "fim_restauracao" }
       ]
@@ -295,14 +356,14 @@ const STORY_2022 = {
     fim_retorno: {
       ending: true, outcome: "vitoria", endingName: "De Volta pelas Urnas", dica: "Aceite o resultado, faça uma defesa técnica nos tribunais (Base Política 55 ou mais) e dispute 2026 com o Apoio Popular alto.",
       onEnter: { map: { MG: "oposicao", AM: "oposicao", TO: "oposicao" } },
-      chapter: "Epílogo — 2026", title: "A Revanche Democrática",
+      chapter: "Epílogo", title: "A Revanche Democrática",
       text: [
         "Na madrugada da apuração, desta vez a margem estreita favorece você. O adversário reconhece o resultado, e a transição acontece sem tanques nem bloqueios.",
         "Você volta ao Planalto pelo caminho que a Constituição prevê. Os historiadores vão discutir por décadas se 2022 foi o fim de uma era ou apenas um intervalo."
       ]
     },
     fim_oposicao: {
-      ending: true, outcome: "parcial", endingName: "Líder da Oposição", dica: "Aceite o resultado e, no fim, escolha comandar a direita sem disputar o cargo (ou perca a eleição de 2026).",
+      ending: true, outcome: "parcial", endingName: "Líder da Oposição", dica: "Aceite o resultado e, no fim, escolha comandar a direita sem disputar o cargo (ou aceite esse papel depois de perder uma eleição).",
       onEnter: { resolve: { disputa: "legal" } },
       chapter: "Epílogo", title: "A Voz da Oposição",
       text: [
@@ -311,16 +372,16 @@ const STORY_2022 = {
       ]
     },
     fim_herdeiro: {
-      ending: true, outcome: "vitoria", endingName: "O Herdeiro", dica: "Se ficar inelegível, apoie um herdeiro político com Apoio Popular e Base Política em 50 ou mais.",
+      ending: true, outcome: "vitoria", endingName: "O Herdeiro", dica: "Se ficar inelegível, apoie um herdeiro político e chegue à eleição com Apoio Popular e Base Política em 50 ou mais.",
       onEnter: { map: { MG: "oposicao" }, resolve: { disputa: "oposicao" } },
-      chapter: "Epílogo — 2026", title: "O Fazedor de Reis",
+      chapter: "Epílogo", title: "O Fazedor de Reis",
       text: [
         "Inelegível, você percorre o país ao lado do candidato que escolheu. Os votos que eram seus migram para ele — e, numa eleição apertada, o seu herdeiro vence.",
         "Você não tem cargo, mas tem influência. A pergunta que domina a nova legislatura é quanto tempo o herdeiro aceitará viver à sombra de quem o fez."
       ]
     },
     fim_ostracismo: {
-      ending: true, outcome: "derrota", endingName: "Ostracismo", dica: "Deixe o Apoio Popular chegar a zero, ou insista na própria candidatura depois de ficar inelegível.",
+      ending: true, outcome: "derrota", endingName: "Ostracismo", dica: "Fora do regime, deixe o Apoio Popular chegar a zero, ou insista na própria candidatura depois de ficar inelegível.",
       onEnter: { resolve: { oposicao: "legal", disputa: "legal" }, map: { SC: "oposicao", RR: "oposicao", RO: "oposicao", AC: "oposicao" } },
       chapter: "Epílogo", title: "O Lento Apagar das Luzes",
       text: [
@@ -354,7 +415,7 @@ const STORY_2022 = {
       ]
     },
     fim_divisao: {
-      ending: true, outcome: "parcial", endingName: "O Brasil Partido", dica: "Durante a guerra, aceite um cessar-fogo com as linhas congeladas.",
+      ending: true, outcome: "parcial", endingName: "O Brasil Partido", dica: "Durante a guerra (ou no impasse), aceite um cessar-fogo com as linhas congeladas.",
       onEnter: { resolve: { disputa: "resistencia" }, map: { MG: "disputa" } },
       chapter: "Epílogo", title: "Três Bandeiras",
       text: [
@@ -366,7 +427,7 @@ const STORY_2022 = {
       ]
     },
     fim_restauracao: {
-      ending: true, outcome: "derrota", endingName: "Restauração Democrática", dica: "No regime, perca a maioria dos estados ou negocie uma saída.",
+      ending: true, outcome: "derrota", endingName: "Restauração Democrática", dica: "No regime, perca a maioria dos estados, deixe o Apoio Popular chegar a zero ou negocie uma saída.",
       onEnter: { resolve: { regime: "legal", resistencia: "legal", disputa: "legal", separatista: "legal", voto_lula: "legal", voto_bolso: "legal" } },
       chapter: "Epílogo", title: "O Fim da Aventura",
       text: [

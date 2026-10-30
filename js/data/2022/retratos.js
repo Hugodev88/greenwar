@@ -59,7 +59,8 @@ const RETRATOS_2022 = {
     apuracao: "tse", transicao: "planalto", silencio: "conselheira", contestacao: "tse", sondagem: "gen_valadares",
     crise_janeiro: "tres_poderes", oposicao: "lider_centrao", justica: "ministra_stf", inelegivel: "tse", campanha2026: "conselheira",
     expurgo: "gen_pessanha", decreto: "decreto", golpe_fracassa: "gen_becker", golpe_inicial: "gen_valadares",
-    reacao_internacional: "enviado_onu", racha_militar: "gen_barreto", guerra: "gen_valadares"
+    reacao_internacional: "enviado_onu", racha_militar: "gen_barreto", guerra: "gen_valadares",
+    impasse: "enviado_onu", eleicao_herdeiro: "governador", derrota_urnas: "conselheira", nova_eleicao: "lider_centrao"
   },
   eventos: {
     c_mil_regime: "gen_barreto", c_mil: "gen_becker", c_centrao: "lider_centrao", c_agro: "lider_agro", c_evangelicos: "pastor",

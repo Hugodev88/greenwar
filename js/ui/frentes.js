@@ -84,6 +84,7 @@ function frontsPanel(){
   let html = G.simple && !UI.manual ? simpleFrontsHTML() + frontRecruitHTML()
     : `${G.simple ? `<button class="linkbtn" data-manual="0">← Voltar ao resumo simples</button>` : ""}<h3>Frentes de batalha</h3>
       <p class="muted fhow">Você não move exércitos: escolha a <b>postura</b> de cada frente e encerre o mês. A cada +100 a linha toma um estado; a −100, perde um.</p>
+      ${frontWeary(G) > 0 ? `<p class="fwarn">😩 <span>Cansaço da guerra:</span> ${G.war.months} <span>meses de combate — Apoio Popular cai aos poucos e as frentes se movem</span> +${Math.round(frontWeary(G) * 100)}%<span>. Tréguas pausam o desgaste.</span></p>` : ""}
       ${G.ceasefire > 0 ? `<p class="fwarn">🕊 <span>Trégua em vigor: sem combates por</span> ${G.ceasefire} <span>mês(es).</span></p>` : ""}
       ${W.fronts.map(frontCardHTML).join("")}${frontSplitHTML()}${frontRecruitHTML()}${frontAutoHTML()}`;
   const last = (W.log || []).filter(r => G.mil && r.month === G.mil.month);

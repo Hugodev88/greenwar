@@ -126,7 +126,7 @@ const EVENTOS_2022 = [
       { text: "Negociar exceções para o agro em troca de votos.", fx: { money: -2, fac: { agro: 8, centrao: 4 } } },
       { text: "Liberar a bancada.", fx: { s: { base: -2 }, fac: { centrao: 5 } } } ], { if: { phase: "oposicao", from: "2023-06" }, once: true }),
     ev("n_municipais", "Eleições municipais de 2024", "Prefeituras e câmaras em todo o país: um teste para medir a força do seu campo.", [
-      { text: "Investir pesado nas campanhas.", fx: { money: -6, s: { base: 6, apoio: 3 } } },
+      { text: "Investir pesado nas campanhas.", fx: { money: -6, s: { base: 6, apoio: 3 }, opp: "o_popularidade" } },
       { text: "Apoiar apenas candidatos fortes.", fx: { money: -2, s: { base: 3 }, fac: { centrao: 3 } } },
       { text: "Ficar fora da disputa.", fx: { s: { base: -4 }, fac: { centrao: -4 } } } ], { if: { phase: "oposicao", from: "2024-07", until: "2024-12" }, once: true, weight: 5 }),
     ev("n_passaporte", "Justiça retém seu passaporte", "Num inquérito em andamento, um ministro determina a entrega do seu passaporte.", [
@@ -193,7 +193,7 @@ const EVENTOS_2022 = [
       { text: "Recusar: a guerra não espera.", fx: { s: { militar: 2, apoio: -2 }, fac: { evangelicos: -8 } } } ], { if: { phase: "regime" }, once: true }),
     ev("n_voluntarios", "Fila de voluntários nos quartéis", "Depois de um discurso na TV, jovens formam filas para se alistar.", [
       { text: "Formar brigadas de voluntários.", fx: { money: -3, reserve: 2, org: -2 } },
-      { text: "Mandá-los para a defesa civil.", fx: { s: { apoio: 3 }, unrest: -5 } } ], { if: { phase: "regime", min: { apoio: 35 } }, cooldown: 6 }),
+      { text: "Mandá-los para a defesa civil.", fx: { s: { apoio: 3 }, unrest: -5, opp: "o_retaguarda" } } ], { if: { phase: "regime", min: { apoio: 35 } }, cooldown: 6 }),
     ev("n_pm_dividida", "A PM de um estado se divide", "Metade dos batalhões de uma polícia militar estadual declara apoio ao regime; a outra metade, à resistência.", [
       { text: "Incorporar os batalhões leais.", fx: { reserve: 1, front: 5, fac: { militares: 3 } } },
       { text: "Desarmar a corporação inteira.", fx: { s: { militar: 3 }, unrestAll: 4 } } ], { if: { phase: "regime" }, cooldown: 8 }),

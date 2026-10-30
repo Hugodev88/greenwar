@@ -22,7 +22,7 @@ function doAction(g, id){
 }
 function checkCollapse(g){
   const S = scOf(g).story;
-  if (!g.ended) for (const k in S.collapse) if (g.stats[k] <= 0){ g.queue = []; enterStory(g, S.collapse[k]); return true; }
+  if (!g.ended) for (const k in S.collapse) if (g.stats[k] <= 0){ g.queue = []; enterStory(g, collapseTo(g, k)); return true; }
   return false;
 }
 

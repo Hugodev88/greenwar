@@ -1,14 +1,20 @@
-// js/core/focos.js — Núcleo: árvore de decisões nacionais (focos): status, início, progresso e conclusão.
+// js/core/focos.js — Núcleo: árvore de decisões nacionais (focos): status, início, progresso, conclusão, oportunidades (aparecem e expiram) e aviso de focos novos.
 /* ---------- Árvore de decisões nacionais (focos) ---------- */
-const FOCUS_FX_KEYS = ["s","money","reserve","fac","infl","unrest","unrestAll","unrestUF","act","actAll","enemy","flag","map","ap","ceasefire","malus","south","southAlly"];
-const EVENT_FX_KEYS = FOCUS_FX_KEYS.concat(["front", "org", "enemyLoss", "chain"]);
+const FOCUS_FX_KEYS = ["s","money","reserve","fac","infl","unrest","unrestAll","unrestUF","act","actAll","enemy","flag","map","ap","ceasefire","malus","south","southAlly","front","org","opp"];
+const EVENT_FX_KEYS = FOCUS_FX_KEYS.concat(["enemyLoss", "chain"]);
 function focusTree(g){ return scOf(g).campaign.focus || null; }
-function focusInit(g){ if (focusTree(g) && !g.focus) g.focus = { done: [], active: null, prog: 0, started: 0, dipBonus: {}, req: [], off: [], hist: [] }; return g.focus; }
+function focusInit(g){
+  if (focusTree(g) && !g.focus) g.focus = { done: [], active: null, prog: 0, started: 0, dipBonus: {}, req: [], off: [], hist: [] };
+  // v9: oportunidades abertas {id: mês final}, espera até reabrir {id: mês}, vezes repetidas {id: n}, focos novos deste mês e os já vistos
+  if (g.focus){ const f = g.focus; f.opps ||= {}; f.cool ||= {}; f.rep ||= {}; f.fresh ||= []; if (!Array.isArray(f.known)) f.known = null; }
+  return g.focus;
+}
 function focusDef(g, id){ const T = focusTree(g); return T ? T.nodes.find(n => n.id === id) : null; }
 function focusName(g, id){ const F = focusDef(g, id); return F ? F.name : id; }
 function focusStatus(g, F){
   const f = g.focus;
   if (!f) return { state: "unavailable", why: "" };
+  const O = F.oport;
   if (f.done.includes(F.id)) return { state: "done", why: "Concluído" };
   if (f.active === F.id) return { state: "active", why: `Em andamento: ${f.prog}/${F.months} ${F.months === 1 ? "mês" : "meses"}` };
   const ex = (F.excl || []).find(x => f.done.includes(x) || f.active === x);
@@ -22,6 +28,15 @@ function focusStatus(g, F){
     return { state: "prereq", why: "Requer " + parts.join("; ") };
   }
   if (F.avail && !cond(g, F.avail)) return { state: "unavailable", why: F.availText || "Indisponível agora" };
+  if (O && !F.probe){
+    const until = (f.opps || {})[F.id];
+    if (until === undefined){
+      const cd = (f.cool || {})[F.id];
+      return { state: "unavailable", why: cd > g.month ? `Oportunidade passada — pode voltar a partir de ${monthLabel(cd)}` : "Oportunidade: aparece quando " + O.text };
+    }
+    const left = until - g.month + 1;
+    return { state: "available", why: `Oportunidade: expira em ${left} ${left === 1 ? "mês" : "meses"}`, left };
+  }
   return { state: "available", why: "Disponível" };
 }
 function focusCheck(g, id){
@@ -58,7 +73,9 @@ function focusUnlocks(g, F){
 }
 function completeFocus(g, F, R){
   const f = g.focus, C = scOf(g).campaign;
-  f.done.push(F.id); f.active = null; f.prog = 0; f.hist.push({ id: F.id, m: g.month });
+  if (F.oport){ delete f.opps[F.id]; f.cool[F.id] = g.month + (F.oport.cooldown || 6); }
+  if (F.oport && F.oport.repeat) f.rep[F.id] = (f.rep[F.id] || 0) + 1; else f.done.push(F.id);
+  f.active = null; f.prog = 0; f.hist.push({ id: F.id, m: g.month });
   if (!g.flags.includes("fo_" + F.id)) g.flags.push("fo_" + F.id);
   applyFx(g, F.fx);
   for (const aid in (F.dipBonus || {})) f.dipBonus[aid] = (f.dipBonus[aid] || 0) + F.dipBonus[aid];
@@ -73,12 +90,43 @@ function focusTick(g, months, R){
   const f = focusInit(g);
   if (!f.active){ if (T.nodes.some(F => focusStatus(g, F).state === "available")) R("Nenhum foco nacional em andamento (aba Decisões).", "mid"); return; }
   const F = focusDef(g, f.active);
-  const st = focusStatus(g, Object.assign({}, F, { id: "__probe" }));
+  const st = focusStatus(g, Object.assign({}, F, { id: "__probe", probe: true }));
   const phaseGone = st.state === "unavailable" && F.avail && !cond(g, { phase: F.avail.phase, notPhase: F.avail.notPhase, anyControl: F.avail.anyControl });
   if (st.state === "locked" || st.state === "excluded" || phaseGone){ R(`Foco interrompido: ${F.name} — ${st.why}.`, "bad"); f.active = null; f.prog = 0; return; }
   f.prog += months;
   if (f.prog >= F.months) completeFocus(g, F, R);
   else R(`Foco em andamento: ${F.name} (${f.prog}/${F.months} meses).`);
+}
+/* ---------- Oportunidades e focos novos (fim de cada turno) ---------- */
+// Oportunidades (F.oport = { if, text, dura, cooldown, chance, repeat }): abrem quando a condição vale, ficam abertas por "dura" meses e somem.
+function focusOpenOpp(g, F, R, why){
+  const f = focusInit(g); if (!f || !F || !F.oport) return false;
+  if (f.opps[F.id] !== undefined || f.active === F.id || (!F.oport.repeat && f.done.includes(F.id))) return false;
+  f.opps[F.id] = g.month + Math.max(F.oport.dura || 3, paceFor(g)) - 1;
+  if (!f.fresh.includes(F.id)) f.fresh.push(F.id);
+  if (R) R(`⚡ Nova oportunidade: ${F.name}${why ? ` · ${why}` : ""} · até ${monthLabel(f.opps[F.id])} (aba Decisões).`, "good");
+  return true;
+}
+function focusEndTick(g, R){
+  const T = focusTree(g); if (!T || g.ended) return;
+  const f = focusInit(g); f.fresh = [];
+  for (const F of T.nodes) if (F.oport){
+    const until = f.opps[F.id];
+    if (until !== undefined){
+      if (g.month > until && f.active !== F.id){ delete f.opps[F.id]; f.cool[F.id] = g.month + Math.ceil((F.oport.cooldown || 6) / 2); R(`Oportunidade perdida: ${F.name}`, "mid"); }
+      continue;
+    }
+    if ((f.cool[F.id] || 0) > g.month || f.active === F.id || (!F.oport.repeat && f.done.includes(F.id))) continue;
+    if (!cond(g, F.oport.if)) continue;
+    if (F.avail && !cond(g, F.avail)) continue;
+    if (F.oport.chance !== undefined && rnd(g) >= F.oport.chance) continue;
+    focusOpenOpp(g, F, R);
+  }
+  // focos comuns que acabaram de ficar disponíveis (pela história, pela guerra ou pelos seus números)
+  const av = T.nodes.filter(F => !F.oport && focusStatus(g, F).state === "available").map(F => F.id);
+  if (f.known){ const nw = av.filter(id => !f.known.includes(id));
+    for (const id of nw){ f.fresh.push(id); R(`✨ Novo foco disponível (aba Decisões): ${focusName(g, id)}`, "good"); } }
+  f.known = [...new Set([...(f.known || []), ...av])];
 }
 function focusStoryGrant(g, node, rep){
   const T = focusTree(g); if (!T || !T.grants || !T.grants[node]) return;

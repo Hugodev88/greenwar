@@ -18,7 +18,9 @@ function renderGame(){
     return `<div class="stat"><div class="lbl"><span>${esc(STORY.stats[k].label)}</span><span class="val">${Math.round(v)}${d ? `<span class="delta ${d>0?"up":"down"}">${sgn(Math.round(d))}</span>` : ""}</span></div><div class="bar"><i style="width:${v}%;background:${STORY.stats[k].color}"></i></div></div>`;
   }).join("");
   const tabs = [["historia", `História${pend ? ` <b class="badge">${pend}</b>` : ""}`], ["mapa", "Mapa"], ["diplomacia", "Diplomacia"], ["faccoes", "Facções"], ["acoes", "Ações"]];
-  if (C.focus){ focusInit(G); const idle = !G.focus.active && C.focus.nodes.some(F => focusStatus(G, F).state === "available"); tabs.splice(1, 0, ["decisoes", `Decisões${idle ? ` <b class="badge">!</b>` : ""}`]); }
+  if (C.focus){ focusInit(G); const idle = !G.focus.active && C.focus.nodes.some(F => focusStatus(G, F).state === "available");
+    const nNew = UI.freshSeen === G.turn ? 0 : (G.focus.fresh || []).filter(id => { const F = focusDef(G, id); return F && focusStatus(G, F).state === "available"; }).length; // focos novos/oportunidades deste turno
+    tabs.splice(1, 0, ["decisoes", `Decisões${nNew ? ` <b class="badge fnewb" title="Novos focos ou oportunidades">✨${nNew}</b>` : idle ? ` <b class="badge">!</b>` : ""}`]); }
   if (UI.tab === "decisoes" && !C.focus) UI.tab = "historia";
   // interface simples (Fácil): Diplomacia e Facções ficam atrás do botão "Mais"
   const extra = ["diplomacia", "faccoes"], hideExtra = G.simple && !UI.moreTabs && !extra.includes(UI.tab);
