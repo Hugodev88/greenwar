@@ -573,7 +573,7 @@ for (const sc of SCENARIOS) {
           const ev = g.mil; if (!war || !ev || !ev.start) continue;
           const own = (side, fac, uf) => side === "player" ? RX.sideOf(g, pre[uf], ph) === "player" : pre[uf] === fac;
           const T = RX.frontCfg(g).tropas;
-          for (const mv of ev.moves){ moves++;
+          for (const mv of ev.moves){ if (mv.fix) continue; moves++; // fix = realocação de exército isolado (não é marcha)
             const P = mv.path, ok = P.length >= 2 && P.length <= T.passos + 1 && P.every((u, i) => !i || (ADJ[u].includes(P[i - 1]) && own(mv.side, mv.fac, u)));
             if (!ok){ badMove++; if (!ex) ex = `s${seed} mover ${P.join(">")}`; } }
           const start = {}; for (const a of ev.start) start[a.id] = a.uf;

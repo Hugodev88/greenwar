@@ -8,7 +8,7 @@ const GOLPE_LOCK = { visited: ["golpe_inicial"] }, GOLPE_TXT = "A ruptura instit
 const POSSE_LOCK = { visitedAny: ["transicao", "crise_janeiro"] }, POSSE_TXT = "A posse aconteceu: a ruptura saiu da mesa.";
 const REG = { phase: "regime" }, REG_TXT = "Só existe se houver ruptura (fase Regime de exceção).";
 CAMPAIGN_2022.focus = {
-  ap: 1, cell: { w: 150, h: 96 },
+  ap: 0, cell: { w: 150, h: 96 },
   grants: { golpe_inicial: ["c_ruptura"] }, // a história pode impor um foco (o golpe consumado abre o ramo do regime)
   branches: [
     { id: "tronco", label: "Tronco", x0: 5.5, x1: 6.5, color: "#c9a45c" },

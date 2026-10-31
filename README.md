@@ -36,7 +36,7 @@ O foco atual é o cenário de **2022**. (O antigo cenário fictício de 1924, "A
 - **Trilha sonora e efeitos:** música gerada no navegador com Web Audio (sem arquivos), com três climas: calmo, tenso e guerra, conforme a fase. Há efeitos para clique, ordem, fim de turno, batalha, vitória e derrota, e um alerta nos grandes eventos. O som começa no primeiro clique, como os navegadores exigem.
 
 ## Como jogar
-Jogue online em **https://hugodev88.github.io/greenwar/** ou abra o arquivo `index.html` no navegador (Chrome, Edge, Firefox ou o navegador do celular). Não precisa instalar nada, ter internet nem criar conta: o progresso fica salvo no `localStorage` do navegador.
+Jogue online em **https://hugodev30.github.io/greenwar/** ou abra o arquivo `index.html` no navegador (Chrome, Edge, Firefox ou o navegador do celular). Não precisa instalar nada, ter internet nem criar conta: o progresso fica salvo no `localStorage` do navegador.
 
 Com uma conta (botão **👤 Entrar**, opcional), os saves e os finais também vão para a nuvem e você ganha um perfil público. Veja [Contas e saves na nuvem](#contas-e-saves-na-nuvem-supabase). Aberto como arquivo local (`file://`), o jogo roda sem a parte de contas.
 
@@ -150,8 +150,8 @@ O login é **opcional**. Sem conta, offline ou se o Supabase estiver fora do ar,
 ### Configurar o projeto Supabase (uma vez)
 1. **Rodar o SQL:** no painel do Supabase, abra **SQL Editor → New query**, cole todo o [`supabase/migrations/001_init.sql`](supabase/migrations/001_init.sql) e clique em **Run**. Pode rodar de novo sem problema (o script é idempotente). Ele cria `profiles` e `saves`, as políticas RLS, o gatilho que cria o perfil no cadastro e o perfil das contas que já existirem.
 2. **URLs de redirecionamento:** em **Authentication → URL Configuration**:
-   - em **Site URL**, coloque `https://hugodev88.github.io/greenwar/`;
-   - em **Redirect URLs**, adicione `https://hugodev88.github.io/greenwar/` (e, para testes locais, `http://localhost:8000/`).
+   - em **Site URL**, coloque `https://hugodev30.github.io/greenwar/`;
+   - em **Redirect URLs**, adicione `https://hugodev30.github.io/greenwar/` (e, para testes locais, `http://localhost:8000/`).
 
    Os links de confirmação, o link mágico e a recuperação de senha voltam para esse endereço.
 3. **Opcional, para testar mais rápido:** em **Authentication → Sign In / Providers → Email**, desligue **Confirm email**. Assim a conta entra direto, sem o e-mail de confirmação. Religue antes de divulgar o jogo.
@@ -184,7 +184,7 @@ O `tests/check.js` também valida os dados do 1964 (bloqueado) e roda um teste c
 
 ## Hospedar de graça
 O jogo é um site estático, então qualquer hospedagem estática serve:
-- **GitHub Pages:** no repositório, abra *Settings → Pages → Deploy from a branch*, escolha `main` e a pasta `/ (root)`. O endereço fica `https://hugodev88.github.io/greenwar/`.
+- **GitHub Pages:** no repositório, abra *Settings → Pages → Deploy from a branch*, escolha `main` e a pasta `/ (root)`. O endereço fica `https://hugodev30.github.io/greenwar/`.
 - **Netlify:** use *Add new site → Import from Git*, escolha este repositório e deixe o comando de build vazio, com a pasta de publicação `.`. Também dá para arrastar a pasta em app.netlify.com/drop.
 - **Cloudflare Pages:** use *Create → Pages → Connect to Git*, sem framework, sem comando de build, com a pasta de saída `/`.
 

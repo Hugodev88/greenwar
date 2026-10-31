@@ -1,4 +1,4 @@
-/* css/faccoes.css — Facções: explicação. (a ordem dos arquivos no index.html importa) */
+/* css/faccoes.css — Facções: cabeçalho com ajuda (?) e linhas de efeito por nível. (a ordem dos arquivos no index.html importa) */
   /* ---- Facções: explicação ---- */
   .facx{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-bottom:12px}
   .facx > div{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:system-ui,sans-serif;font-size:.82rem;line-height:1.45;color:#ddd3c2}
@@ -13,3 +13,22 @@
   .fac .fbtns button small{display:block;font-size:.68rem;color:var(--muted);font-weight:normal;margin-top:2px}
   .fac .bar u.t65{position:absolute;top:-2px;bottom:-2px;border-left:1px dashed #8fbf7a}
   .fac .bar u.t35{position:absolute;top:-2px;bottom:-2px;border-left:1px dashed #d0902a}
+
+  /* ---- Fase 17: ajuda "?" e efeitos por nível no cartão ---- */
+  .fachead{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;margin:0 0 10px;font-family:system-ui,sans-serif}
+  .fachead > span{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:600}
+  .fhelp{position:relative}
+  .fhelp summary{list-style:none;cursor:pointer;width:22px;height:22px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);display:grid;place-items:center;font-size:.8rem;font-weight:700}
+  .fhelp summary::-webkit-details-marker{display:none}
+  .fhelp .fhpop{position:absolute;z-index:30;top:28px;left:0;width:min(380px,86vw);background:#16120e;border:1px solid var(--line);border-radius:8px;padding:8px 12px;box-shadow:0 8px 24px #000a;font-size:.8rem;line-height:1.45;color:#ddd3c2}
+  .fhelp .fhpop ul{margin:0;padding-left:16px}.fhelp .fhpop li{margin:3px 0}
+  .fbusy{font-size:.78rem;color:#e0a85a;text-decoration:none;border:1px solid #e0a85a55;border-radius:6px;padding:3px 8px}
+  .fbusy:hover{background:#e0a85a18}
+  .fac .frows{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;font-family:system-ui,sans-serif;font-size:.76rem;line-height:1.35;background:#0004;border-radius:6px;padding:5px 7px;color:#a99f8f}
+  .fac .frow{display:contents}
+  .fac .frow em{font-style:normal;font-weight:600;white-space:nowrap;opacity:.75}
+  .fac .frow.cur em,.fac .frow.cur > div{color:#f3e6c8;opacity:1}
+  .fac .frow.cur em::before{content:"▸ "}
+  .fac .frow.lv-leal em{color:#8fbf7a}.fac .frow.lv-insat em{color:#e0a85a}.fac .frow.lv-crise em{color:#f09a86}
+  .fac .frow.cur > div{font-weight:600}
+  .fac .flinks{display:flex;flex-wrap:wrap;gap:4px 10px;font-family:system-ui,sans-serif;font-size:.72rem;color:var(--muted)}

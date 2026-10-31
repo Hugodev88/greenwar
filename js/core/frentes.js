@@ -80,7 +80,7 @@ function frontSpawn(g, fac, total){
   }
   if (!picks.length){ const any = TP_UFS.find(uf => g.control[uf] === fac); if (any) picks.push(any); }
   const w = picks.map(uf => uf === home ? 0.6 : 1), sw = w.reduce((s, x) => s + x, 0);
-  picks.forEach((uf, i) => tpNew(g, "enemy", fac, uf, total * w[i] / sw, D.moral));
+  picks.forEach((uf, i) => { const at = tpAt(g, "enemy", uf), v = total * w[i] / sw; if (at && !tpRoom(g, "enemy", uf)) tpAddTo(at, v, D.moral); else tpNew(g, "enemy", fac, uf, v, D.moral); });
 }
 function frontOpen(g, fac, n){
   const W = g.war, K = frontCfg(g), D = K.frentes[fac];
@@ -174,7 +174,7 @@ function frontRecruitState(g, uf, how, id){
   if (g.money < K.custo) return { ok: false, msg: `Faltam recursos: precisa de ${K.custo} (tem ${Math.floor(g.money)}).` };
   if (uf && (!ph.war || !g.war.fronts.length)) uf = null;
   if (uf){
-    if (!frontRecruitUFs(g).includes(uf)) return { ok: false, msg: frontFala(g, "tropas", "recrutaOnde") };
+    if (!frontRecruitUFs(g).includes(uf)) return { ok: false, msg: frontFala(g, "tropas", tpSide(g, uf) === "player" ? "recrutaIsolado" : "recrutaOnde") };
     const here = tpAllAt(g, "player", uf), novo = how === "novo" || (!how && !here.length);
     if (novo){
       if (tpArmies(g, "player").length >= T.max) return { ok: false, msg: gfmt(frontFala(g, "tropas", "limite"), T.max) };

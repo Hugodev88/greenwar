@@ -29,7 +29,7 @@ function achRecord(){
   cloud("syncAchievements");
   return { grade: gr, fresh };
 }
-function shareURL(){ return /^https?:/.test(location.protocol) ? location.origin + location.pathname : "https://hugodev88.github.io/greenwar/"; }
+function shareURL(){ return /^https?:/.test(location.protocol) ? location.origin + location.pathname : "https://hugodev30.github.io/greenwar/"; }
 function shareText(node, gr, nAch){
   const D = diffOf(G), months = G.month - G.startMonth, total = CONQUISTAS.length;
   if (SET.lang === "zh") return `我在 Greenwar 中通关了“${trText(SCEN.title)}”：结局“${trText(node.endingName)}”，评级 ${gr.letter}（${trText(D.label)}），用时 ${months} 个月。成就 ${nAch}/${total}。来玩：${shareURL()}`;

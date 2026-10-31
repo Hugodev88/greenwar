@@ -127,3 +127,8 @@
   @keyframes rvpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
   body.rm .rvbox,body.rm .rvbox .rvburst{animation:none}
   @media (prefers-reduced-motion:reduce){.rvbox,.rvbox .rvburst{animation:none}}
+  /* Fase 17: siglas do Nordeste pequeno dentro do estado (sem linha até o mar) */
+  .mapbox text.ne{font-size:8px;stroke-width:2.2px}
+  @media (max-width:600px){ .mapbox text.ne{font-size:11px;stroke-width:3px} }
+  .mapbox svg.zoomed text.ne{font-size:12px;stroke-width:3px}
+  @media (max-width:600px){ .mapbox svg.zoomed text.ne{font-size:17px;stroke-width:4px} }

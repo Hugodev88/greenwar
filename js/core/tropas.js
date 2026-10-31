@@ -491,7 +491,8 @@ function tpFix(g, out){
       L.sort((x, y) => y.str - x.str || (x.id < y.id ? -1 : 1));
       for (const a of L.slice(cap)){ const D = ufDist(uf);
         const c = TP_UFS.filter(u => u !== uf && tpOwn(g, a, u) && tpRoom(g, side, u, a)).sort((x, y) => (D[x] ?? 99) - (D[y] ?? 99) || (x < y ? -1 : 1))[0];
-        if (c){ if (out) out.push({ id: a.id, side, from: uf, to: c, fix: true }); a.uf = c; a.order = null; } } }
+        if (c){ if (out) out.push({ id: a.id, side, from: uf, to: c, fix: true }); a.uf = c; a.order = null; }
+        else { tpAddTo(L[cap - 1], a.str, a.morale ?? 60); tpRemove(g, a); } } } // sem vaga em lugar nenhum: junta ao exército dali
   }
 }
 // Cerco no fim do mês: exército cortado da capital perde tropa e moral; fraco demais (ou cercado há muito tempo), se rende

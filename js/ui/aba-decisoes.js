@@ -16,7 +16,7 @@ function focusOppText(F){
 }
 function focusTip(F, st){
   const fx = fxSummary(G, F.fx), un = focusUnlocks(G, F);
-  return [F.name, F.oport ? "⚡ Oportunidade — " + focusOppText(F) : "", F.desc, `Duração: ${F.months} ${turnUnit(G, F.months)} · custo ${focusTree(G).ap ?? 1} AP${F.cost ? ` + ${F.cost} ${SCEN.campaign.money.short}` : ""}`,
+  return [F.name, F.oport ? "⚡ Oportunidade — " + focusOppText(F) : "", F.desc, `Duração: ${F.months} ${turnUnit(G, F.months)}`, F.cost ? `Custo: ${F.cost} ${SCEN.campaign.money.short}` : "Custo: grátis", "Não gasta ações políticas.",
     fx ? "Efeitos: " + fx : "", F.risk ? `Risco (${Math.round(F.risk.p * 100)}%): ${F.risk.msg}` : "", ...un, `Situação: ${st.why}`].filter(Boolean).map(trText).join("\n");
 }
 function focusSVG(T, Gm){
@@ -63,7 +63,7 @@ function tabDecisoes(el){
   const act = f.active ? focusDef(G, f.active) : null;
   const status = act
     ? `<div class="fstatus on"><span>Foco atual</span><strong>${esc(act.name)}</strong><div class="bar"><i style="width:${Math.round(100 * f.prog / act.months)}%;background:#c9a45c"></i></div><small>${f.prog}/${act.months} ${turnUnit(G, act.months)} · avança ao encerrar o mês</small></div>`
-    : `<div class="fstatus"><span>Foco atual</span><strong>Nenhum</strong><small>Escolha um foco disponível (●). Começar custa ${T.ap ?? 1} AP; só um por vez. Concluídos: ${f.done.filter(id => !(focusDef(G, id) || {}).oport).length} de ${T.nodes.filter(F => !F.oport).length}.</small></div>`;
+    : `<div class="fstatus"><span>Foco atual</span><strong>Nenhum</strong><small>Escolha um foco disponível (●). Não gasta ações políticas; só um por vez. Concluídos: ${f.done.filter(id => !(focusDef(G, id) || {}).oport).length} de ${T.nodes.filter(F => !F.oport).length}.</small></div>`;
   const sel = UI.selFocus ? focusDef(G, UI.selFocus) : null;
   let detail = "";
   if (sel){
@@ -73,7 +73,7 @@ function tabDecisoes(el){
       <div class="chap" style="color:${br.color}">${esc(br.label || "")}</div><h3>${esc(sel.name)}</h3>
       <div class="fstate st-${st.state}">${FSTATE[st.state][1]} ${esc(st.why)}</div>
       <p>${esc(sel.desc)}</p>
-      <dl><dt>Duração</dt><dd>${sel.months} ${turnUnit(G, sel.months)} · ${T.ap ?? 1} AP${sel.cost ? ` + ${sel.cost} ${esc(C.money.short)}` : ""}</dd>
+      <dl><dt>Duração</dt><dd>${sel.months} ${turnUnit(G, sel.months)}</dd><dt>Custo</dt><dd>${sel.cost ? `${sel.cost} ${esc(C.money.short)}` : "Grátis"} · não gasta ações</dd>
       ${sel.fx ? `<dt>Efeitos</dt><dd>${esc(fxSummary(G, sel.fx))}</dd>` : ""}
       ${sel.risk ? `<dt>Risco</dt><dd>${Math.round(sel.risk.p * 100)}%: ${esc(sel.risk.msg)} (${esc(fxSummary(G, sel.risk.fx))})</dd>` : ""}
       ${focusUnlocks(G, sel).length ? `<dt>Libera</dt><dd>${focusUnlocks(G, sel).map(esc).join("<br>")}</dd>` : ""}
@@ -84,7 +84,7 @@ function tabDecisoes(el){
       ${sel.avail ? `<dt>Quando</dt><dd>${esc(sel.availText || "")}</dd>` : ""}
       ${sel.lockIf ? `<dt>A história pode bloquear</dt><dd>${esc(sel.lockText || "")}</dd>` : ""}</dl>
       ${st.state === "active" ? `<button class="secondary" id="fCancel">Cancelar foco (perde o progresso)</button>`
-        : st.state === "done" ? "" : `<button class="primary" id="fStart" ${bad ? "disabled" : ""}>Iniciar foco (${T.ap ?? 1} AP${sel.cost ? ` · ${sel.cost} ${esc(C.money.short)}` : ""})</button>${bad ? `<small class="why">${esc(bad)}</small>` : ""}`}
+        : st.state === "done" ? "" : `<button class="primary" id="fStart" ${bad ? "disabled" : ""}>Iniciar foco${sel.cost ? ` (${sel.cost} ${esc(C.money.short)})` : ""}</button>${bad ? `<small class="why">${esc(bad)}</small>` : ""}`}
     </div>`;
   }
   const legend = Object.entries(FSTATE).map(([k, [l, i]]) => `<span class="st-${k}"><em>${i}</em>${l}</span>`).join("") + `<span class="st-opp"><em>⚡</em>Oportunidade (aparece e expira)</span><span class="st-new"><em>✨</em>Novo neste turno</span><span>── pré-requisito</span><span>- - basta um</span><span style="color:#e07a62">⊘ exclusivo</span>`;

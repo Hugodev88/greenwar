@@ -10,9 +10,11 @@ const FMAP_COL = () => SET.cb ? { p: "#0072B2", e: "#D55E00", pl: "#9fd3ff", el:
 const TCHIP_K = () => MOBILE_MAP() ? 1.75 : 1.15;
 // onde fica a ficha de cada estado (centro): embaixo do rótulo; DF, ES e RJ ao lado do rótulo; NE pequeno no mar
 const TP_CHIP_SIDE = { DF: [28, 10], ES: [24, 0], RJ: [26, 0] }, TP_CHIP_SEA = ["RN", "PB", "PE", "AL", "SE"];
+const TP_COAST = { RN: [571, 172], PB: [574, 189], PE: [573, 206], AL: [567, 223], SE: [552, 240] }; // ponto da costa de cada estado pequeno
 function tpChipPos(uf){
   const s = MAP_DATA.states[uf], o = LABEL_POS[uf], k = TCHIP_K();
-  if (TP_CHIP_SEA.includes(uf)){ const i = TP_CHIP_SEA.indexOf(uf), c0 = o[0] + 12 + 19 * k; return [i % 2 ? c0 + 38 * k + 4 : c0, o[1]]; }
+  // fase 17: a ficha encosta na costa do próprio estado (duas colunas alternadas, para não sobrepor no celular)
+  if (TP_CHIP_SEA.includes(uf)){ const i = TP_CHIP_SEA.indexOf(uf), c = TP_COAST[uf], c0 = c[0] + 4 + 19 * k; return [i % 2 ? c0 + 38 * k + 3 : c0, c[1]]; }
   if (TP_CHIP_SIDE[uf]){ const d = TP_CHIP_SIDE[uf]; return [o[0] + d[0] * k / 1.15, o[1] + d[1]]; }
   return [s.lx, s.ly + 8 + 10 * k];
 }
@@ -53,8 +55,9 @@ function frontMapLayers(g, control, w, opts){
   // capital (estrela dourada) e capitais inimigas das frentes abertas (estrela vermelha grande + nome: "Recife — capital da Resistência")
   const STAR = "M0,-6.5L1.9,-2L6.6,-2L2.8,1L4.2,5.8L0,3L-4.2,5.8L-2.8,1L-6.6,-2L-1.9,-2z";
   const mark = (uf, cls, lbl, name) => { const [x, y] = tpUfPt(uf);
-    const right = x > w * 0.62, t = name ? `<text class="fglbl" x="${right ? -11 : 11}" y="${right ? -9 : 1}" text-anchor="${right ? "end" : "start"}">${esc(name)}</text>` : "";
-    return `<g class="fgoal ${cls}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><title>${esc(lbl)}</title><g class="zinv">${cls === "cap" ? `<path d="${STAR}"/>` : `<path class="big" d="${STAR}" transform="scale(1.45)"/>`}${t}</g></g>`; };
+    // fase 17: só o nome curto ("Recife"), à esquerda da estrela; o nome inteiro fica na dica (title)
+    const short = name ? name.split(" — ")[0] : "", t = short ? `<text class="fglbl" x="-10" y="0" text-anchor="end" translate="no">${esc(short)}</text>` : "";
+    return `<g class="fgoal ${cls}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><title>${esc(name || lbl)}</title><g class="zinv">${cls === "cap" ? `<path d="${STAR}"/>` : `<path class="big" d="${STAR}" transform="scale(1.45)"/>`}${t}</g></g>`; };
   if (K.capital && sideOf(g, control[K.capital], ph) === "player") out.over += mark(K.capital, "cap", `${K.capital}: sua capital — se cair, o regime cai`, "");
   for (const f of W.fronts){ const r = K.frentes[f.id] && K.frentes[f.id].reduto; if (r && control[r] !== undefined && sideOf(g, control[r], ph) !== "player") out.over += mark(r, "goal", `${r}: capital inimiga — ${frontName(g, f)}`, frontFala(g, "reduto", f.id)); }
   // exércitos: destinos do selecionado (com a chance), setas das ordens e as fichas por cima de tudo

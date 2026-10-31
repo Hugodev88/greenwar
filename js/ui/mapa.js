@@ -14,6 +14,8 @@ function changeNotes(changes){
     (to === "disputa" ? `${ufs.join(", ")} entraram em disputa` : `${ufs.join(", ")} passaram para: ${STORY.factions[to] ? STORY.factions[to].label : to}`));
 }
 const LABEL_POS = { RN:[598,166], PB:[598,186], PE:[598,206], AL:[598,226], SE:[590,248], ES:[524,382], RJ:[480,446], DF:[406,310] };
+// Fase 17 (2022): siglas do Nordeste pequeno DENTRO do estado (letra menor, sem linha até o mar); PE fica a oeste para não bater em Recife
+const LABEL_IN = { RN:[549,170], PB:[547,191], PE:[503,212], AL:[549,228], SE:[537,244] };
 // Escala "viridis" (perceptualmente uniforme, legível para daltônicos e em tons de cinza): roxo = calmo → verde → amarelo = revolta
 const VIRIDIS = [[68,1,84],[72,40,120],[62,74,137],[49,104,142],[38,130,142],[31,158,137],[53,183,121],[109,205,89],[180,222,44],[253,231,37]];
 function unrestColor(v){ const t = Math.max(0, Math.min(1, v / 100)) * (VIRIDIS.length - 1), i = Math.min(VIRIDIS.length - 2, Math.floor(t)), u = t - i, a = VIRIDIS[i], b = VIRIDIS[i + 1];
@@ -26,14 +28,15 @@ function mapSVG(control, changed, opts){
   const tg = {};
   if (mil && opts.selArmy && opts.selArmy.side === "player" && !opts.static) for (const t of armyTargets(opts.g, opts.selArmy)) if (!opts.tgtMode || (opts.tgtMode === "atacar" ? t.type === "atacar" : t.type !== "atacar")) tg[t.uf] = t.type;
   let paths = "", labels = "";
+  const neIn = !!(opts.g && typeof frontMode === "function" && frontMode(opts.g));
   for (const uf in MAP_DATA.states){
     const s = MAP_DATA.states[uf], f = STORY.factions[control[uf]] || STORY.factions[STORY.defaultFaction || "federal"];
     const fill = opts.mode === "agitacao" && opts.g ? unrestColor(opts.g.uf[uf].unrest) : facFill(control[uf]);
     const ia = opts.static ? "" : ` tabindex="0" role="button" aria-label="${esc(uf + " · " + s.name + ": " + (f ? f.label : control[uf]) + (opts.g ? ", agitação " + Math.round(opts.g.uf[uf].unrest) : "") + (tg[uf] ? ", destino possível: " + ORDER_LABEL[tg[uf]].toLowerCase() : ""))}"`;
     paths += `<path class="uf${ch.has(uf)?" changed":""}${opts.sel===uf?" sel":""}${control[uf]==="disputa"?" contested":""}${tg[uf] ? " tgt tgt-" + tg[uf] : ""}${opts.selArmy && opts.selArmy.uf === uf ? " origin" : ""}${opts.pend && opts.pend.to === uf ? " pend" : ""}" data-uf="${uf}" d="${s.d}" fill="${fill}"${ia}></path>`;
-    const o = LABEL_POS[uf], x = o ? o[0] : s.lx, y = o ? o[1] : s.ly;
-    if (o) labels += `<line x1="${s.lx}" y1="${s.ly}" x2="${o[0]-10}" y2="${o[1]}"/>`;
-    labels += `<text x="${x}" y="${y}">${uf}</text>`;
+    const inn = neIn && LABEL_IN[uf], o = inn || LABEL_POS[uf], x = o ? o[0] : s.lx, y = o ? o[1] : s.ly;
+    if (o && !inn) labels += `<line x1="${s.lx}" y1="${s.ly}" x2="${o[0]-10}" y2="${o[1]}"/>`;
+    labels += `<text${inn ? ` class="ne"` : ""} x="${x}" y="${y}">${uf}</text>`;
     if (opts.mode === "agitacao" && opts.g) labels += `<text class="uv" x="${x}" y="${y + (MOBILE_MAP() ? 15 : 11)}">${Math.round(opts.g.uf[uf].unrest)}</text>`;
   }
   let L = { fronts: "", pulses: "", arrows: "", counters: "" }, w = 620;

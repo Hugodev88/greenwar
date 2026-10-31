@@ -117,7 +117,7 @@ function resolveQueue(g, sc, r, greedy){
 }
 // Escolha de foco nacional: aleatória, gulosa (evita a ruptura) ou radical (prefere a ruptura e o confronto)
 function pickFocus(g, sc, r, greedy){
-  const T = API.focusTree(g); if (!T || g.focus.active || g.queue.length || g.ended || g.ap < 1) return;
+  const T = API.focusTree(g); if (!T || g.focus.active || g.queue.length || g.ended) return; // focos não gastam AP (fase 17)
   if (greedy === "eleitoral" && !g.visited.includes("contestacao_derrotada") && !g.visited.includes("crise_janeiro") && !g.visited.includes("transicao")){ // trilha da contestação
     for (const id of ["t_balanco", "b_contestar", "b_auditoria", "b_defesa", "u_comissao", "u_recontagem"]) if (!g.focus.done.includes(id) && !API.focusCheck(g, id)){ API.startFocus(g, id); return; } }
   const av = T.nodes.filter(F => !API.focusCheck(g, F.id));

@@ -114,3 +114,35 @@
 .chipbtn:hover:not([disabled]){background:#2a2414;border-color:#c9a45c}.chipbtn[disabled]{opacity:.5;cursor:not-allowed}
 .tpsame .why,.recruit .why{color:#ffb3a3;font-size:.78rem}
 @media (max-width:600px){ .tphud{padding:4px 5px} .tphud .tpsteps.hud{grid-template-columns:1fr;margin-bottom:4px} .tphud .tpsteps.hud li:not(.now){display:none} .tpnext{font-size:.74rem;padding:4px 8px} }
+  /* Fase 17: cartão do exército compacto (ordem atual + Defender, ataques em destaque, movimentos recolhidos, recrutar aqui) */
+  .tpnow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:8px 0 6px}
+  .tpnow .tpnowo{font-weight:600}
+  .tpdef{display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border-radius:999px;border:1px solid #5b8fc7;background:#1a2230;color:#cfe3f5;font:inherit;font-size:.82rem;cursor:pointer}
+  .tpdef:hover:not(:disabled){background:#22304a}.tpdef.on{background:#25476e;border-color:#9cc3ea;color:#fff;cursor:default}
+  .tpnow small{flex-basis:100%;font-size:.72rem}
+  .tpsec{margin:6px 0;border-radius:7px}
+  .tpsech{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:#f0a493;font-weight:700;margin:4px 0 2px}
+  .tpsec.atk{border-left:3px solid #a8402f;padding-left:7px}
+  .tptgs.atk{grid-template-columns:repeat(auto-fill,minmax(128px,1fr));margin:4px 0}
+  .tptgs.atk .tptg{min-height:40px;justify-content:space-between;background:#241513}
+  .tptgs.atk .tptg em.tpc{font-size:.95rem;padding:1px 7px}
+  .tptg span:empty{display:none}
+  details.tpsec > summary{cursor:pointer;font-size:.8rem;color:#9cc3ea;padding:3px 0;list-style:none}
+  details.tpsec > summary::-webkit-details-marker{display:none}
+  details.tpsec > summary::after{content:" ▸";color:var(--muted)}details.tpsec[open] > summary::after{content:" ▾"}
+  details.tpsec.more > summary{color:var(--muted)}
+  .tptgs.mvs{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0}
+  .tptgs.mvs .tptg{min-height:32px;padding:4px 9px;border-radius:999px;font-size:.8rem}
+  .tptgs.mvs .tptg span{width:auto;font-size:.68rem}
+  .foff{margin:4px 0 2px}.foff.off .secondary{opacity:.8}.foff small{font-size:.72rem;line-height:1.35}
+  .tpgenrow{margin:6px 0;padding:5px 7px;gap:8px;flex-wrap:wrap}.tpgenrow > div{flex:1 1 140px}
+  .tpgenrow select{flex:0 1 180px;min-width:0;max-width:100%;font-size:.8rem}
+  .tpgen0{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#0006;color:var(--muted)}
+  .tprechere{margin-top:8px;padding:6px 8px;border:1px dashed #4f7aa3;border-radius:7px;background:#121a24}
+  .tprecbtns{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+  .tprechere small{display:block;font-size:.72rem;line-height:1.35;margin-top:2px}
+  @media (max-width:520px){ .tptgs.atk{grid-template-columns:1fr 1fr} .tpgenrow select{flex-basis:100%} }
+  .tptg b.tpn2{flex:1;font-weight:700;min-width:0}.tptgs.mvs .tptg b.tpn2{font-weight:600}
+  .tptgs.atk .tptg{justify-content:flex-start}.tptgs.atk .tptg em.tpc{margin-left:auto}
+  details.tpsec > summary small{color:var(--muted);font-size:.72rem}
+.tprecbtns .chipbtn small{display:inline;margin-left:4px;opacity:.8}

@@ -3,6 +3,14 @@
    As frases são traduzidas pelos dicionários em js/i18n/{en,zh,ru}.js (seção "exact"), como o resto do jogo.
    Ao lançar uma fase nova: acrescente uma versão no topo (ver README → "Como atualizar o jogo"). */
 const NOVIDADES = [
+  { v: "1.17", data: "2026-10-31", titulo: "Ordens mais claras e recrutar no mapa", itens: [
+    "O cartão de cada exército ficou compacto: ataques primeiro, com a chance; movimentos recolhidos; botão Defender como ordem padrão.",
+    "A ofensiva especial explica ganho, risco, custo e espera, e diz por que está bloqueada.",
+    "Toque num estado seu durante a guerra para recrutar ali: exército novo ou reforço, com custo e manutenção à vista.",
+    "Decisões nacionais não gastam mais ações políticas.",
+    "Facções: cada cartão mostra o efeito em cada nível de lealdade, com o de agora destacado; as regras ficam no botão ?.",
+    "Mapa: siglas do Nordeste dentro dos estados, fichas junto à costa e Recife com rótulo curto."
+  ] },
   { v: "1.16.1", data: "2026-10-30", titulo: "Diplomacia traduzida", itens: [
     "A aba Diplomacia agora aparece inteira em inglês, chinês e russo: previsão, motivos, consequências e respostas dos países.",
     "Os relatórios do mês sobre dívidas, sanções e apoio estrangeiro também foram traduzidos."
