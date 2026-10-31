@@ -940,6 +940,29 @@ for (const sc of SCENARIOS) {
     if (falta64.length) err(`tradução ${L}: cartão do cenário 1964 sem tradução: "${falta64[0].slice(0, 60)}"`);
   }
 }
+// ---- tradução da aba Diplomacia (falha se algum texto renderizado ficar em português) ----
+// tests/textos-diplomacia.js renderiza a aba em todas as fases/atores/pedidos/ofertas e junta as mensagens de acordo, missão,
+// relatório do mês e focos. Cada texto passa pelo tradutor da tela (trCore), cada idioma sozinho (sem cair no inglês); falha se
+// não traduzir ou se sobrar português (EN) ou palavra latina (ZH/RU). Texto novo na diplomacia precisa entrar em en/zh/ru.js.
+{
+  const rd = f => fs.readFileSync(require("path").join(JOGO.RAIZ, f), "utf8");
+  const trSrc = rd("js/i18n/traducao.js").split("\ndocument.__ptTitle")[0];
+  const DIC = { en: new Function(rd("js/i18n/en.js") + "; return I18N_EN;")(), zh: new Function(rd("js/i18n/zh.js") + "; return I18N_ZH;")(), ru: new Function(rd("js/i18n/ru.js") + "; return I18N_RU;")() };
+  const VAZIO = { exact: {}, tpl: {} };
+  const PT = /[ãõçâêôàÃÕÇ]|\b(de|da|do|dos|das|não|você|seu|sua|com|para|por|uma|mês|meses|acordo|opinião|pedido|oferta|dívida|ação|ações|dinheiro|em|os|as|ao|que|mais|já|se|aceitou|recusou|fechado|agora|força|apoio|sanções)\b/i;
+  const NOMES = /Alcântara|Brasília|Martín|São Paulo|Itamaraty/g, SIGLAS = /\b(AP|ONU|OEA|UN|OAS|BRICS|EUA|USA|EU|UE|PIB|ONG|AI|IA)\b/g;
+  const textos = require("./textos-diplomacia.js")("brasil2022");
+  const ruins = {};
+  for (const L of ["en", "zh", "ru"]){
+    const tr = new Function("I18N_EN", "I18N_ZH", "I18N_RU", "SET", "document", trSrc + "; return trCore;")(L === "en" ? DIC.en : VAZIO, DIC.zh, DIC.ru, { lang: L }, {});
+    ruins[L] = textos.filter(([t]) => { const r = tr(t, 0, L), fim = (r == null ? t : r).replace(NOMES, "");
+      const sobra = L === "en" ? PT.test(fim) : /[A-Za-zÀ-ú]{3,}/.test(fim.replace(SIGLAS, ""));
+      return (r == null && (L !== "en" || PT.test(t))) || sobra; });
+    for (const [t, onde] of ruins[L].slice(0, 3)) err(`tradução ${L} da Diplomacia: "${t.slice(0, 70)}" (${onde}) fica em português`);
+  }
+  const n = Object.values(ruins).reduce((a, b) => a + b.length, 0);
+  console.log(`Tradução da Diplomacia: ${textos.length} textos renderizados × EN/ZH/RU — ${n ? n + " em português" : "0 em português"}`);
+}
 console.log(errors ? `\nFALHOU (${errors} problemas)` : "\nOK: todos os cenários íntegros, todos os nós e finais alcançáveis.");
 if (errors) process.exit(1);
 console.log("\n=== Simulação de campanhas (sim.js) ===");

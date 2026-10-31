@@ -1,4 +1,6 @@
 // js/ui/aba-diplomacia.js — Interface: aba Diplomacia.
+// Tradução: os textos são traduzidos na tela (js/i18n); cada rótulo variável fica no próprio elemento (ex.: a lista "Valoriza")
+// para não juntar vírgulas de rótulos diferentes. O check.js renderiza esta aba e falha se algum texto ficar em português.
 function opinionBar(v){ const w = Math.abs(v) / 2, col = v >= 0 ? "#6fae6a" : "#c2563f"; return `<div class="opbar"><i style="${v >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%;background:${col}"></i><b></b></div>`; }
 function tabDiplomacia(el){
   const C = SCEN.campaign, L = dipLabels(G);
@@ -25,7 +27,7 @@ function tabDiplomacia(el){
     const pct = clamp(Math.round(50 + sc.score * 1.6), 3, 97);
     panel = `<h3>${esc(A.name)}</h3>${whoHTML(portraitOf("atores", aid), 48)}<p class="ideo">${esc(A.ideology)}</p>
       <div class="ufinfo"><div><span>Opinião</span>${opinionBar(st.opinion)}<b>${sgn(st.opinion)}</b></div>
-      <div><span>Valoriza</span><b>${esc(wants.join(", ") || "pouco do que você pode oferecer")}</b></div>
+      <div><span>Valoriza</span><b>${wants.length ? wants.map(w => `<span>${esc(w)}</span>`).join(", ") : "pouco do que você pode oferecer"}</b></div>
       <div><span>Relações</span><b class="rels">${rels || "—"}</b></div>
       <div><span>Postura</span><b>${(A.democracy||0) >= 0.8 ? "Exige legitimidade democrática" : (A.democracy||0) >= 0.4 ? "Atenta à legitimidade" : "Pragmática"}</b></div></div>
       <div class="deal"><div class="dcol"><h4>Você pede <small>(até 2)</small></h4>${REQ_TYPES.map(r => { const ok = ar.includes(r); return `<label class="${ok?"":"off"}"><input type="checkbox" data-req="${r}" ${UI.req.includes(r)?"checked":""} ${ok?"":"disabled"}> ${esc(L.req[r])}${ok ? "" : `<small>${(A.gives[r]||0) <= 0 ? "não oferecem" : r === "reconhecimento" && st.recognized ? "já obtido" : "indisponível nesta fase"}</small>`}</label>`; }).join("")}</div>

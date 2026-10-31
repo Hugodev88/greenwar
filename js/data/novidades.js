@@ -3,6 +3,10 @@
    As frases são traduzidas pelos dicionários em js/i18n/{en,zh,ru}.js (seção "exact"), como o resto do jogo.
    Ao lançar uma fase nova: acrescente uma versão no topo (ver README → "Como atualizar o jogo"). */
 const NOVIDADES = [
+  { v: "1.16.1", data: "2026-10-30", titulo: "Diplomacia traduzida", itens: [
+    "A aba Diplomacia agora aparece inteira em inglês, chinês e russo: previsão, motivos, consequências e respostas dos países.",
+    "Os relatórios do mês sobre dívidas, sanções e apoio estrangeiro também foram traduzidos."
+  ] },
   { v: "1.16", data: "2026-10-30", titulo: "Finais animados e exércitos de verdade", itens: [
     "Cada final ganhou uma cena animada: Recife caiu, Brasília caiu, motim por falta de soldo, A Virada nas Urnas, Inelegível e os outros.",
     "Exércitos não se juntam mais sozinhos: cada um tem nome, general, moral e experiência. Juntar, dividir e renomear é escolha sua.",

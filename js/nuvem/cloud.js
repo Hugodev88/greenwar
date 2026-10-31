@@ -146,18 +146,20 @@ async function busy(button, fn) {
 }
 
 // ---------- botão da conta ----------
+// title é atributo: o observador de tradução só vê texto novo, então traduz aqui.
+const tt = s => (typeof window.trText === "function" ? window.trText(s) : s);
 function renderChip() {
   if (!btn) return;
   btn.hidden = false;
-  if (!st.sb) { btn.innerHTML = "👤 Conta"; btn.title = "Contas na nuvem indisponíveis (sem internet?)"; return; }
-  if (!st.user) { btn.innerHTML = "👤 Entrar"; btn.title = "Entrar para salvar na nuvem (opcional)"; return; }
+  if (!st.sb) { btn.innerHTML = "👤 Conta"; btn.title = tt("Contas na nuvem indisponíveis (sem internet?)"); return; }
+  if (!st.user) { btn.innerHTML = "👤 Entrar"; btn.title = tt("Entrar para salvar na nuvem (opcional)"); return; }
   const dot = st.syncing ? "busy" : st.lastError ? "err" : st.dbReady === false ? "" : "ok";
   const p = st.profile || { id: st.user.id, display_name: (st.user.email || "").split("@")[0] };
   btn.innerHTML = `${avatarHTML(p, 20)}<span class="gwc-name">${esc(displayName(p))}</span><span class="gwc-dot ${dot}"></span>`;
-  btn.title = st.dbReady === false ? "Conectado — saves na nuvem indisponíveis (banco não configurado)"
-    : st.lastError ? "Erro ao sincronizar: " + st.lastError
-    : st.syncing ? "Sincronizando…"
-    : st.lastSync ? "Saves sincronizados às " + new Date(st.lastSync).toLocaleTimeString("pt-BR", { timeStyle: "short" }) : "Conectado";
+  btn.title = st.dbReady === false ? tt("Conectado — saves na nuvem indisponíveis (banco não configurado)")
+    : st.lastError ? tt("Erro ao sincronizar:") + " " + st.lastError
+    : st.syncing ? tt("Sincronizando…")
+    : st.lastSync ? tt("Saves sincronizados às") + " " + new Date(st.lastSync).toLocaleTimeString("pt-BR", { timeStyle: "short" }) : tt("Conectado");
 }
 if (btn) btn.onclick = () => {
   if (!st.sb) return openModal(`<h2>Conta</h2><p>Não foi possível carregar o sistema de contas (sem internet ou bloqueado pelo navegador).</p>

@@ -214,14 +214,15 @@ js/
   i18n/                 traducao.js (camada PT→EN/ZH/RU), en.js, zh.js, ru.js (dicionários; termos em GLOSSARIO.md)
   audio/                audio.js (trilha e efeitos gerados no navegador)
   nuvem/                cloud.js e config.js (contas e saves na nuvem, opcional)
-tests/                  check.js (validação), sim.js (simulação), carregar.js (carrega o jogo no Node)
+tests/                  check.js (validação), sim.js (simulação), carregar.js (carrega o jogo no Node),
+                        textos-diplomacia.js (textos da aba Diplomacia p/ o check), traducao-tela.js (varredura opcional no navegador)
 assets/retratos/        rostos dos personagens fictícios (webp)
 supabase/  tools/       SQL do banco · gerador do mapa
 ```
 Cada arquivo começa com um comentário curto dizendo o que faz. Os testes leem a lista de `<script>` do `index.html`, então um arquivo novo entra no jogo e nos testes no mesmo lugar.
 
 ## Como atualizar o jogo (guia rápido)
-Depois de qualquer mudança: `node tests/check.js` (tem que terminar com "OK" e "Simulação OK"). O check acusa ids repetidos, referências quebradas, arquivos fora do `index.html`, nomes globais repetidos e qualquer texto do cenário 2022 (e do cartão do 1964) sem inglês, chinês ou russo.
+Depois de qualquer mudança: `node tests/check.js` (tem que terminar com "OK" e "Simulação OK"). O check acusa ids repetidos, referências quebradas, arquivos fora do `index.html`, nomes globais repetidos e qualquer texto do cenário 2022 (e do cartão do 1964) sem inglês, chinês ou russo. Também renderiza a aba Diplomacia (todas as fases, atores, pedidos, ofertas e mensagens) e falha se algum texto ficar em português em EN/ZH/RU. Para varrer todas as telas no navegador: `node tests/traducao-tela.js` (precisa de playwright; sem ele, é pulado).
 
 **Novo evento** em `js/data/2022/eventos.js`, dentro da lista `EVENTOS_2022`:
 ```js
